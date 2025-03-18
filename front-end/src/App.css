@@ -10,7 +10,7 @@ body {
     font-family: 'Roboto', sans-serif;
 }
 
-.container {
+.app-container {
     display: flex;
     flex: 1;
     height: 100vh;
