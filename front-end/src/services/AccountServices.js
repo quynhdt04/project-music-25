@@ -1,0 +1,23 @@
+import {
+    get,
+    post
+} from "../utils/request"
+
+export const get_all_accounts = async () => {
+    const result = await get(`api/accounts`);
+    return result;
+}
+
+export const create_account = async (data) => {
+    const result = await post(`api/accounts/create`, data);
+    return result;
+}
+
+export const login = async (email, password = "") => {
+    let pass = "";
+    if (password !== "") {
+        pass = `&password=${password}`;
+    }
+    const result = await get(`api/account?email=${email}${pass}`);
+    return result;
+};
