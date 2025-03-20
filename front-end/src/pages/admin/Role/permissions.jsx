@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import BoxHead from "../../../components/BoxHead";
-import "./role.css";
+import "./Permissions.css";
 import { get_all_roles, patch_role } from "../../../services/RoleServices";
 import { toast, Bounce } from "react-toastify";
 

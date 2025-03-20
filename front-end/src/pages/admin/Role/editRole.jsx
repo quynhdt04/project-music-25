@@ -1,6 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
 import BoxHead from "../../../components/BoxHead";
-import "./role.css";
 import { get_role, patch_role } from "../../../services/RoleServices";
 import { useEffect, useState } from "react";
 import { toast, Bounce } from "react-toastify";
@@ -26,7 +25,7 @@ function EditRole() {
     useEffect(() => {
         if (role) {
             setData({
-                title: role.title || "", 
+                title: role.title || "",
                 desciption: role.desciption || ""
             });
         }
@@ -35,10 +34,10 @@ function EditRole() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const result = await patch_role(param.id, data);
-        if(result.message){
+        if (result.message) {
             navigate(-1);
             toast.success(result.message, { transition: Bounce });
-        }else {
+        } else {
             toast.error(result.error, { transition: Bounce });
         }
     }
@@ -46,29 +45,34 @@ function EditRole() {
     return (
         <>
             <BoxHead title="Chỉnh sửa nhóm quyền" />
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
+            <form onSubmit={handleSubmit} className="from-role">
+                <div className="from-role__group">
                     <label htmlFor="title">Tiêu đề</label>
                     <input
                         type="text"
-                        className="form-control"
                         id="title" name="title"
-                        required 
+                        required
                         defaultValue={role.title}
                         onChange={(e) => setData(prev => ({ ...prev, title: e.target.value }))} />
                 </div>
-                <div className="form-group">
+                <div className="from-role__group">
                     <label htmlFor="desciption">Mô tả</label>
                     <input
                         type="text"
-                        className="form-control"
                         id="desciption"
                         name="description"
                         defaultValue={role.desciption}
-                        onChange={(e) => setData(prev => ({ ...prev, desciption: e.target.value }))}/>
+                        onChange={(e) => setData(prev => ({ ...prev, desciption: e.target.value }))} />
                 </div>
-                <div className="form-group">
-                    <button type="submit" className="btn btn-primary">Cập nhật</button>
+                <div className="from-role__btn">
+                    <button
+                        type="button"
+                        className="btn-back btn"
+                        onClick={() => navigate(-1)}
+                    >
+                        Trở lại
+                    </button>
+                    <button type="submit" className="btn btn-create">Cập nhật</button>
                 </div>
             </form>
         </>

@@ -112,9 +112,11 @@ function LayoutDefault() {
             <div className="admin__user-menu">
               <img src={account.avatar} alt="User Avatar" />
               <div className="user-menu">
-                <button className="menu-item">
-                  Cá nhân <FaRegUser />
-                </button>
+                <Link to="/admin/info-user">
+                  <button className="menu-item">
+                    Cá nhân <FaRegUser />
+                  </button>
+                </Link>
                 <Link to="/admin/logout">
                   <button className="menu-item">
                     Đăng xuất <IoIosLogOut />
