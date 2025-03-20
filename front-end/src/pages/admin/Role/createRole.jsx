@@ -30,17 +30,24 @@ function CreateRole() {
     return (
         <>
             <BoxHead title="Thêm mới nhóm quyền" />
-            <form onSubmit={handleSubmit}>
-                <div className="form-group">
+            <form onSubmit={handleSubmit} className="from-role">
+                <div className="from-role__group">
                     <label htmlFor="title">Tiêu đề</label>
-                    <input type="text" className="form-control" id="title" name="title" required />
+                    <input type="text" id="title" name="title" required />
                 </div>
-                <div className="form-group">
+                <div className="from-role__group">
                     <label htmlFor="desciption">Mô tả</label>
-                    <input type="text" className="form-control" id="desciption" name="description" />
+                    <input type="text" id="desciption" name="description" />
                 </div>
-                <div className="form-group">
-                    <button type="submit" className="btn btn-primary">Tạo mới</button>
+                <div className="from-role__btn">
+                    <button
+                        type="button"
+                        className="btn-back btn"
+                        onClick={() => navigate(-1)}
+                    >
+                        Trở lại
+                    </button>
+                    <button type="submit" className="btn btn-create">Tạo mới</button>
                 </div>
             </form>
         </>
