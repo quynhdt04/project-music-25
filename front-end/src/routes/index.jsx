@@ -20,6 +20,8 @@ import General from "../pages/admin/General";
 import PrivateRouteClient from "../components/PrivateRouteClient";
 import ListSong from "../pages/client/ListSong";
 import MusicLove from "../pages/client/MusicLove";
+import InfoUser from "../pages/admin/InfoUser";
+import EditAccount from "../pages/admin/Account/editAccount";
 
 export const allRoutes = [
     // Routes cho Client
@@ -92,6 +94,10 @@ export const allRoutes = [
                         element: <CreateAccount />,
                     },
                     {
+                        path: "accounts/edit/:id",
+                        element: <EditAccount />,
+                    },
+                    {
                         path: "topics",
                         element: <Topic />,
                     },
@@ -118,6 +124,10 @@ export const allRoutes = [
                     {
                         path: "logout",
                         element: <Logout />,
+                    },
+                    {
+                        path: "info-user",
+                        element: <InfoUser />,
                     },
                 ],
             },

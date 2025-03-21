@@ -1,23 +1,27 @@
 import { useEffect, useState } from "react";
 import BoxHead from "../../../components/BoxHead";
-import "./Account.css";
-import { get_all_accounts } from "../../../services/AccountServices";
+import "./Account.scss";
+import { get_all_accounts, patch_account } from "../../../services/AccountServices";
 import { Link } from "react-router-dom";
 import { get_all_roles } from "../../../services/RoleServices";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 function Account() {
     const [accounts, setAccounts] = useState([]);
     const [roles, setRoles] = useState([]);
     const [data, setData] = useState([]);
+    const MySwal = withReactContent(Swal);
+    const [refresh, setRefresh] = useState(false);
 
     useEffect(() => {
         const fetchAPI = async () => {
             try {
                 const resultAccounts = await get_all_accounts();
                 const resultRoles = await get_all_roles();
-                setAccounts(resultAccounts.accounts);  
+                setAccounts(resultAccounts.accounts);
                 setRoles(resultRoles.roles);
-                
+
                 // Lọc các tài khoản có role_id tồn tại trong danh sách roles
                 const newData = resultAccounts.accounts
                     .map(account => {
@@ -25,27 +29,52 @@ function Account() {
                         return role ? { ...account, role } : null;
                     })
                     .filter(account => account !== null); // Loại bỏ tài khoản không có role
-    
+
                 setData(newData);
             } catch (error) {
                 console.error("Lỗi khi lấy danh sách tài khoản:", error);
             }
         };
         fetchAPI();
-    }, []);
+    }, [refresh]);
+
+    const handleDel = async (id) => {
+
+        MySwal.fire({
+            title: "Xác nhận xóa",
+            text: "Bạn có chắc chắn muốn xóa tài khoản này không?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const response = await patch_account(id, { deleted: true });
+                if (response.message) {
+                    setRefresh(refresh => !refresh);
+                    Swal.fire("Thành công!", "Tài khoản đã được xóa.", "success");
+                } else {
+                    Swal.fire("Thất bại!", "Không thể xóa tài khoản.", "error");
+                }
+            }
+        });
+    }
 
     return (
         <>
             <BoxHead title="Danh sách tài khoản" />
-            <div className="account__search-box">
-                <input type="text" placeholder="Tìm kiếm..." />
-                <button>Tìm</button>
-            </div>
-            <div className="account__card">
-                <div className="account__card-header">Danh sách</div>
-                <div className="account__card-body">
-                    <div className="account__text-right">
-                        <Link to="/admin/accounts/create" className="account__btn account__btn-success" >+ Thêm mới</Link>
+            <div className="account">
+                <div className="account__body">
+                    <div className="account__controll">
+                        <div className="account__search">
+                            <input type="text" placeholder="Tìm kiếm..." />
+                            <button>Tìm</button>
+                        </div>
+                        <div className="account__create">
+                            <Link to="/admin/accounts/create" className="account__btn account__btn-success" >+ Thêm mới</Link>
+                        </div>
                     </div>
                     <table className="account__table">
                         <thead>
@@ -81,13 +110,10 @@ function Account() {
                                             </span>
                                         </td>
                                         <td>
-                                            <a className="account__btn account__btn-secondary" href={`/admin/accounts/detail/${account.id}`}>
-                                                Chi tiết
-                                            </a>
                                             <a className="account__btn account__btn-warning" href={`/admin/accounts/edit/${account.id}`}>
                                                 Sửa
                                             </a>
-                                            <button className="account__btn account__btn-danger">Xóa</button>
+                                            <button className="account__btn account__btn-danger" onClick={() => handleDel(account.id)}>Xóa</button>
                                         </td>
                                     </tr>
                                 ))
