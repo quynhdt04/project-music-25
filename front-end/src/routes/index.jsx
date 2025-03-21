@@ -100,6 +100,10 @@ export const allRoutes = [
                         element: <Singer />,
                     },
                     {
+                        path: "singers/create",
+                        element: <CreateRole />,
+                    },
+                    {
                         path: "songs",
                         element: <Song />,
                     },

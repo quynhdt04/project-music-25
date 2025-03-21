@@ -17,7 +17,7 @@ function Role() {
             setRoles(result.roles);
         }
         fetchAPI();
-    }, [roles]);
+    }, []);
 
     const handleDel = async(id) => {
         // const result = await patch_role(id, {deleted: true});
