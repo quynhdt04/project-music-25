@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { get_all_roles } from "../../../services/RoleServices";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { removeVietnameseTones } from "../../../helpers/regex";
 
 function Account() {
     const [accounts, setAccounts] = useState([]);
@@ -13,6 +14,8 @@ function Account() {
     const [data, setData] = useState([]);
     const MySwal = withReactContent(Swal);
     const [refresh, setRefresh] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+
 
     useEffect(() => {
         const fetchAPI = async () => {
@@ -62,6 +65,12 @@ function Account() {
         });
     }
 
+    const filteredData = searchTerm
+        ? data.filter((account) =>
+            removeVietnameseTones(account.fullName).includes(removeVietnameseTones(searchTerm))
+        )
+        : data;
+
     return (
         <>
             <BoxHead title="Danh sách tài khoản" />
@@ -69,8 +78,11 @@ function Account() {
                 <div className="account__body">
                     <div className="account__controll">
                         <div className="account__search">
-                            <input type="text" placeholder="Tìm kiếm..." />
-                            <button>Tìm</button>
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)} />
                         </div>
                         <div className="account__create">
                             <Link to="/admin/accounts/create" className="account__btn account__btn-success" >+ Thêm mới</Link>
@@ -89,8 +101,8 @@ function Account() {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.length > 0 ? (
-                                data.map((account, index) => (
+                            {filteredData.length > 0 ? (
+                                filteredData.map((account, index) => (
                                     <tr key={account.id}>
                                         <td>{index + 1}</td>
                                         <td>

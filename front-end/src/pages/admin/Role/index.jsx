@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import BoxHead from "../../../components/BoxHead";
-// import "./role.css";
 import "./Role.scss";
 import { Link } from "react-router-dom";
 import { get_all_roles, patch_role } from "../../../services/RoleServices";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { removeVietnameseTones } from "../../../helpers/regex";
 
 function Role() {
 
     const MySwal = withReactContent(Swal);
     const [roles, setRoles] = useState([]);
     const [refresh, setRefresh] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+
     useEffect(() => {
         const fetchAPI = async () => {
             const result = await get_all_roles();
@@ -44,6 +46,12 @@ function Role() {
         });
     }
 
+    const filteredData = searchTerm
+        ? roles.filter((role) =>
+            removeVietnameseTones(role.title).includes(removeVietnameseTones(searchTerm))
+        )
+        : roles;
+
     return (
         <>
             <BoxHead title="Nhóm quyền" />
@@ -51,8 +59,11 @@ function Role() {
                 <div className="role__body">
                     <div className="role__controll">
                         <div className="role__search">
-                            <input type="text" placeholder="Tìm kiếm..." />
-                            <button>Tìm</button>
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)} />
                         </div>
                         <div className="role__create">
                             <Link to="/admin/roles/create" className="role__btn role__btn-success">+ Thêm mới</Link>
@@ -68,8 +79,8 @@ function Role() {
                             </tr>
                         </thead>
                         <tbody>
-                            {roles.length > 0 ? (
-                                roles.map((item, index) => (
+                            {filteredData.length > 0 ? (
+                                filteredData.map((item, index) => (
                                     <tr key={item.id}>
                                         <td>{index + 1}</td>
                                         <td>{item.title}</td>
