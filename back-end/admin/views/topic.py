@@ -4,6 +4,7 @@ import json
 from models.topic import Topic
 from django.core.exceptions import ValidationError
 from slugify import slugify
+from django.utils import timezone
 
 # Lấy danh sách tất cả chủ đề
 @csrf_exempt
@@ -76,21 +77,32 @@ def get_topic_by_id(request, topic_id):
 
 # Chỉnh sửa chủ đề
 
+
 @csrf_exempt
 def update_topic(request, topic_id):
     if request.method == "PUT":
         try:
+            # Lấy chủ đề từ ID
             topic = Topic.objects.get(id=topic_id)
+            
+            # Lấy dữ liệu từ request body
             data = json.loads(request.body)
-
+            
+            # Kiểm tra xem title có tồn tại trong data không
+            if not data.get("title"):
+                return JsonResponse({"error": "Title is required."}, status=400)
+            
+            # Cập nhật các trường của chủ đề
             topic.title = data.get("title", topic.title)
-            topic.slug = data.get("slug", topic.slug)  # hoặc tự generate slug từ title
+            topic.slug = slugify(data.get("slug", data.get("title")))  # Tự động tạo slug từ title nếu không có slug
             topic.avatar = data.get("avatar", topic.avatar)
             topic.description = data.get("description", topic.description)
             topic.status = data.get("status", topic.status)
-            topic.updatedAt = timezone.now()
+            topic.updated_at = timezone.now()  # Cập nhật thời gian
 
+            # Lưu chủ đề vào cơ sở dữ liệu
             topic.save()
+
             return JsonResponse({"message": "Cập nhật chủ đề thành công."}, status=200)
         except Topic.DoesNotExist:
             return JsonResponse({"error": "Chủ đề không tồn tại."}, status=404)

@@ -4,6 +4,7 @@ import {
 } from "../utils/request";
 import { toast } from 'react-toastify';
 
+
  const BASE_URL = "http://localhost:8000";
 // Lấy danh sách tất cả các chủ đề
 export const get_all_topics = async () => {
@@ -51,12 +52,6 @@ export const get_topic = async (id) => {
     return result;
 };
 
-// (Optional) Xóa một chủ đề
-// export const delete_topic_by_id = async (id) => {
-//     const result = await post(`api/topics/delete/${id}`);
-//     return result;
-// };
-// // TopicServices.js
 export const delete_topic_by_id = async (topicId) => {
   const url = `http://localhost:8000/api/topics/${topicId}/delete/`;  // URL của API xóa chủ đề
 
@@ -93,33 +88,38 @@ export async function get_topic_by_id(id) {
   // Cập nhật chủ đề
   
   export async function update_topic(id, data) {
-    const url = `${BASE_URL}/api/topics/edit/${id}`;
-    
-
-    console.log("URL gọi API cập nhật:", url);
-    
-    const response = await fetch(url, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const url = `http://localhost:8000/api/topics/edit/${id}/`;
   
-    const text = await response.text();
-    console.log("Phản hồi từ server:", text);  // 👀 Log để xem HTML hay JSON?
+    console.log("URL gọi API cập nhật:", url);
   
     try {
-      const jsonData = JSON.parse(text);
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+  
+      const text = await response.text();  // Đọc phản hồi như text thay vì JSON
+      console.log("Phản hồi từ server:", text);  // 👀 Log để xem HTML hay JSON?
+  
       if (!response.ok) {
-        throw new Error(jsonData.error || "Lỗi khi cập nhật chủ đề");
+        throw new Error(`Lỗi khi cập nhật chủ đề: ${response.statusText}`);
       }
-      return jsonData;
+  
+      // Thử phân tích JSON nếu phản hồi hợp lệ
+      try {
+        const jsonData = JSON.parse(text);
+        return jsonData;
+      } catch (e) {
+        console.error("LỖI PARSE JSON:", e);
+        throw new Error("Server không trả về JSON hoặc có lỗi khi cập nhật!");
+      }
     } catch (e) {
-      console.error("LỖI PARSE JSON:", e);
-      throw new Error("Server không trả về JSON!");
+      console.error("Lỗi khi gửi yêu cầu:", e);
+      throw new Error("Có lỗi khi gửi yêu cầu cập nhật chủ đề!");
     }
   }
-  
   
   
