@@ -19,8 +19,8 @@ function EditTopic({ topicId, onClose, readOnly = false }) {
   useEffect(() => {
     const fetchTopic = async () => {
       try {
-        const response = await get_topic_by_id(topicId);  // lấy dữ liệu
-        const topic = response.topic;  // ✅ giải nén dữ liệu topic
+        const response = await get_topic_by_id(topicId); // lấy dữ liệu
+        const topic = response.topic; // ✅ giải nén dữ liệu topic
         setFormData({
           title: topic.title || "",
           avatar: topic.avatar || "",
@@ -33,14 +33,15 @@ function EditTopic({ topicId, onClose, readOnly = false }) {
         toast.error("Không thể tải dữ liệu chủ đề.", { transition: Bounce });
       }
     };
-    
+
     fetchTopic();
-  }, [topicId, onClose]);
+  }, [topicId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -51,9 +52,17 @@ function EditTopic({ topicId, onClose, readOnly = false }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Kiểm tra các trường có rỗng không
+    if (!formData.title || !formData.description || !formData.avatar && !avatarFile) {
+      toast.error("Tất cả các trường đều phải được điền đầy đủ!");
+      return;
+    }
+
     try {
       let avatarUrl = formData.avatar;
 
+      // Nếu có file ảnh mới, tải lên Cloudinary
       if (avatarFile) {
         const uploadedUrl = await uploadToCloudinary(avatarFile);
         if (!uploadedUrl) {

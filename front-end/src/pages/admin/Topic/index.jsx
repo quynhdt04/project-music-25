@@ -108,7 +108,7 @@ function Topic() {
                     <td>{topic.title}</td>
                     <td>
                       <img
-                        src={topic.image || "/default-image.png"}
+                        src={topic.avatar || "/default-image.png"}
                         alt="Topic"
                         width="100px"
                         height="auto"

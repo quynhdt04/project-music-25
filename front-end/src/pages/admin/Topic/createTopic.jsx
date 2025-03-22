@@ -8,6 +8,9 @@ export default function CreateTopic({ onClose }) {
   const [imagePreview, setImagePreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const formRef = useRef(null);
+  const [title, setTitle] = useState("");
+  const [avatar, setAvatar] = useState("");
+  const [description, setDescription] = useState("");
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -22,13 +25,17 @@ export default function CreateTopic({ onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formData = new FormData(formRef.current);
-    const topicData = Object.fromEntries(formData.entries());
-    console.log(topicData);
+
+    // Kiểm tra các trường có rỗng không
+    if (!title || !avatarFile || !description) {
+      toast.error("Tất cả các trường đều phải được điền đầy đủ!");
+      return;
+    }
 
     try {
       let avatarUrl = null;
 
+      // Nếu có file ảnh, tải lên Cloudinary
       if (avatarFile) {
         avatarUrl = await uploadToCloudinary(avatarFile);
         if (!avatarUrl) {
@@ -39,15 +46,17 @@ export default function CreateTopic({ onClose }) {
         }
       }
 
+      // Tạo dữ liệu chủ đề
       const newTopic = {
-        title: topicData.title,
-        avatar: avatarUrl,
-        description: topicData.description,
-        status: topicData.status || "active",
+        title,
+        avatar: avatarUrl || avatar,  // Nếu không có ảnh mới, dùng ảnh cũ
+        description,
+        status: "active", // Mặc định là hiển thị
       };
-      console.log("newTopic gửi lên server:", newTopic);
 
+      // Gửi dữ liệu lên server
       const result = await create_topic(newTopic);
+
       if (result && !result.error) {
         toast.success("Tạo chủ đề thành công!", { transition: Bounce });
         formRef.current.reset();
@@ -87,7 +96,6 @@ export default function CreateTopic({ onClose }) {
               Chọn ảnh:
               <input
                 type="file"
-                // title="avatar"
                 accept="image/*"
                 onChange={handleImageChange}
               />
@@ -98,12 +106,22 @@ export default function CreateTopic({ onClose }) {
           <div className="topic__form-right">
             <label>
               Tên chủ đề:
-              <input type="text" name="title" required />
+              <input
+                type="text"
+                name="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
             </label>
 
             <label>
               Mô tả:
-              <textarea name="description" />
+              <textarea
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </label>
 
             <label>
@@ -132,5 +150,3 @@ export default function CreateTopic({ onClose }) {
     </div>
   );
 }
-
-
