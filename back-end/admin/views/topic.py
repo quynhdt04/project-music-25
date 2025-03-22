@@ -1,76 +1,112 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-from models.topic import Topic  # Giả định bạn đã tạo model Topic
+from models.topic import Topic
 from django.core.exceptions import ValidationError
-from models.topic import Topic 
+from slugify import slugify
 
-
+# Lấy danh sách tất cả chủ đề
 @csrf_exempt
 def get_all_topics(request):
-    print(">>> get_all_topics được gọi")
     if request.method == "GET":
         try:
             topics = Topic.objects.all()
-            print("Số lượng topics:", topics.count())
             data = [topic.to_dict() for topic in topics]
             return JsonResponse({"topics": data}, status=200)
         except Exception as e:
-            print("Lỗi DB:", e)
             return JsonResponse({"error": str(e)}, status=400)
+
+# Tạo chủ đề mới
 @csrf_exempt
 def create_topic(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            name = data.get("name", "").strip()
-            description = data.get("description", "").strip()
-            status = data.get("status", "active")
+            title = (data.get("title") or "").strip()
+            description = (data.get("description") or "").strip()
+            avatar = (data.get("avatar") or "").strip()
+            status = (data.get("status") or "active").strip()
 
-            # Validate
-            if not name:
+            print("Dữ liệu nhận từ client:", data)  # 👈 Log dữ liệu nhận được
+
+            if not title:
                 return JsonResponse({"error": "Tên chủ đề không được để trống!"}, status=400)
 
-            # Kiểm tra trùng tên
-            if Topic.objects(name=name).first():
+            if Topic.objects(title=title).first():
                 return JsonResponse({"error": "Tên chủ đề đã tồn tại!"}, status=400)
 
             topic = Topic(
-                name=name,
+                title=title,
+                slug=slugify(title),
                 description=description,
+                avatar=avatar,
                 status=status
             )
             topic.save()
 
-            return JsonResponse({"message": "Tạo chủ đề thành công!", "topic_id": str(topic.id)}, status=201)
+            return JsonResponse({
+                "message": "Tạo chủ đề thành công!",
+                "topic": topic.to_dict()
+            }, status=201)
 
         except ValidationError as e:
+            print("ValidationError:", e)
             return JsonResponse({"error": str(e)}, status=400)
         except Exception as e:
+            print("Exception xảy ra:", e)
             return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=405)
 
 
+# Lấy chi tiết chủ đề theo ID
 @csrf_exempt
-def update_topic_status(request, topic_id):
-    if request.method == "PUT":
+def get_topic_by_id(request, topic_id):
+    if request.method == "GET":
         try:
-            data = json.loads(request.body)
-            new_status = data.get("status")
-
-            if new_status not in ["active", "inactive"]:
-                return JsonResponse({"error": "Trạng thái không hợp lệ!"}, status=400)
-
             topic = Topic.objects.get(id=topic_id)
-            topic.status = new_status
-            topic.save()
-
-            return JsonResponse({"message": "Cập nhật trạng thái thành công"}, status=200)
-
+            return JsonResponse({"topic": topic.to_dict()}, status=200)
         except Topic.DoesNotExist:
             return JsonResponse({"error": "Không tìm thấy chủ đề!"}, status=404)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=405)
+
+
+# Chỉnh sửa chủ đề
+
+@csrf_exempt
+def update_topic(request, topic_id):
+    if request.method == "PUT":
+        try:
+            topic = Topic.objects.get(id=topic_id)
+            data = json.loads(request.body)
+
+            topic.title = data.get("title", topic.title)
+            topic.slug = data.get("slug", topic.slug)  # hoặc tự generate slug từ title
+            topic.avatar = data.get("avatar", topic.avatar)
+            topic.description = data.get("description", topic.description)
+            topic.status = data.get("status", topic.status)
+            topic.updatedAt = timezone.now()
+
+            topic.save()
+            return JsonResponse({"message": "Cập nhật chủ đề thành công."}, status=200)
+        except Topic.DoesNotExist:
+            return JsonResponse({"error": "Chủ đề không tồn tại."}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    else:
+        return JsonResponse({"error": "Phương thức không hợp lệ."}, status=405)
+
+# Xóa chủ đề
+@csrf_exempt
+def delete_topic(request, topic_id):
+    if request.method == 'DELETE':
+        try:
+            topic = Topic.objects.get(id=topic_id)
+            topic.delete()
+            return JsonResponse({"message": "Chủ đề đã được xóa thành công!"}, status=200)
+        except Topic.DoesNotExist:
+            return JsonResponse({"error": "Chủ đề không tồn tại!"}, status=404)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)

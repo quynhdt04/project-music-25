@@ -1,7 +1,7 @@
 from django.urls import path
 from admin.views.account import get_all_accounts, create_account, login, patch_account, get_account_by_id
 from admin.views.role import get_all_roles, create_role, patch_role, get_role_by_id
-from admin.views.topic import get_all_topics, create_topic
+from admin.views.topic import get_all_topics, create_topic, get_topic_by_id,update_topic,delete_topic
 
 urlpatterns = [
     path('account/', login, name='account'), 
@@ -14,6 +14,12 @@ urlpatterns = [
     path('roles/create', create_role, name='create_role'), 
     path('roles/edit/<str:role_id>/', patch_role, name='patch_role'),
     path('roles/<str:role_id>/', get_role_by_id, name='get_role_by_id'),
+    
     path('topics/', get_all_topics, name='get_all_topics'),
     path('topics/create/', create_topic, name='create_topic'),
-]  
+    path('topics/<str:topic_id>/', get_topic_by_id, name='get_topic_by_id'),
+    path('topics/edit/<str:topic_id>/', update_topic, name='update_topic'),
+    path('topics/<str:topic_id>/delete/', delete_topic, name='delete_topic'),
+]
+
+
