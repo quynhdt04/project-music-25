@@ -4,7 +4,7 @@ import { uploadToCloudinary } from "../../../utils/cloudinaryService";
 import "./create.css";
 import { toast, Bounce } from "react-toastify";
 
-export default function CreateTopic({ onClose }) {
+export default function CreateTopic({ onClose, onAddTopic }) {
   const [imagePreview, setImagePreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const formRef = useRef(null);
@@ -49,20 +49,26 @@ export default function CreateTopic({ onClose }) {
       // Tạo dữ liệu chủ đề
       const newTopic = {
         title,
-        avatar: avatarUrl || avatar,  // Nếu không có ảnh mới, dùng ảnh cũ
+        avatar: avatarUrl || avatar, // Nếu không có ảnh mới, dùng ảnh cũ
         description,
         status: "active", // Mặc định là hiển thị
       };
+ 
+      onClose();
 
       // Gửi dữ liệu lên server
       const result = await create_topic(newTopic);
 
       if (result && !result.error) {
+        onAddTopic(newTopic);
         toast.success("Tạo chủ đề thành công!", { transition: Bounce });
-        formRef.current.reset();
+        if (formRef.current) {
+          formRef.current.reset();
+        }
         setImagePreview(null);
         setAvatarFile(null);
         onClose();
+        // onAddTopic(newTopic);
       } else {
         toast.error(result?.error || "Lỗi khi tạo chủ đề!", {
           transition: Bounce,

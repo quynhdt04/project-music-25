@@ -4,7 +4,7 @@ import { uploadToCloudinary } from "../../../utils/cloudinaryService";
 import "./edit.css";
 import { toast, Bounce } from "react-toastify";
 
-function EditTopic({ topicId, onClose, readOnly = false }) {
+function EditTopic({ topicId, onClose, readOnly = false , onUpdateTopic}) {
   const [formData, setFormData] = useState({
     title: "",
     avatar: "",
@@ -83,6 +83,7 @@ function EditTopic({ topicId, onClose, readOnly = false }) {
 
       const result = await update_topic(topicId, updatedTopic);
       if (result.message) {
+        onUpdateTopic(updatedTopic);
         toast.success("Cập nhật chủ đề thành công!", { transition: Bounce });
         onClose();
       } else {

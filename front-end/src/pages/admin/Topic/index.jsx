@@ -8,48 +8,93 @@ import { delete_topic_by_id } from "../../../services/TopicServices";
 
 function Topic() {
   const [topics, setTopics] = useState([]);
-  const [filteredTopics, setFilteredTopics] = useState([]); // chủ đề sau khi lọc
-  const [searchKeyword, setSearchKeyword] = useState(""); // từ khóa tìm kiếm
+  const [filteredTopics, setFilteredTopics] = useState([]); 
+  const [searchKeyword, setSearchKeyword] = useState(""); 
   const [editingTopicId, setEditingTopicId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
 
   useEffect(() => {
+    // Lấy dữ liệu từ localStorage
+    const savedTopics = localStorage.getItem("topics");
+  
+    // Kiểm tra xem có dữ liệu từ localStorage không
+    if (savedTopics) {
+      // Nếu có, parse dữ liệu
+      const parsedTopics = JSON.parse(savedTopics);
+      // Đảm bảo rằng dữ liệu là mảng, nếu không chuyển thành mảng chứa một phần tử
+      setTopics(Array.isArray(parsedTopics) ? parsedTopics : [parsedTopics]);
+      setFilteredTopics(Array.isArray(parsedTopics) ? parsedTopics : [parsedTopics]);
+    } else {
+      setTopics([]);  // Nếu không có dữ liệu từ localStorage, khởi tạo là mảng trống
+      setFilteredTopics([]);  // Khởi tạo filteredTopics là mảng trống
+    }
+  
+    // Lấy dữ liệu từ cơ sở dữ liệu (API)
     const fetchAPI = async () => {
       try {
-        const result = await get_all_topics();
-        setTopics(result.topics);
-        setFilteredTopics(result.topics); // Hiển thị tất cả ban đầu
+        const result = await get_all_topics();  // Gọi API lấy danh sách chủ đề
+        const fetchedTopics = result.topics;
+  
+        // Cập nhật lại dữ liệu chủ đề từ cơ sở dữ liệu
+        setTopics(fetchedTopics);
+        setFilteredTopics(fetchedTopics);
+  
+        // Cập nhật lại localStorage với dữ liệu mới từ cơ sở dữ liệu
+        localStorage.setItem("topics", JSON.stringify(fetchedTopics));
+        
+        console.log("Dữ liệu topics từ cơ sở dữ liệu:", fetchedTopics);
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách chủ đề:", error);
+        console.error("Lỗi khi lấy danh sách chủ đề từ cơ sở dữ liệu:", error);
       }
     };
+  
+    // Gọi API sau khi kiểm tra localStorage
     fetchAPI();
   }, []);
-
-  const handleSearch = () => {
-    const keyword = searchKeyword.trim().toLowerCase();
-    if (!keyword) {
-      setFilteredTopics(topics); // nếu rỗng thì hiển thị lại tất cả
-    } else {
-      const filtered = topics.filter((topic) =>
-        topic.title.toLowerCase().includes(keyword)
-      );
-      setFilteredTopics(filtered);
-    }
+  
+    
+  
+  const handleAddTopic = (newTopic) => {
+    const updatedTopics = [...topics, newTopic];
+    setTopics(updatedTopics);
+    setFilteredTopics(updatedTopics);
+    localStorage.setItem("topics", JSON.stringify(updatedTopics)); // Lưu lại thứ tự mới vào localStorage
   };
+
+// Hàm cập nhật chủ đề
+const handleUpdateTopic = (updatedTopic) => {
+  // Cập nhật lại topics và filteredTopics sau khi nhận phản hồi thành công từ server
+  setTopics((prevTopics) =>
+    prevTopics.map((topic) =>
+      topic.id === updatedTopic.id ? updatedTopic : topic
+    )
+  );
+  
+  setFilteredTopics((prevFilteredTopics) =>
+    prevFilteredTopics.map((topic) =>
+      topic.id === updatedTopic.id ? updatedTopic : topic
+    )
+  );
+
+  // Lưu lại vào localStorage (nếu bạn sử dụng localStorage để lưu dữ liệu)
+  localStorage.setItem("topics", JSON.stringify([...topics, updatedTopic]));
+
+  // Hiển thị thông báo thành công
+  // toast.success("Cập nhật chủ đề thành công!", { transition: Bounce });
+};
+
+
+
   const handleDelete = async (topicId) => {
     const confirmed = window.confirm("Bạn có chắc chắn muốn xóa chủ đề này?");
     if (confirmed) {
-      console.log("Gọi API xóa chủ đề với ID:", topicId);
       try {
         await delete_topic_by_id(topicId);
-        // Cập nhật lại danh sách chủ đề sau khi xóa
-        setTopics((prevTopics) => {
-          const updatedTopics = prevTopics.filter((topic) => topic.id !== topicId);
-          console.log("Danh sách chủ đề sau khi xóa:", updatedTopics); // Kiểm tra lại trạng thái
-          return updatedTopics;
-        });
+        const updatedTopics = topics.filter((topic) => topic.id !== topicId);
+        setTopics(updatedTopics);
+        setFilteredTopics(updatedTopics);
+        localStorage.setItem("topics", JSON.stringify(updatedTopics)); // Lưu lại thứ tự mới vào localStorage
         alert("Xóa chủ đề thành công!");
       } catch (error) {
         console.error("Lỗi khi xóa chủ đề:", error);
@@ -57,8 +102,18 @@ function Topic() {
       }
     }
   };
-  
 
+  const handleSearch = () => {
+    const keyword = searchKeyword.trim().toLowerCase();
+    if (!keyword) {
+      setFilteredTopics(topics); 
+    } else {
+      const filtered = topics.filter((topic) =>
+        topic.title.toLowerCase().includes(keyword)
+      );
+      setFilteredTopics(filtered);
+    }
+  };
 
   return (
     <>
@@ -128,8 +183,8 @@ function Topic() {
                     <td>
                       <button
                         onClick={() => {
-                          setEditingTopicId(topic.id); // Mở modal
-                          setIsReadOnly(true); // Chỉ xem
+                          setEditingTopicId(topic.id);
+                          setIsReadOnly(true); 
                         }}
                         className="topic__btn topic__btn-secondary"
                       >
@@ -137,8 +192,11 @@ function Topic() {
                       </button>
                       <button
                         onClick={() => {
-                          setEditingTopicId(topic.id); // Mở modal
-                          setIsReadOnly(false); // Cho chỉnh sửa
+                          setEditingTopicId(topic.id);
+                          setIsReadOnly(false); 
+                          
+                      
+                          
                         }}
                         className="topic__btn topic__btn-warning"
                       >
@@ -146,10 +204,7 @@ function Topic() {
                       </button>
                       <button
                         className="topic__btn topic__btn-danger"
-                        onClick={() => {
-                          console.log("ID chủ đề muốn xóa:", topic.id); // Kiểm tra giá trị ID
-                          handleDelete(topic.id); // Gọi hàm handleDelete chỉ một lần
-                        }}
+                        onClick={() => handleDelete(topic.id)}
                       >
                         Xóa
                       </button>
@@ -173,7 +228,7 @@ function Topic() {
 
       {/* Modal thêm mới */}
       {showCreateModal && (
-        <CreateTopic onClose={() => setShowCreateModal(false)} />
+        <CreateTopic onAddTopic={handleAddTopic} onClose={() => setShowCreateModal(false)} />
       )}
 
       {/* Modal chỉnh sửa */}
@@ -181,6 +236,7 @@ function Topic() {
         <EditTopic
           topicId={editingTopicId}
           readOnly={isReadOnly}
+          onUpdateTopic={handleUpdateTopic}
           onClose={() => setEditingTopicId(null)}
         />
       )}
