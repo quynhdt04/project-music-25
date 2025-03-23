@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import BoxHead from "../../../components/BoxHead";
 import "./Role.scss";
-import "./Role.scss";
 import { Link } from "react-router-dom";
 import { get_all_roles, patch_role } from "../../../services/RoleServices";
 import Swal from "sweetalert2";
