@@ -52,6 +52,7 @@ function EditTopic({ topicId, onClose, readOnly = false , onUpdateTopic}) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
 
     // Kiểm tra các trường có rỗng không
     if (!formData.title || !formData.description || !formData.avatar && !avatarFile) {
@@ -82,15 +83,16 @@ function EditTopic({ topicId, onClose, readOnly = false , onUpdateTopic}) {
       };
 
       const result = await update_topic(topicId, updatedTopic);
-      if (result.message) {
-        onUpdateTopic(updatedTopic);
-        toast.success("Cập nhật chủ đề thành công!", { transition: Bounce });
-        onClose();
-      } else {
-        toast.error(result.error || "Lỗi khi cập nhật chủ đề!", {
-          transition: Bounce,
-        });
-      }
+      if (result.message && result.topic) 
+      {
+        onUpdateTopic(result.topic);
+      //   toast.success("Cập nhật chủ đề thành công!", { transition: Bounce });
+        onClose();}
+      // } else {
+      //   toast.error(result.error || "Lỗi khi cập nhật chủ đề!", {
+      //     transition: Bounce,
+      //   });
+      // }
     } catch (error) {
       console.error("Lỗi khi cập nhật chủ đề:", error);
       toast.error("Lỗi khi cập nhật chủ đề!", { transition: Bounce });

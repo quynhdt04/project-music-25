@@ -4,9 +4,13 @@ import "./topic.css";
 import { get_all_topics } from "../../../services/TopicServices";
 import CreateTopic from "./createTopic";
 import EditTopic from "./editTopic";
-import { delete_topic_by_id } from "../../../services/TopicServices";
+import {
+  delete_topic_by_id,
+  patch_topic,
+} from "../../../services/TopicServices";
 import { removeVietnameseTones } from "../../../helpers/regex";
-
+import Swal from "sweetalert2";
+import axios from "axios";
 
 function Topic() {
   const [topics, setTopics] = useState([]);
@@ -16,6 +20,7 @@ function Topic() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [refresh, setRefresh] = useState(false);
 
   // useEffect(() => {
   //   const savedTopics = localStorage.getItem("topics");
@@ -61,19 +66,19 @@ function Topic() {
 
   useEffect(() => {
     const savedTopics = localStorage.getItem("topics");
-  
+
     if (savedTopics) {
       const parsedTopics = JSON.parse(savedTopics);
       setTopics(parsedTopics);
       setFilteredTopics(parsedTopics);
       console.log("Dữ liệu từ localStorage:", parsedTopics);
-  
+
       // Gọi API để cập nhật nếu có thay đổi mới (dữ liệu backend khác local)
       const fetchAPI = async () => {
         try {
           const result = await get_all_topics();
           const fetchedTopics = result.topics;
-  
+
           if (
             fetchedTopics &&
             JSON.stringify(fetchedTopics) !== JSON.stringify(parsedTopics)
@@ -88,7 +93,7 @@ function Topic() {
           console.error("Lỗi khi lấy danh sách chủ đề:", error);
         }
       };
-  
+
       fetchAPI(); // Gọi để đồng bộ, nhưng giữ thứ tự cũ nếu giống
     } else {
       // Nếu chưa có localStorage → load lần đầu
@@ -104,24 +109,23 @@ function Topic() {
           console.error("Lỗi khi lấy danh sách chủ đề:", error);
         }
       };
-  
+
       fetchAPI();
     }
   }, []);
-  
 
   useEffect(() => {
     if (searchTerm) {
-        const search = removeVietnameseTones(searchTerm.toLowerCase());
-        const filtered = topics.filter(topic =>
-            removeVietnameseTones(topic.title.toLowerCase()).includes(search)
-        );
-        setFilteredTopics(filtered);
+      const search = removeVietnameseTones(searchTerm.toLowerCase());
+      const filtered = topics.filter((topic) =>
+        removeVietnameseTones(topic.title.toLowerCase()).includes(search)
+      );
+      setFilteredTopics(filtered);
     } else {
-        setFilteredTopics(topics);
+      setFilteredTopics(topics);
     }
-}, [searchTerm, topics]);
-  
+  }, [searchTerm, topics]);
+
   const handleAddTopic = (newTopic) => {
     const updatedTopics = [...topics, newTopic];
     setTopics(updatedTopics);
@@ -130,34 +134,18 @@ function Topic() {
   };
 
   // Hàm cập nhật chủ đề
-//   const handleUpdateTopic = (updatedTopic) => {
-//     const updatedTopics = topics.map((topic) =>
-//       String(topic.id) === String(updatedTopic.id) ? updatedTopic : topic
-//     );
-  
-//     setTopics(updatedTopics);
-//     setFilteredTopics(updatedTopics);
-//     localStorage.setItem("topics", JSON.stringify(updatedTopics));
-//     console.log("Danh sách topics:", topics);
-// console.log("Chủ đề cập nhật:", updatedTopic);
-//   };
-const handleUpdateTopic = (updatedTopic) => {
-  const updatedTopicWithId = {
-    ...updatedTopic,
-    id: updatedTopic.id || updatedTopic._id,
-  };
+  //   const handleUpdateTopic = (updatedTopic) => {
+  //     const updatedTopics = topics.map((topic) =>
+  //       String(topic.id) === String(updatedTopic.id) ? updatedTopic : topic
+  //     );
 
-  const updatedTopics = topics.map((topic) =>
-    String(topic.id) === String(updatedTopicWithId.id)
-      ? updatedTopicWithId
-      : topic
-  );
-
-  setTopics(updatedTopics);
-  setFilteredTopics(updatedTopics);
-  localStorage.setItem("topics", JSON.stringify(updatedTopics));
-};
-
+  //     setTopics(updatedTopics);
+  //     setFilteredTopics(updatedTopics);
+  //     localStorage.setItem("topics", JSON.stringify(updatedTopics));
+  //     console.log("Danh sách topics:", topics);
+  // console.log("Chủ đề cập nhật:", updatedTopic);
+  //   };
+  // -------------------EDIT----------------
 
   const handleDelete = async (topicId) => {
     const confirmed = window.confirm("Bạn có chắc chắn muốn xóa chủ đề này?");
@@ -188,6 +176,56 @@ const handleUpdateTopic = (updatedTopic) => {
     }
   };
 
+  const MySwal = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger",
+    },
+    buttonsStyling: false,
+  });
+
+  const handleUpdateTopic = async (topicId, updatedData) => {
+    console.log("Calling handleUpdateTopic với:", topicId, updatedData);
+    MySwal.fire({
+      title: "Xác nhận sửa",
+      text: "Bạn có chắc chắn muốn sửa chủ đề này không?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sửa",
+      cancelButtonText: "Hủy",
+      
+    }).then(async (result) => {
+      if (!result.isConfirmed) return;
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.put(
+            `http://localhost:8000/api/topics/edit/${topicId}/`,
+            updatedData
+          );
+  
+          console.log("Phản hồi từ server:", response.data);
+          const updatedTopic = response.data.topic;
+  
+          // ✅ Cập nhật danh sách topics ngay sau khi sửa
+          setTopics((prevTopics) =>
+            prevTopics.map((topic) =>
+              topic.id === updatedTopic.id ? updatedTopic : topic
+            )
+          );
+          setFilteredTopics(updatedData);
+          localStorage.setItem("topics", JSON.stringify(updatedData)); // ✅ Lưu lại
+  
+          Swal.fire("Thành công!", "Chủ đề đã được sửa.", "success");
+        } catch (error) {
+          console.error("Lỗi khi sửa chủ đề:", error);
+          Swal.fire("Lỗi!", "Đã xảy ra lỗi khi sửa chủ đề.", "error");
+        }
+      }
+    });
+  };
+  
   return (
     <>
       <BoxHead title="Danh sách chủ đề" />
@@ -300,6 +338,7 @@ const handleUpdateTopic = (updatedTopic) => {
       {showCreateModal && (
         <CreateTopic
           onAddTopic={handleAddTopic}
+          onUpdateTopic={handleUpdateTopic}
           onClose={() => setShowCreateModal(false)}
         />
       )}
@@ -309,7 +348,7 @@ const handleUpdateTopic = (updatedTopic) => {
         <EditTopic
           topicId={editingTopicId}
           readOnly={isReadOnly}
-          onUpdateTopic={handleUpdateTopic}
+          onUpdateTopic={(updatedData) => handleUpdateTopic(editingTopicId, updatedData)}
           onClose={() => setEditingTopicId(null)}
         />
       )}

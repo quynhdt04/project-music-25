@@ -3,16 +3,21 @@ import { create_topic } from "../../../services/TopicServices";
 import { uploadToCloudinary } from "../../../utils/cloudinaryService";
 import "./create.css";
 import { toast, Bounce } from "react-toastify";
+import Swal from "sweetalert2";
+import { patch_topic } from "../../../services/TopicServices"; // Đường dẫn đúng
 
-
-export default function CreateTopic({ onClose, onAddTopic }) {
+export default function CreateTopic({ onClose, onAddTopic, onUpdateTopic }) {
   const [imagePreview, setImagePreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const formRef = useRef(null);
   const [title, setTitle] = useState("");
   const [avatar, setAvatar] = useState("");
   const [description, setDescription] = useState("");
-
+  const [status, setStatus] = useState("active");
+  const [isEdit, setIsEdit] = useState(false);
+  const [editTopicData, setEditTopicData] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [refresh, setRefresh] = useState(false);
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -28,15 +33,13 @@ export default function CreateTopic({ onClose, onAddTopic }) {
     e.preventDefault();
 
     // Kiểm tra các trường có rỗng không
-    if (!title || !avatarFile || !description) {
+    if (!title || !description || (!avatar && !avatarFile)) {
       toast.error("Tất cả các trường đều phải được điền đầy đủ!");
       return;
     }
 
     try {
-      let avatarUrl = null;
-
-      // Nếu có file ảnh, tải lên Cloudinary
+      let avatarUrl = avatar; // Dùng ảnh cũ mặc định
       if (avatarFile) {
         avatarUrl = await uploadToCloudinary(avatarFile);
         if (!avatarUrl) {
@@ -47,37 +50,52 @@ export default function CreateTopic({ onClose, onAddTopic }) {
         }
       }
 
-      // Tạo dữ liệu chủ đề
-      const newTopic = {
+      const topicData = {
         title,
-        avatar: avatarUrl || avatar, // Nếu không có ảnh mới, dùng ảnh cũ
+        avatar: avatarUrl,
         description,
-        status: "active", // Mặc định là hiển thị
+        status,
       };
- 
-      onClose();
 
-      // Gửi dữ liệu lên server
-      const result = await create_topic(newTopic);
+      let result = null;
+
+      if (isEdit && editTopicData?.id) {
+        // Sửa chủ đề
+        result = await patch_topic(editTopicData.id, topicData);
+      } else {
+        // Tạo mới chủ đề
+        result = await create_topic(topicData);
+      }
 
       if (result && !result.error) {
-        onAddTopic(newTopic);
-        toast.success("Tạo chủ đề thành công!", { transition: Bounce });
+        toast.success(
+          isEdit ? "Cập nhật chủ đề thành công!" : "Tạo chủ đề thành công!",
+          {
+            transition: Bounce,
+          }
+        );
+
         if (formRef.current) {
           formRef.current.reset();
         }
         setImagePreview(null);
         setAvatarFile(null);
+        setTitle("");
+        setDescription("");
+        setStatus("active");
+
         onClose();
-        // onAddTopic(newTopic);
+        if (isEdit) {
+          onUpdateTopic(result); // Cập nhật danh sách với topic đã sửa
+        } else {
+          onAddTopic(result); // Thêm vào danh sách topic mới
+        }
       } else {
-        toast.error(result?.error || "Lỗi khi tạo chủ đề!", {
-          transition: Bounce,
-        });
+        toast.error(result?.error || "Có lỗi xảy ra!", { transition: Bounce });
       }
     } catch (error) {
-      console.error("Lỗi khi tạo chủ đề:", error);
-      toast.error("Lỗi khi tạo chủ đề!", { transition: Bounce });
+      console.error("Lỗi:", error);
+      toast.error("Lỗi trong quá trình xử lý!", { transition: Bounce });
     }
   };
 
@@ -133,7 +151,11 @@ export default function CreateTopic({ onClose, onAddTopic }) {
 
             <label>
               Trạng thái:
-              <select name="status" defaultValue="active">
+              <select
+                name="status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
                 <option value="active">Hiển thị</option>
                 <option value="inactive">Ẩn</option>
               </select>
