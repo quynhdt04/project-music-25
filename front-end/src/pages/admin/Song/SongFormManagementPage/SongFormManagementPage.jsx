@@ -7,19 +7,15 @@ import {
   get_song_by_id,
 } from "../../../../services/SongServices";
 import SongDetailPage from "../SongDetailPage/SongDetailPage";
+import { get_all_singers } from "../../../../services/SingerServices";
+import { get_all_topics } from "../../../../services/TopicServices";
 
 const SongFormManagementPage = () => {
   const { action, id } = useParams();
   const [data, setData] = useState({});
   const [listDataOption, setListDataOption] = useState({
-    singers: [
-      { value: "SGR001", label: "Sơn Tùng M-TP" },
-      { value: "SGR002", label: "Hồ Ngọc Hà" },
-    ],
-    topics: [
-      { value: "TPC001", label: "Nhạc trẻ" },
-      { value: "TPC002", label: "Ballad" },
-    ],
+    singers: [],
+    topics: [],
   });
   const [fetchingStatus, setFetchingStatus] = useState({
     isLoading: true,
@@ -28,46 +24,79 @@ const SongFormManagementPage = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      let response = null;
       let formattedData = {};
+      let singerOptions = [];
+      let topicOptions = [];
+
       setFetchingStatus({ isLoading: true, isError: false });
       if (action === "create") {
-        response = await get_latest_song();
+        const [latestSongResponse, singersResponse, topicsResponse] =
+          await Promise.all([
+            get_latest_song(),
+            get_all_singers(),
+            get_all_topics(),
+          ]);
+
         formattedData = {
-          songId: response.data._id,
-          title: response.data.title,
-          status: response.data.status,
-          deleted: response.data.deleted,
-          audio: response.data.audio,
+          songId: latestSongResponse.data._id,
+          title: latestSongResponse.data.title,
+          status: latestSongResponse.data.status,
+          deleted: latestSongResponse.data.deleted,
+          audio: latestSongResponse.data.audio,
         };
+        singerOptions = singersResponse.singers.map((singer) => ({
+          value: singer.id,
+          label: singer.fullName,
+        }));
+        topicOptions = topicsResponse.topics.map((topic) => ({
+          value: topic.id,
+          label: topic.title,
+        }));
       } else {
-        response = await get_song_by_id(id);
+        const [songByIdResponse, singersResponse, topicsResponse] =
+          await Promise.all([
+            get_song_by_id(id),
+            get_all_singers(),
+            get_all_topics(),
+          ]);
         formattedData = {
-          songId: response.data._id,
-          title: response.data.title,
-          avatar: response.data.avatar,
-          audio: response.data.audio,
-          video: response.data.video,
-          description: response.data.description,
-          singers: response.data.singers.map((singer) => ({
+          songId: songByIdResponse.data._id,
+          title: songByIdResponse.data.title,
+          avatar: songByIdResponse.data.avatar,
+          audio: songByIdResponse.data.audio,
+          video: songByIdResponse.data.video,
+          description: songByIdResponse.data.description,
+          singers: songByIdResponse.data.singers.map((singer) => ({
             value: singer.singerId,
             label: singer.singerName,
           })),
-          topics: response.data.topics.map((topic) => ({
+          topics: songByIdResponse.data.topics.map((topic) => ({
             value: topic.topicId,
             label: topic.topicName,
           })),
-          like: response.data.like,
-          lyrics: response.data.lyrics.map((sentence) => ({
+          like: songByIdResponse.data.like,
+          lyrics: songByIdResponse.data.lyrics.map((sentence) => ({
             content: sentence.lyricContent,
             beginAt: sentence.lyricStartTime,
             endAt: sentence.lyricEndTime,
           })),
-          status: response.data.status,
-          deleted: response.data.deleted,
+          status: songByIdResponse.data.status,
+          deleted: songByIdResponse.data.deleted,
         };
+        singerOptions = singersResponse.singers.map((singer) => ({
+          value: singer.id,
+          label: singer.fullName,
+        }));
+        topicOptions = topicsResponse.topics.map((topic) => ({
+          value: topic.id,
+          label: topic.title,
+        }));
       }
       setData(formattedData);
+      setListDataOption({
+        singers: singerOptions,
+        topics: topicOptions,
+      });
       setFetchingStatus({ isLoading: false, isError: false });
     } catch (error) {
       setFetchingStatus({ isLoading: false, isError: true });

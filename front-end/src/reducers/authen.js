@@ -12,6 +12,8 @@ export const authenReducer = (state = initialState, action) => {
             return { ...state, account: action.value }; 
         case "ROLE":
             return { ...state, role: action.value }; 
+        case "ACCOUNT_UPDATE":
+            return {...state, account: action.value};
         default:
             return state;
     }

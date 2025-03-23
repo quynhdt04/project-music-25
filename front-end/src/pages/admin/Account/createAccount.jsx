@@ -72,66 +72,32 @@ function CreateAccount() {
         ref={formRef}
         onSubmit={handleSubmit}
         method="POST"
-        className="create-account-form"
+        className="from-account"
       >
-        <div className="create-account-group">
-          <label htmlFor="fullName" className="create-account-label">
-            Họ tên *
-          </label>
-          <input
-            type="text"
-            className="create-account-input"
-            id="fullName"
-            name="fullName"
-            required
-          />
+        <div className="from-account__group">
+          <label htmlFor="fullName">Họ tên *</label>
+          <input type="text" id="fullName" name="fullName" required />
         </div>
 
-        <div className="create-account-group">
-          <label htmlFor="email" className="create-account-label">
-            Email *
-          </label>
-          <input
-            type="email"
-            className="create-account-input"
-            id="email"
-            name="email"
-            required
-          />
+        <div className="from-account__group">
+          <label htmlFor="email">Email *</label>
+          <input type="email" id="email" name="email" required />
         </div>
 
-        <div className="create-account-group">
-          <label htmlFor="password" className="create-account-label">
-            Mật khẩu *
-          </label>
-          <input
-            type="password"
-            className="create-account-input"
-            id="password"
-            name="password"
-            required
-          />
+        <div className="from-account__group">
+          <label htmlFor="password">Mật khẩu *</label>
+          <input type="password" id="password" name="password" required />
         </div>
 
-        <div className="create-account-group">
-          <label htmlFor="phone" className="create-account-label">
-            Số điện thoại
-          </label>
-          <input
-            type="tel"
-            className="create-account-input"
-            id="phone"
-            name="phone"
-          />
+        <div className="from-account__group">
+          <label htmlFor="phone">Số điện thoại</label>
+          <input type="tel" id="phone" name="phone" />
         </div>
 
-        <div className="create-account-group">
-          <label htmlFor="avatar" className="create-account-label">
-            Ảnh đại diện
-          </label>
+        <div className="from-account__group">
+          <label htmlFor="avatar">Ảnh đại diện</label>
           <input
             type="file"
-            className="create-account-input"
             id="avatar"
             name="avatar"
             accept="image/*"
@@ -146,16 +112,9 @@ function CreateAccount() {
           )}
         </div>
 
-        <div className="create-account-group">
-          <label htmlFor="role_id" className="create-account-label">
-            Phân quyền
-          </label>
-          <select
-            name="role_id"
-            id="role_id"
-            className="create-account-input"
-            defaultValue=""
-          >
+        <div className="from-account__group">
+          <label htmlFor="role_id">Phân quyền</label>
+          <select name="role_id" id="role_id" defaultValue="">
             <option value="" disabled>
               --Chọn--
             </option>
@@ -167,13 +126,12 @@ function CreateAccount() {
           </select>
         </div>
 
-        <div className="create-account-group create-account-status-container">
-          <label className="create-account-label">Trạng thái</label>
-          <div className="create-account-status-options">
-            <label className="create-account-status-item">
+        <div className="from-account__box">
+          <label>Trạng thái</label>
+          <div className="from-account__status">
+            <label className="from-account__item">
               <input
                 type="radio"
-                className="create-account-status-input"
                 id="statusActive"
                 name="status"
                 value="active"
@@ -181,10 +139,9 @@ function CreateAccount() {
               />
               <span>Hoạt động</span>
             </label>
-            <label className="create-account-status-item">
+            <label className="from-account__item">
               <input
                 type="radio"
-                className="create-account-status-input"
                 id="statusInactive"
                 name="status"
                 value="inactive"
@@ -194,9 +151,18 @@ function CreateAccount() {
           </div>
         </div>
 
-        <button type="submit" className="create-account-submit-btn">
-          Tạo mới
-        </button>
+        <div className="from-account__btn">
+          <button
+            type="button"
+            className="btn-back btn"
+            onClick={() => navigate(-1)}
+          >
+            Trở lại
+          </button>
+          <button type="submit" className="btn btn-create">
+            Tạo mới
+          </button>
+        </div>
       </form>
     </>
   );

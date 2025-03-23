@@ -21,6 +21,10 @@ import PrivateRouteClient from "../components/PrivateRouteClient";
 import ListSong from "../pages/client/ListSong";
 import MusicLove from "../pages/client/MusicLove";
 import SongFormManagementPage from "../pages/admin/Song/SongFormManagementPage/SongFormManagementPage";
+import InfoUser from "../pages/admin/InfoUser";
+import EditAccount from "../pages/admin/Account/editAccount";
+import CreateTopic from "../pages/admin/Topic/createTopic";
+import EditTopic from "../pages/admin/Topic/editTopic";
 
 export const allRoutes = [
   // Routes cho Client
@@ -93,12 +97,20 @@ export const allRoutes = [
             element: <CreateAccount />,
           },
           {
+            path: "accounts/edit/:id",
+            element: <EditAccount />,
+          },
+          {
             path: "topics",
             element: <Topic />,
           },
           {
             path: "singers",
             element: <Singer />,
+          },
+          {
+            path: "singers/create",
+            element: <CreateRole />,
           },
           {
             path: "songs",
@@ -119,6 +131,18 @@ export const allRoutes = [
           {
             path: "logout",
             element: <Logout />,
+          },
+          {
+            path: "info-user",
+            element: <InfoUser />,
+          },
+          {
+            path: "topics/create",
+            element: <CreateTopic />,
+          },
+          {
+            path: "topics/edit/:id",
+            element: <EditTopic />,
           },
         ],
       },

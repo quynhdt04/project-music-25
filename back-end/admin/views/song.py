@@ -8,6 +8,7 @@ import hashlib
 from django.views.decorators.csrf import csrf_exempt
 from asgiref.sync import sync_to_async
 import json
+from slugify import slugify
 from models.song import Song, Singer, Topic, Lyric
 import logging
 import traceback
@@ -32,7 +33,8 @@ async def list_all_song(request):
                     "status": song.status,
                     "deleted": song.deleted,
                     "createdAt": song.createdAt,
-                    "updatedAt": song.updatedAt
+                    "updatedAt": song.updatedAt,
+                    "slug": song.slug,
                 }
                 for song in songs
             ]
@@ -65,13 +67,13 @@ async def upload_files_to_cloudinary(files):
 
         # Upload files to Cloudinary only once
         if image_file:
-            image_url = upload_file_to_cloudinary(image_file, "Spotify/images", resource_type="image")
+            image_url = upload_file_to_cloudinary(image_file, "Spotify/images", "image")
         
         if audio_file:
-            audio_url = upload_file_to_cloudinary(audio_file, "Spotify/audios", resource_type="video")
+            audio_url = upload_file_to_cloudinary(audio_file, "Spotify/audios", "video")
         
         if video_file:
-            video_url = upload_file_to_cloudinary(video_file, "Spotify/videos", resource_type="video")
+            video_url = upload_file_to_cloudinary(video_file, "Spotify/videos", "video")
         
         
         # Return the URLs of the uploaded files
@@ -87,7 +89,7 @@ async def upload_files_to_cloudinary(files):
         logger.error("Error in upload_files_to_cloudinary: %s", traceback.format_exc())
         return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)    
 
-async def upload_file_to_cloudinary(file, folder, type):
+def upload_file_to_cloudinary(file, folder, type):
     try:
         # Upload the file to Cloudinary
         public_id = generate_public_id(file)
@@ -158,7 +160,8 @@ async def create_new_song(request):
                 lyrics=lyrics,
                 status=status,
                 deleted=deleted,
-                deletedAt=deletedAt
+                deletedAt=deletedAt,
+                slug=slugify(title),
             )
             await sync_to_async(new_song.save)()
 
@@ -201,6 +204,7 @@ async def get_song_by_id(request, song_id):
                 ],
                 "status": song.status,
                 "deleted": song.deleted,
+                "slug": song.slug,
                 "createdAt": song.createdAt.isoformat() if song.createdAt else None,
                 "updatedAt": song.updatedAt.isoformat() if song.updatedAt else None,
             }

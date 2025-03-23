@@ -32,6 +32,7 @@ class Song(Document):
     status = StringField(default="active") 
     deleted = BooleanField(default=False)
     deletedAt = DateTimeField(default=None)
+    slug = StringField()
 
     # Tự động thêm timestamps 
     createdAt = DateTimeField(default=datetime.datetime.now(datetime.timezone.utc))

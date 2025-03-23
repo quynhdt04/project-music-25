@@ -1,12 +1,17 @@
 from django.urls import path
-from admin.views.account import get_all_accounts, create_account, login
+from admin.views.singer import get_all_singers
+from admin.views.account import get_all_accounts, create_account, login, patch_account, get_account_by_id
 from admin.views.role import get_all_roles, create_role, patch_role, get_role_by_id
 from admin.views.song import list_all_song, get_song_by_id, create_new_song, update_song_data, get_latest_song, delete_song_data, delete_multiple_songs, restore_multiple_songs
+from admin.views.topic import get_all_topics, create_topic, get_topic_by_id,update_topic,delete_topic
 
 urlpatterns = [
     path('account/', login, name='account'), 
     path('accounts/', get_all_accounts, name='get_all_accounts'), 
     path('accounts/create', create_account, name='create_account'), 
+    path('accounts/edit/<str:account_id>/', patch_account, name='patch_account'),
+    path('accounts/<str:account_id>/', get_account_by_id, name='get_account_by_id'),
+
     path('roles', get_all_roles, name='get_all_roles'), 
     path('roles/create', create_role, name='create_role'), 
     path('roles/edit/<str:role_id>/', patch_role, name='patch_role'),
@@ -19,4 +24,12 @@ urlpatterns = [
     path('songs/delete/<str:song_id>/', delete_song_data, name='delete_song_data'),
     path('songs/delete-multiple', delete_multiple_songs, name='delete_multiple_songs'),
     path('songs/restore-multiple', restore_multiple_songs, name='restore_multiple_songs'),
+    path('singers/',get_all_singers, name='get_all_singers'),
+    path('topics/', get_all_topics, name='get_all_topics'),
+    path('topics/create/', create_topic, name='create_topic'),
+    path('topics/<str:topic_id>/', get_topic_by_id, name='get_topic_by_id'),
+    path('topics/edit/<str:topic_id>/', update_topic, name='update_topic'),
+    path('topics/<str:topic_id>/delete/', delete_topic, name='delete_topic'),
 ]
+
+
