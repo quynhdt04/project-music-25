@@ -97,6 +97,12 @@
 .topic__badge-deleted {
   background: #dc3545;
 }
+.topic__text{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+}
 
 .topic__text-right {
   text-align: right;
@@ -104,7 +110,6 @@
 
 .topic__search-box {
   display: flex;
-  justify-content: flex-end;
   margin-bottom: 15px;
 }
 
