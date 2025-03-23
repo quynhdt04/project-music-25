@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
 from decouple import config
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -98,4 +101,15 @@ DATABASES = {
     }
 }
 
+CLOUDINARY = {
+    'cloud_name': config("CLOUDINARY_CLOUD_NAME"),  # Replace with your Cloudinary cloud name
+    'api_key': config("CLOUDINARY_API_KEY"),      # Replace with your Cloudinary API key
+    'api_secret': config("CLOUDINARY_API_SECRET"),  # Replace with your Cloudinary API secret
+}
 
+# Initialize Cloudinary
+cloudinary.config(
+    cloud_name=CLOUDINARY['cloud_name'],
+    api_key=CLOUDINARY['api_key'],
+    api_secret=CLOUDINARY['api_secret']
+)
