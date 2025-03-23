@@ -5,13 +5,17 @@ from models.topic import Topic
 from django.core.exceptions import ValidationError
 from slugify import slugify
 from django.utils import timezone
+from asgiref.sync import sync_to_async
+import logging
+import traceback
+logger = logging.getLogger(__name__)
 
 # Lấy danh sách tất cả chủ đề
 @csrf_exempt
-def get_all_topics(request):
+async def get_all_topics(request):
     if request.method == "GET":
         try:
-            topics = Topic.objects.all()
+            topics = await sync_to_async(list)(Topic.objects.all())
             data = [topic.to_dict() for topic in topics]
             return JsonResponse({"topics": data}, status=200)
         except Exception as e:

@@ -3,12 +3,16 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from models.singer import Singer
 from django.core.exceptions import ValidationError
+from asgiref.sync import sync_to_async
+import logging
+import traceback
+logger = logging.getLogger(__name__)
 
 @csrf_exempt
-def get_all_singers(request):
+async def get_all_singers(request):
     if request.method == "GET":
         try:
-            singers = Singer.objects.all()
+            singers = await sync_to_async(list)(Singer.objects.all())
             singers_list = [
                 {
                     "id": str(s.id),
