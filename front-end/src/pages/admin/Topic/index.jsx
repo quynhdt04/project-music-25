@@ -5,55 +5,122 @@ import { get_all_topics } from "../../../services/TopicServices";
 import CreateTopic from "./createTopic";
 import EditTopic from "./editTopic";
 import { delete_topic_by_id } from "../../../services/TopicServices";
+import { removeVietnameseTones } from "../../../helpers/regex";
+
 
 function Topic() {
   const [topics, setTopics] = useState([]);
-  const [filteredTopics, setFilteredTopics] = useState([]); 
-  const [searchKeyword, setSearchKeyword] = useState(""); 
+  const [filteredTopics, setFilteredTopics] = useState([]);
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [editingTopicId, setEditingTopicId] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // useEffect(() => {
+  //   const savedTopics = localStorage.getItem("topics");
+  //   console.log("Dữ liệu nhận:", topics);
+
+  //   if (savedTopics) {
+  //     const parsedTopics = JSON.parse(savedTopics);
+
+  //     // Đảm bảo thứ tự được giữ nguyên từ localStorage
+  //     setTopics(Array.isArray(parsedTopics) ? parsedTopics : [parsedTopics]);
+  //     setFilteredTopics(
+  //       Array.isArray(parsedTopics) ? parsedTopics : [parsedTopics]
+  //     );
+  //     console.log("Dữ liệu lấy từ localStorage:", parsedTopics);
+  //   } else {
+  //     setTopics([]);
+  //     setFilteredTopics([]);
+  //   }
+
+  //   const fetchAPI = async () => {
+  //     try {
+  //       const result = await get_all_topics(); // Gọi API lấy danh sách chủ đề
+  //       const fetchedTopics = result.topics;
+
+  //       if (
+  //         fetchedTopics &&
+  //         JSON.stringify(fetchedTopics) !== JSON.stringify(topics)
+  //       ) {
+  //         setTopics(fetchedTopics);
+  //         setFilteredTopics(fetchedTopics);
+  //         localStorage.setItem("topics", JSON.stringify(fetchedTopics));
+  //         console.log("Dữ liệu topics từ cơ sở dữ liệu:", fetchedTopics);
+  //       }
+  //     } catch (error) {
+  //       console.error("Lỗi khi lấy danh sách chủ đề từ cơ sở dữ liệu:", error);
+  //     }
+  //   };
+
+  //   if (!savedTopics) {
+  //     fetchAPI();
+  //   }
+  // }, []);
 
   useEffect(() => {
-    // Lấy dữ liệu từ localStorage
     const savedTopics = localStorage.getItem("topics");
   
-    // Kiểm tra xem có dữ liệu từ localStorage không
     if (savedTopics) {
-      // Nếu có, parse dữ liệu
       const parsedTopics = JSON.parse(savedTopics);
-      // Đảm bảo rằng dữ liệu là mảng, nếu không chuyển thành mảng chứa một phần tử
-      setTopics(Array.isArray(parsedTopics) ? parsedTopics : [parsedTopics]);
-      setFilteredTopics(Array.isArray(parsedTopics) ? parsedTopics : [parsedTopics]);
+      setTopics(parsedTopics);
+      setFilteredTopics(parsedTopics);
+      console.log("Dữ liệu từ localStorage:", parsedTopics);
+  
+      // Gọi API để cập nhật nếu có thay đổi mới (dữ liệu backend khác local)
+      const fetchAPI = async () => {
+        try {
+          const result = await get_all_topics();
+          const fetchedTopics = result.topics;
+  
+          if (
+            fetchedTopics &&
+            JSON.stringify(fetchedTopics) !== JSON.stringify(parsedTopics)
+          ) {
+            // Có khác biệt, cập nhật localStorage
+            setTopics(fetchedTopics);
+            setFilteredTopics(fetchedTopics);
+            localStorage.setItem("topics", JSON.stringify(fetchedTopics));
+            console.log("Dữ liệu mới từ API:", fetchedTopics);
+          }
+        } catch (error) {
+          console.error("Lỗi khi lấy danh sách chủ đề:", error);
+        }
+      };
+  
+      fetchAPI(); // Gọi để đồng bộ, nhưng giữ thứ tự cũ nếu giống
     } else {
-      setTopics([]);  // Nếu không có dữ liệu từ localStorage, khởi tạo là mảng trống
-      setFilteredTopics([]);  // Khởi tạo filteredTopics là mảng trống
+      // Nếu chưa có localStorage → load lần đầu
+      const fetchAPI = async () => {
+        try {
+          const result = await get_all_topics();
+          const fetchedTopics = result.topics;
+          setTopics(fetchedTopics);
+          setFilteredTopics(fetchedTopics);
+          localStorage.setItem("topics", JSON.stringify(fetchedTopics));
+          console.log("Dữ liệu ban đầu từ API:", fetchedTopics);
+        } catch (error) {
+          console.error("Lỗi khi lấy danh sách chủ đề:", error);
+        }
+      };
+  
+      fetchAPI();
     }
-  
-    // Lấy dữ liệu từ cơ sở dữ liệu (API)
-    const fetchAPI = async () => {
-      try {
-        const result = await get_all_topics();  // Gọi API lấy danh sách chủ đề
-        const fetchedTopics = result.topics;
-  
-        // Cập nhật lại dữ liệu chủ đề từ cơ sở dữ liệu
-        setTopics(fetchedTopics);
-        setFilteredTopics(fetchedTopics);
-  
-        // Cập nhật lại localStorage với dữ liệu mới từ cơ sở dữ liệu
-        localStorage.setItem("topics", JSON.stringify(fetchedTopics));
-        
-        console.log("Dữ liệu topics từ cơ sở dữ liệu:", fetchedTopics);
-      } catch (error) {
-        console.error("Lỗi khi lấy danh sách chủ đề từ cơ sở dữ liệu:", error);
-      }
-    };
-  
-    // Gọi API sau khi kiểm tra localStorage
-    fetchAPI();
   }, []);
   
-    
+
+  useEffect(() => {
+    if (searchTerm) {
+        const search = removeVietnameseTones(searchTerm.toLowerCase());
+        const filtered = topics.filter(topic =>
+            removeVietnameseTones(topic.title.toLowerCase()).includes(search)
+        );
+        setFilteredTopics(filtered);
+    } else {
+        setFilteredTopics(topics);
+    }
+}, [searchTerm, topics]);
   
   const handleAddTopic = (newTopic) => {
     const updatedTopics = [...topics, newTopic];
@@ -62,28 +129,34 @@ function Topic() {
     localStorage.setItem("topics", JSON.stringify(updatedTopics)); // Lưu lại thứ tự mới vào localStorage
   };
 
-// Hàm cập nhật chủ đề
-const handleUpdateTopic = (updatedTopic) => {
-  // Cập nhật lại topics và filteredTopics sau khi nhận phản hồi thành công từ server
-  setTopics((prevTopics) =>
-    prevTopics.map((topic) =>
-      topic.id === updatedTopic.id ? updatedTopic : topic
-    )
-  );
+  // Hàm cập nhật chủ đề
+//   const handleUpdateTopic = (updatedTopic) => {
+//     const updatedTopics = topics.map((topic) =>
+//       String(topic.id) === String(updatedTopic.id) ? updatedTopic : topic
+//     );
   
-  setFilteredTopics((prevFilteredTopics) =>
-    prevFilteredTopics.map((topic) =>
-      topic.id === updatedTopic.id ? updatedTopic : topic
-    )
+//     setTopics(updatedTopics);
+//     setFilteredTopics(updatedTopics);
+//     localStorage.setItem("topics", JSON.stringify(updatedTopics));
+//     console.log("Danh sách topics:", topics);
+// console.log("Chủ đề cập nhật:", updatedTopic);
+//   };
+const handleUpdateTopic = (updatedTopic) => {
+  const updatedTopicWithId = {
+    ...updatedTopic,
+    id: updatedTopic.id || updatedTopic._id,
+  };
+
+  const updatedTopics = topics.map((topic) =>
+    String(topic.id) === String(updatedTopicWithId.id)
+      ? updatedTopicWithId
+      : topic
   );
 
-  // Lưu lại vào localStorage (nếu bạn sử dụng localStorage để lưu dữ liệu)
-  localStorage.setItem("topics", JSON.stringify([...topics, updatedTopic]));
-
-  // Hiển thị thông báo thành công
-  // toast.success("Cập nhật chủ đề thành công!", { transition: Bounce });
+  setTopics(updatedTopics);
+  setFilteredTopics(updatedTopics);
+  localStorage.setItem("topics", JSON.stringify(updatedTopics));
 };
-
 
 
   const handleDelete = async (topicId) => {
@@ -106,7 +179,7 @@ const handleUpdateTopic = (updatedTopic) => {
   const handleSearch = () => {
     const keyword = searchKeyword.trim().toLowerCase();
     if (!keyword) {
-      setFilteredTopics(topics); 
+      setFilteredTopics(topics);
     } else {
       const filtered = topics.filter((topic) =>
         topic.title.toLowerCase().includes(keyword)
@@ -125,8 +198,8 @@ const handleUpdateTopic = (updatedTopic) => {
               <input
                 type="text"
                 placeholder="Tìm kiếm..."
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     handleSearch();
@@ -184,7 +257,7 @@ const handleUpdateTopic = (updatedTopic) => {
                       <button
                         onClick={() => {
                           setEditingTopicId(topic.id);
-                          setIsReadOnly(true); 
+                          setIsReadOnly(true);
                         }}
                         className="topic__btn topic__btn-secondary"
                       >
@@ -193,10 +266,7 @@ const handleUpdateTopic = (updatedTopic) => {
                       <button
                         onClick={() => {
                           setEditingTopicId(topic.id);
-                          setIsReadOnly(false); 
-                          
-                      
-                          
+                          setIsReadOnly(false);
                         }}
                         className="topic__btn topic__btn-warning"
                       >
@@ -228,7 +298,10 @@ const handleUpdateTopic = (updatedTopic) => {
 
       {/* Modal thêm mới */}
       {showCreateModal && (
-        <CreateTopic onAddTopic={handleAddTopic} onClose={() => setShowCreateModal(false)} />
+        <CreateTopic
+          onAddTopic={handleAddTopic}
+          onClose={() => setShowCreateModal(false)}
+        />
       )}
 
       {/* Modal chỉnh sửa */}

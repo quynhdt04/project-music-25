@@ -3,15 +3,22 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from models.topic import Topic
 from django.core.exceptions import ValidationError
-from slugify import slugify
+from slugify import slugify 
 from django.utils import timezone
+from asgiref.sync import sync_to_async
+import logging
+import traceback
+# import slugify
+
+logger = logging.getLogger(__name__)
+print(slugify("Tiêu đề bài hát mới")) 
 
 # Lấy danh sách tất cả chủ đề
 @csrf_exempt
-def get_all_topics(request):
+async def get_all_topics(request):
     if request.method == "GET":
         try:
-            topics = Topic.objects.all()
+            topics = await sync_to_async(list)(Topic.objects.all())
             data = [topic.to_dict() for topic in topics]
             return JsonResponse({"topics": data}, status=200)
         except Exception as e:
@@ -103,7 +110,10 @@ def update_topic(request, topic_id):
             # Lưu chủ đề vào cơ sở dữ liệu
             topic.save()
 
-            return JsonResponse({"message": "Cập nhật chủ đề thành công."}, status=200)
+            return JsonResponse({
+    "message": "Cập nhật chủ đề thành công.",
+    "topic": topic.to_dict()
+}, status=200)
         except Topic.DoesNotExist:
             return JsonResponse({"error": "Chủ đề không tồn tại."}, status=404)
         except Exception as e:
@@ -121,4 +131,4 @@ def delete_topic(request, topic_id):
             return JsonResponse({"message": "Chủ đề đã được xóa thành công!"}, status=200)
         except Topic.DoesNotExist:
             return JsonResponse({"error": "Chủ đề không tồn tại!"}, status=404)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)  
