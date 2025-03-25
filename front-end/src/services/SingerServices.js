@@ -1,5 +1,7 @@
 import {
-    get
+    get,
+    post,
+    patch
 } from "../utils/request"
 
 export const get_all_singers = async () => {
@@ -7,7 +9,12 @@ export const get_all_singers = async () => {
     return result;
 }
 
-// export const create_account = async (data) => {
-//     const result = await post(`api/singers/create`, data);
-//     return result;
-// }
+export const create_singer = async (data) => {
+    const result = await post(`api/singers/create`, data);
+    return result;
+}
+
+export const patch_singer = async (id, data) => {
+    const result = await patch(`api/singers/edit`, id, data);
+    return result;
+}

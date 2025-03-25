@@ -1,8 +1,10 @@
 import BoxHead from "../../../components/BoxHead";
 import { useEffect, useState } from "react";
-import "./Singer.css";
+import "./Singer.scss";
 import { get_all_singers } from "../../../services/SingerServices";
 import { Link } from "react-router-dom";
+// import Swal from "sweetalert2";
+// import withReactContent from "sweetalert2-react-content";
 
 function Singer() {
     const [singers, setSingers] = useState([]);
@@ -27,15 +29,16 @@ function Singer() {
     return (
         <>
             <BoxHead title="Danh sách ca sĩ" />
-            <div className="singer__search-box">
-                <input type="text" placeholder="Tìm kiếm..." />
-                <button>Tìm</button>
-            </div>
-            <div className="singer__card">
-                <div className="singer__card-header">Danh sách</div>
-                <div className="singer__card-body">
-                    <div className="singer__text-right">
-                        <Link to="/admin/singers/" className="singer__btn singer__btn-success" >+ Thêm mới</Link>
+            <div className="singer">
+                <div className="singer__body">
+                    <div className="singer__controll">
+                        <div className="singer__search">
+                            <input type="text" placeholder="Tìm kiếm..." />
+                            <button>Tìm</button>
+                        </div>
+                        <div className="singer__create">
+                            <Link to="/admin/singers/create" className="singer__btn singer__btn-success" >+ Thêm mới</Link>
+                        </div>
                     </div>
                     <table className="singer__table">
                         <thead>
@@ -70,7 +73,7 @@ function Singer() {
                                         </td>
                                         <td>{singer.createdAt}</td>
                                         <td>{singer.updatedAt}</td>
-                                        <td>
+                                        <td style={{ width: '150px'}}>
                                             <a className="singer__btn singer__btn-warning" href={`/admin/singers/edit/${singer._id}`}>
                                                 Sửa
                                             </a>
