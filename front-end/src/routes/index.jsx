@@ -23,7 +23,7 @@ import MusicLove from "../pages/client/MusicLove";
 import InfoUser from "../pages/admin/InfoUser";
 import EditAccount from "../pages/admin/Account/editAccount";
 import CreateSinger from "../pages/admin/Singer/createSinger";
-// import EditSinger from "../pages/admin/Singer/editSinger";
+import EditSinger from "../pages/admin/Singer/editSinger";
 
 
 export const allRoutes = [
@@ -112,10 +112,10 @@ export const allRoutes = [
                         path: "singers/create",
                         element: <CreateSinger />,
                     },
-                    // {
-                    //     path: "singers/edit/:id",
-                    //     element: <EditSinger />,
-                    // },
+                    {
+                        path: "singers/edit/:id",
+                        element: <EditSinger />,
+                    },
                     {
                         path: "songs",
                         element: <Song />,

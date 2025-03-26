@@ -18,3 +18,10 @@ export const patch_singer = async (id, data) => {
     const result = await patch(`api/singers/edit`, id, data);
     return result;
 }
+
+export const get_singer_by_id = async (id) => {
+    const result = await get(`api/singers/${id}/`);
+    return result;
+};
+
+                

@@ -55,7 +55,7 @@ function Singer() {
                         <tbody>
                             {singers.length > 0 ? (
                                 singers.map((singer, index) => (
-                                    <tr key={singer._id}>
+                                    <tr key={singer.id}>
                                         <td>{index + 1}</td>
                                         <td>
                                             <img
@@ -73,10 +73,11 @@ function Singer() {
                                         </td>
                                         <td>{singer.createdAt}</td>
                                         <td>{singer.updatedAt}</td>
-                                        <td style={{ width: '150px'}}>
-                                            <a className="singer__btn singer__btn-warning" href={`/admin/singers/edit/${singer._id}`}>
+                                        <td style={{ width: '150px' }}>
+                                            <Link className="singer__btn singer__btn-warning" to={`/admin/singers/edit/${singer.id}`}>
                                                 Sửa
-                                            </a>
+                                            </Link>
+
                                             <button className="singer__btn singer__btn-danger">Xóa</button>
                                         </td>
                                     </tr>

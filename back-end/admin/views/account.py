@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 def get_all_accounts(request):
     if request.method == "GET":
         try:
-            accounts = Account.objects.filter(deleted=False) 
+            accounts = Account.objects.all()
             accounts_list = [
                 {
                     "id": str(account.id),
