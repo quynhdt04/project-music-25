@@ -1,0 +1,28 @@
+.profile-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+  }
+  
+  .profile-details {
+    text-align: left;
+    margin-top: 20px;
+  }
+  
+  .profile-details p {
+    font-size: 16px;
+    margin: 5px 0;
+  }
+  
