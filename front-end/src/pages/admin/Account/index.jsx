@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import BoxHead from "../../../components/BoxHead";
 import "./Account.scss";
 import { get_all_accounts, patch_account } from "../../../services/AccountServices";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { get_all_roles } from "../../../services/RoleServices";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import { removeVietnameseTones } from "../../../helpers/regex";
+import Pagination from "../../../components/Pagination";
 
 function Account() {
     const [accounts, setAccounts] = useState([]);
@@ -13,13 +15,21 @@ function Account() {
     const [data, setData] = useState([]);
     const MySwal = withReactContent(Swal);
     const [refresh, setRefresh] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [pagination, setPagination] = useState(null);
+
+    const [searchParams, setSearchParams] = useSearchParams();
+    const page = parseInt(searchParams.get("page")) || 1;
+    const limit = parseInt(searchParams.get("limit")) || 3;
+
 
     useEffect(() => {
         const fetchAPI = async () => {
             try {
-                const resultAccounts = await get_all_accounts();
+                const resultAccounts = await get_all_accounts(page, limit);
                 const resultRoles = await get_all_roles();
                 setAccounts(resultAccounts.accounts);
+                setPagination(resultAccounts.pagination);
                 setRoles(resultRoles.roles);
 
                 // Lọc các tài khoản có role_id tồn tại trong danh sách roles
@@ -36,7 +46,7 @@ function Account() {
             }
         };
         fetchAPI();
-    }, [refresh]);
+    }, [refresh, page]);
 
     const handleDel = async (id) => {
 
@@ -62,6 +72,12 @@ function Account() {
         });
     }
 
+    const filteredData = searchTerm
+        ? data.filter((account) =>
+            removeVietnameseTones(account.fullName).includes(removeVietnameseTones(searchTerm))
+        )
+        : data;
+
     return (
         <>
             <BoxHead title="Danh sách tài khoản" />
@@ -69,8 +85,11 @@ function Account() {
                 <div className="account__body">
                     <div className="account__controll">
                         <div className="account__search">
-                            <input type="text" placeholder="Tìm kiếm..." />
-                            <button>Tìm</button>
+                            <input
+                                type="text"
+                                placeholder="Tìm kiếm..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)} />
                         </div>
                         <div className="account__create">
                             <Link to="/admin/accounts/create" className="account__btn account__btn-success" >+ Thêm mới</Link>
@@ -89,8 +108,8 @@ function Account() {
                             </tr>
                         </thead>
                         <tbody>
-                            {data.length > 0 ? (
-                                data.map((account, index) => (
+                            {filteredData.length > 0 ? (
+                                filteredData.map((account, index) => (
                                     <tr key={account.id}>
                                         <td>{index + 1}</td>
                                         <td>
@@ -128,6 +147,14 @@ function Account() {
                     </table>
                 </div>
             </div>
+            {pagination && (
+                <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    limit={pagination.limit}
+                    onPageChange={(newPage) => setSearchParams({ page: newPage, limit })}
+                />
+            )}
         </>
     );
 }

@@ -6,6 +6,11 @@ from models.singer import Singer
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.utils import timezone
 
+from asgiref.sync import sync_to_async
+import logging
+import traceback
+logger = logging.getLogger(__name__)
+
 
 @csrf_exempt
 async def get_all_singers(request):

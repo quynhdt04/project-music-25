@@ -2,89 +2,358 @@ import { useEffect, useState } from "react";
 import BoxHead from "../../../components/BoxHead";
 import "./topic.css";
 import { get_all_topics } from "../../../services/TopicServices";
-import { Link } from "react-router-dom";
+import CreateTopic from "./createTopic";
+import EditTopic from "./editTopic";
+import {
+  delete_topic_by_id,
+  patch_topic,
+} from "../../../services/TopicServices";
+import { removeVietnameseTones } from "../../../helpers/regex";
+import Swal from "sweetalert2";
+import axios from "axios";
 
 function Topic() {
-    const [topics, setTopics] = useState([]);
+  const [topics, setTopics] = useState([]);
+  const [filteredTopics, setFilteredTopics] = useState([]);
+  const [searchKeyword, setSearchKeyword] = useState("");
+  const [editingTopicId, setEditingTopicId] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [refresh, setRefresh] = useState(false);
 
-    useEffect(() => {
-        const fetchAPI = async () => {
-            try {
-                const result = await get_all_topics();
-                setTopics(result.topics);
-            } catch (error) {
-                console.error("Lỗi khi lấy danh sách chủ đề:", error);
-            }
-        };
-        fetchAPI();
-    }, []);
+  // useEffect(() => {
+  //   const savedTopics = localStorage.getItem("topics");
+  //   console.log("Dữ liệu nhận:", topics);
 
-    return (
-        <>
-            <BoxHead title="Danh sách chủ đề" />
+  //   if (savedTopics) {
+  //     const parsedTopics = JSON.parse(savedTopics);
+
+  //     // Đảm bảo thứ tự được giữ nguyên từ localStorage
+  //     setTopics(Array.isArray(parsedTopics) ? parsedTopics : [parsedTopics]);
+  //     setFilteredTopics(
+  //       Array.isArray(parsedTopics) ? parsedTopics : [parsedTopics]
+  //     );
+  //     console.log("Dữ liệu lấy từ localStorage:", parsedTopics);
+  //   } else {
+  //     setTopics([]);
+  //     setFilteredTopics([]);
+  //   }
+
+  //   const fetchAPI = async () => {
+  //     try {
+  //       const result = await get_all_topics(); // Gọi API lấy danh sách chủ đề
+  //       const fetchedTopics = result.topics;
+
+  //       if (
+  //         fetchedTopics &&
+  //         JSON.stringify(fetchedTopics) !== JSON.stringify(topics)
+  //       ) {
+  //         setTopics(fetchedTopics);
+  //         setFilteredTopics(fetchedTopics);
+  //         localStorage.setItem("topics", JSON.stringify(fetchedTopics));
+  //         console.log("Dữ liệu topics từ cơ sở dữ liệu:", fetchedTopics);
+  //       }
+  //     } catch (error) {
+  //       console.error("Lỗi khi lấy danh sách chủ đề từ cơ sở dữ liệu:", error);
+  //     }
+  //   };
+
+  //   if (!savedTopics) {
+  //     fetchAPI();
+  //   }
+  // }, []);
+
+  useEffect(() => {
+    const savedTopics = localStorage.getItem("topics");
+
+    if (savedTopics) {
+      const parsedTopics = JSON.parse(savedTopics);
+      setTopics(parsedTopics);
+      setFilteredTopics(parsedTopics);
+      console.log("Dữ liệu từ localStorage:", parsedTopics);
+
+      // Gọi API để cập nhật nếu có thay đổi mới (dữ liệu backend khác local)
+      const fetchAPI = async () => {
+        try {
+          const result = await get_all_topics();
+          const fetchedTopics = result.topics;
+
+          if (
+            fetchedTopics &&
+            JSON.stringify(fetchedTopics) !== JSON.stringify(parsedTopics)
+          ) {
+            // Có khác biệt, cập nhật localStorage
+            setTopics(fetchedTopics);
+            setFilteredTopics(fetchedTopics);
+            localStorage.setItem("topics", JSON.stringify(fetchedTopics));
+            console.log("Dữ liệu mới từ API:", fetchedTopics);
+          }
+        } catch (error) {
+          console.error("Lỗi khi lấy danh sách chủ đề:", error);
+        }
+      };
+
+      fetchAPI(); // Gọi để đồng bộ, nhưng giữ thứ tự cũ nếu giống
+    } else {
+      // Nếu chưa có localStorage → load lần đầu
+      const fetchAPI = async () => {
+        try {
+          const result = await get_all_topics();
+          const fetchedTopics = result.topics;
+          setTopics(fetchedTopics);
+          setFilteredTopics(fetchedTopics);
+          localStorage.setItem("topics", JSON.stringify(fetchedTopics));
+          console.log("Dữ liệu ban đầu từ API:", fetchedTopics);
+        } catch (error) {
+          console.error("Lỗi khi lấy danh sách chủ đề:", error);
+        }
+      };
+
+      fetchAPI();
+    }
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const search = removeVietnameseTones(searchTerm.toLowerCase());
+      const filtered = topics.filter((topic) =>
+        removeVietnameseTones(topic.title.toLowerCase()).includes(search)
+      );
+      setFilteredTopics(filtered);
+    } else {
+      setFilteredTopics(topics);
+    }
+  }, [searchTerm, topics]);
+
+  const handleAddTopic = (newTopic) => {
+    const updatedTopics = [...topics, newTopic];
+    setTopics(updatedTopics);
+    setFilteredTopics(updatedTopics);
+    localStorage.setItem("topics", JSON.stringify(updatedTopics)); // Lưu lại thứ tự mới vào localStorage
+  };
+
+  // Hàm cập nhật chủ đề
+  //   const handleUpdateTopic = (updatedTopic) => {
+  //     const updatedTopics = topics.map((topic) =>
+  //       String(topic.id) === String(updatedTopic.id) ? updatedTopic : topic
+  //     );
+
+  //     setTopics(updatedTopics);
+  //     setFilteredTopics(updatedTopics);
+  //     localStorage.setItem("topics", JSON.stringify(updatedTopics));
+  //     console.log("Danh sách topics:", topics);
+  // console.log("Chủ đề cập nhật:", updatedTopic);
+  //   };
+  // -------------------EDIT----------------
+
+  const handleDelete = async (topicId) => {
+    const confirmed = window.confirm("Bạn có chắc chắn muốn xóa chủ đề này?");
+    if (confirmed) {
+      try {
+        await delete_topic_by_id(topicId);
+        const updatedTopics = topics.filter((topic) => topic.id !== topicId);
+        setTopics(updatedTopics);
+        setFilteredTopics(updatedTopics);
+        localStorage.setItem("topics", JSON.stringify(updatedTopics)); // Lưu lại thứ tự mới vào localStorage
+        alert("Xóa chủ đề thành công!");
+      } catch (error) {
+        console.error("Lỗi khi xóa chủ đề:", error);
+        alert("Đã xảy ra lỗi khi xóa.");
+      }
+    }
+  };
+
+  const handleSearch = () => {
+    const keyword = searchKeyword.trim().toLowerCase();
+    if (!keyword) {
+      setFilteredTopics(topics);
+    } else {
+      const filtered = topics.filter((topic) =>
+        topic.title.toLowerCase().includes(keyword)
+      );
+      setFilteredTopics(filtered);
+    }
+  };
+
+  const MySwal = Swal.mixin({
+    customClass: {
+      confirmButton: "btn btn-success",
+      cancelButton: "btn btn-danger",
+    },
+    buttonsStyling: false,
+  });
+
+  const handleUpdateTopic = async (topicId, updatedData) => {
+    console.log("Calling handleUpdateTopic với:", topicId, updatedData);
+    MySwal.fire({
+      title: "Xác nhận sửa",
+      text: "Bạn có chắc chắn muốn sửa chủ đề này không?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sửa",
+      cancelButtonText: "Hủy",
+      
+    }).then(async (result) => {
+      if (!result.isConfirmed) return;
+      if (result.isConfirmed) {
+        try {
+          const response = await axios.put(
+            `http://localhost:8000/api/topics/edit/${topicId}/`,
+            updatedData
+          );
+  
+          console.log("Phản hồi từ server:", response.data);
+          const updatedTopic = response.data.topic;
+  
+          // ✅ Cập nhật danh sách topics ngay sau khi sửa
+          setTopics((prevTopics) =>
+            prevTopics.map((topic) =>
+              topic.id === updatedTopic.id ? updatedTopic : topic
+            )
+          );
+          setFilteredTopics(updatedData);
+          localStorage.setItem("topics", JSON.stringify(updatedData)); // ✅ Lưu lại
+  
+          Swal.fire("Thành công!", "Chủ đề đã được sửa.", "success");
+        } catch (error) {
+          console.error("Lỗi khi sửa chủ đề:", error);
+          Swal.fire("Lỗi!", "Đã xảy ra lỗi khi sửa chủ đề.", "error");
+        }
+      }
+    });
+  };
+  
+  return (
+    <>
+      <BoxHead title="Danh sách chủ đề" />
+      <div className="topic__card">
+        <div className="topic__card-body">
+          <div className="topic__text">
             <div className="topic__search-box">
-                <input type="text" placeholder="Tìm kiếm..." />
-                <button>Tìm</button>
+              <input
+                type="text"
+                placeholder="Tìm kiếm..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  }
+                }}
+              />
+              <button onClick={handleSearch}>Tìm</button>
             </div>
-            <div className="topic__card">
-                <div className="topic__card-header">Danh sách</div>
-                <div className="topic__card-body">
-                    <div className="topic__text-right">
-                        <Link to="/admin/topics/create" className="topic__btn topic__btn-success">+ Thêm mới</Link>
-                    </div>
-                    <table className="topic__table">
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>Tên chủ đề</th>
-                                <th>Hình ảnh</th>
-                                <th>Trạng thái</th>
-                                <th>Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {topics.length > 0 ? (
-                                topics.map((topic, index) => (
-                                    <tr key={topic.id}>
-                                        <td>{index + 1}</td>
-                                        <td>{topic.title}</td>
-                                        <td>
-                                            <img
-                                                src={topic.image || "/default-image.png"}
-                                                alt="Topic"
-                                                width="100px"
-                                                height="auto"
-                                            />
-                                        </td>
-                                        <td>
-                                            <span className={`topic__badge ${topic.status === "active" ? "topic__badge-success" : "topic__badge-danger"}`}>
-                                                {topic.status === "active" ? "Hiển thị" : "Ẩn"}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <a className="topic__btn topic__btn-secondary" href={`/admin/topics/detail/${topic.id}`}>
-                                                Chi tiết
-                                            </a>
-                                            <a className="topic__btn topic__btn-warning" href={`/admin/topics/edit/${topic.id}`}>
-                                                Sửa
-                                            </a>
-                                            <button className="topic__btn topic__btn-danger">Xóa</button>
-                                        </td>
-                                    </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="5" style={{ textAlign: "center", padding: "20px" }}>
-                                        Không có chủ đề nào
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
+            <div className="topic__text-right">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="topic__btn topic__btn-success"
+              >
+                + Thêm mới
+              </button>
             </div>
-        </>
-    );
+          </div>
+
+          <table className="topic__table">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Tên chủ đề</th>
+                <th>Hình ảnh</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTopics.length > 0 ? (
+                filteredTopics.map((topic, index) => (
+                  <tr key={topic.id}>
+                    <td>{index + 1}</td>
+                    <td>{topic.title}</td>
+                    <td>
+                      <img
+                        src={topic.avatar || "/default-image.png"}
+                        alt="Topic"
+                        width="100px"
+                        height="auto"
+                      />
+                    </td>
+                    <td>
+                      <span
+                        className={`topic__badge ${
+                          topic.status === "active"
+                            ? "topic__badge-success"
+                            : "topic__badge-danger"
+                        }`}
+                      >
+                        {topic.status === "active" ? "Hiển thị" : "Ẩn"}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        onClick={() => {
+                          setEditingTopicId(topic.id);
+                          setIsReadOnly(true);
+                        }}
+                        className="topic__btn topic__btn-secondary"
+                      >
+                        Chi tiết
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingTopicId(topic.id);
+                          setIsReadOnly(false);
+                        }}
+                        className="topic__btn topic__btn-warning"
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        className="topic__btn topic__btn-danger"
+                        onClick={() => handleDelete(topic.id)}
+                      >
+                        Xóa
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="5"
+                    style={{ textAlign: "center", padding: "20px" }}
+                  >
+                    Không có chủ đề nào
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Modal thêm mới */}
+      {showCreateModal && (
+        <CreateTopic
+          onAddTopic={handleAddTopic}
+          onUpdateTopic={handleUpdateTopic}
+          onClose={() => setShowCreateModal(false)}
+        />
+      )}
+
+      {/* Modal chỉnh sửa */}
+      {editingTopicId && (
+        <EditTopic
+          topicId={editingTopicId}
+          readOnly={isReadOnly}
+          onUpdateTopic={(updatedData) => handleUpdateTopic(editingTopicId, updatedData)}
+          onClose={() => setEditingTopicId(null)}
+        />
+      )}
+    </>
+  );
 }
 
 export default Topic;

@@ -4,13 +4,25 @@ from django.contrib.auth.hashers import check_password, make_password
 import json
 from models.account import Account
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
+from django.db.models import Q
+
 
 
 @csrf_exempt
 def get_all_accounts(request):
     if request.method == "GET":
         try:
-            accounts = Account.objects.all()
+            page = int(request.GET.get("page", 1))  # Trang mặc định là 1
+            limit = int(request.GET.get("limit", 3))  # Số lượng item trên mỗi trang mặc định là 10
+            
+            accounts = Account.objects.filter(deleted=False).order_by("id")  
+            paginator = Paginator(accounts, limit)  # Áp dụng phân trang
+            
+            if page > paginator.num_pages or page < 1:
+                return JsonResponse({"error": "Page out of range"}, status=400)
+
+            accounts_page = paginator.page(page)
             accounts_list = [
                 {
                     "id": str(account.id),
@@ -22,12 +34,23 @@ def get_all_accounts(request):
                     "role_id": account.role_id,
                     "deleted": account.deleted
                 }
-                for account in accounts  
+                for account in accounts_page  
             ]
-            return JsonResponse({"accounts": accounts_list}, status=200)
+
+            return JsonResponse({
+                "accounts": accounts_list,
+                "pagination": {
+                    "currentPage": page,
+                    "limit": limit,
+                    "totalPages": paginator.num_pages,
+                    "totalItems": paginator.count
+                }
+            }, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
+    
     return JsonResponse({"error": "Invalid request"}, status=405)
+
 
 
 @csrf_exempt

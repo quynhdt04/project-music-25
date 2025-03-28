@@ -1,16 +1,28 @@
 import React, { useEffect, useState, useRef } from "react";
+import { format } from "date-fns";
 import BoxHead from "../../../components/BoxHead";
-import { Form, Button, Container, Row, Col } from "react-bootstrap";
-import { Plus } from "react-bootstrap-icons";
+import { Row, Col, Alert, Spinner } from "react-bootstrap";
 import BaseTable from "../../../components/BaseTable/BaseTable";
+import { get_all_songs } from "../../../services/SongServices";
 import "./Song.scss";
 
 const tableConfig = {
   columns: [
-    { key: "id", header: "ID" },
-    { key: "title", header: "Tên bài hát" },
-    { key: "singer", header: "Tên ca sĩ" },
-    { key: "like", header: "Lượt thích" },
+    { key: "id", header: "ID", searchable: true },
+    { key: "title", header: "Tên bài hát", searchable: true },
+    {
+      key: "singer",
+      header: "Tên ca sĩ",
+      render: (value) => {
+        // Assuming `value` is an array of singer names
+        if (Array.isArray(value)) {
+          return value.join(", "); // Join multiple singers with a comma
+        }
+        return value; // Fallback for single singer or invalid data
+      },
+      searchable: true,
+    },
+    { key: "like", header: "Lượt thích", searchable: true },
     {
       key: "status",
       header: "Trạng thái hoạt động",
@@ -79,188 +91,52 @@ const tableConfig = {
   ],
 };
 
-const data = [
-  {
-    id: "SNG001",
-    title: "Em của ngày hôm qua",
-    singer: "Sơn Tùng M-TP",
-    like: "138",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG002",
-    title: "Nắng ấm xa dần",
-    singer: "Sơn Tùng M-TP",
-    like: "140",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG003",
-    title: "Cơn mưa ngang qua",
-    singer: "Sơn Tùng M-TP",
-    like: "200",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG004",
-    title: "Đừng về trễ nha",
-    singer: "Sơn Tùng M-TP",
-    like: "160",
-    status: "inactive",
-    isDeleted: "true",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG005",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG006",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG007",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG008",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG009",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG010",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG011",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG012",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG013",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG014",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG015",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-  {
-    id: "SNG016",
-    title: "Khuôn mặt đáng thương",
-    singer: "Sơn Tùng M-TP",
-    like: "170",
-    status: "active",
-    isDeleted: "false",
-    createdAt: "2021-10-10",
-    updatedAt: "2021-10-10",
-  },
-];
-
 function Song() {
-  const [checkedItems, setCheckedItems] = useState({});
-  const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = useRef(10);
-  const [offset, setOffset] = useState(0);
-  const totalPage = useRef(0);
+  const [data, setData] = useState([]);
+  const [fetchingStatus, setFetchingStatus] = useState({
+    isLoading: true,
+    isError: false,
+  });
+
+  const fetchData = async () => {
+    try {
+      setFetchingStatus({ isLoading: true, isError: false });
+      const response = await get_all_songs();
+      let formattedData = response.data.map((item) => ({
+        id: item._id,
+        title: item.title,
+        singer: item.singers.map((singer) => singer.singerName),
+        like: item.like,
+        status: item.status,
+        isDeleted: item.deleted.toString(),
+        createdAt: format(new Date(item.createdAt), "dd/MM/yyyy HH:mm:ss"),
+        updatedAt: format(new Date(item.updatedAt), "dd/MM/yyyy HH:mm:ss"),
+      }));
+
+      setData(formattedData);
+      setFetchingStatus({ isLoading: false, isError: false });
+    } catch (error) {
+      console.error("Error:", error);
+      setFetchingStatus({ isLoading: false, isError: true });
+    }
+  };
 
   useEffect(() => {
-    totalPage.current = Math.ceil(data.length / rowsPerPage.current);
+    fetchData();
   }, []);
 
-  useEffect(() => {
-    const initialCheckedItems = data?.reduce((acc, item) => {
-      acc[item.id] = false; // Assuming each item has a unique 'id' field
-      return acc;
-    }, {});
+  if (fetchingStatus.isLoading) {
+    return (
+      <div className="text-center my-5">
+        <Spinner animation="border" variant="primary" />
+        <p className="mt-2">Xin vui lòng chờ đợi trong giây lát...</p>
+      </div>
+    );
+  }
 
-    setCheckedItems(initialCheckedItems);
-  }, []);
+  if (fetchingStatus.isError) {
+    return <Alert variant="danger">Đã xảy ra lỗi khi tải dữ liệu</Alert>;
+  }
 
   return (
     <div className="list-page">
@@ -269,70 +145,12 @@ function Song() {
       </div>
       <Row>
         <Col>
-          <div className="filter-section">
-            <div className="filter-header">
-              <span>Bộ lọc</span>
-            </div>
-            <div className="filter-body">
-              {tableConfig.filters.map((filter) => (
-                <div className="filter-container" key={filter.id}>
-                  <Form.Group controlId={filter.id}>
-                    <Form.Label>{filter.label}</Form.Label>{" "}
-                    {/* Use Form.Label */}
-                    <Form.Select
-                      className="form-select"
-                      id={filter.id}
-                      onChange={(e) => console.log(e.target.value)} // Add onChange handler if needed
-                    >
-                      {filter.options.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Form.Select>{" "}
-                    {/* Use Form.Select */}
-                  </Form.Group>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Col>
-      </Row>
-      <hr style={{ border: "1.5px solid rgba(46, 38, 61, 0.22)" }} />
-      <Row>
-        <Col>
-          <div className="list-page-header">
-            <div className="left">
-              <div className="search-box-container">
-                <input type="text" placeholder="Search" />
-              </div>
-            </div>
-            <div className="right">
-              <Button className="btn add-btn">
-                <Plus size={20} />
-                Thêm bài hát
-              </Button>
-            </div>
-          </div>
-        </Col>
-      </Row>
-
-      <Row>
-        <Col>
           <BaseTable
             data={data}
             columns={tableConfig.columns}
-            checkedItems={checkedItems}
-            onCheckboxChange={setCheckedItems}
-            offset={offset}
-            rowsPerPage={rowsPerPage.current}
-            currentPage={currentPage}
-            totalPages={totalPage.current}
-            onPageChange={(page) => {
-              setCurrentPage(page);
-              setOffset((page - 1) * rowsPerPage.current);
-            }}
+            filters={tableConfig.filters}
             basePath={tableConfig.basePath}
+            fetchListData={fetchData}
           />
         </Col>
       </Row>
