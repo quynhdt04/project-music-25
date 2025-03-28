@@ -27,6 +27,7 @@ function EditAccount() {
     useEffect(() => {
         const fetchAPI = async () => {
             const resultAccount = await get_account_by_id(param.id);
+            console.log(resultAccount);
             setAccount(resultAccount.account);
             setImagePreview(resultAccount.account.avatar)
         }

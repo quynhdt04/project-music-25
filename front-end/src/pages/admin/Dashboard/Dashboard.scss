@@ -1,0 +1,50 @@
+.dashboard {
+
+    &__wrap {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+        width: 230px;
+        height: auto;
+        margin: 0 10px;
+        padding: 10px;
+        border-radius: 10px;
+
+        svg {
+            font-size: 35px;
+            color: #394867;
+        }
+    }
+
+
+    &__content {
+        margin-left: 30px;
+
+        p {
+            margin: 5px 0px;
+        }
+    }
+
+    &__chart {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 30px 0px;
+    }
+
+    &__topic {
+        width: 25%;
+        margin-right: 5%;
+    }
+
+    &__top5-music {
+        width: 70%;
+    }
+}

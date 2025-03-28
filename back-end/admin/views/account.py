@@ -6,19 +6,18 @@ from models.account import Account
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Q
-
-
+from asgiref.sync import sync_to_async
 
 @csrf_exempt
-def get_all_accounts(request):
+async def get_all_accounts(request):
     if request.method == "GET":
         try:
             page = int(request.GET.get("page", 1))  # Trang mặc định là 1
-            limit = int(request.GET.get("limit", 3))  # Số lượng item trên mỗi trang mặc định là 10
-            
-            accounts = Account.objects.filter(deleted=False).order_by("id")  
+            limit = int(request.GET.get("limit", 3))  # Số lượng item trên mỗi trang mặc định là 3
+
+            accounts = await sync_to_async(list)(Account.objects.filter(deleted=False).order_by("id"))
             paginator = Paginator(accounts, limit)  # Áp dụng phân trang
-            
+
             if page > paginator.num_pages or page < 1:
                 return JsonResponse({"error": "Page out of range"}, status=400)
 
@@ -34,7 +33,7 @@ def get_all_accounts(request):
                     "role_id": account.role_id,
                     "deleted": account.deleted
                 }
-                for account in accounts_page  
+                for account in accounts_page
             ]
 
             return JsonResponse({
@@ -52,19 +51,18 @@ def get_all_accounts(request):
     return JsonResponse({"error": "Invalid request"}, status=405)
 
 
-
 @csrf_exempt
-def create_account(request):
+async def create_account(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
 
             # Lấy dữ liệu từ request, loại bỏ khoảng trắng thừa
-            full_name = data.get("fullName", "")
-            email = data.get("email", "")
-            password = data.get("password", "")
-            role_id = data.get("role_id", "")  
-            phone = data.get("phone", "")
+            full_name = data.get("fullName", "").strip()
+            email = data.get("email", "").strip()
+            password = data.get("password", "").strip()
+            role_id = data.get("role_id", "").strip()
+            phone = data.get("phone", "").strip()
             avatar = data.get("avatar", "") or "https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg"
             status = data.get("status", "active")
 
@@ -87,11 +85,12 @@ def create_account(request):
                 return JsonResponse({"error": "Mật khẩu phải có ít nhất 6 ký tự!"}, status=400)
 
             # Kiểm tra email đã tồn tại chưa
-            if Account.objects(email=email).first():
+            existing_account = await sync_to_async(Account.objects.filter(email=email).first)()
+            if existing_account:
                 return JsonResponse({"error": "Email đã tồn tại!"}, status=400)
 
             # Mã hóa mật khẩu
-            hashed_password = make_password(password)
+            hashed_password = await sync_to_async(make_password)(password)
 
             # Tạo tài khoản mới
             account = Account(
@@ -103,12 +102,10 @@ def create_account(request):
                 role_id=role_id,  # Lưu role dưới dạng string
                 password=hashed_password,   
             )
-            account.save()
+            await sync_to_async(account.save)()
 
             return JsonResponse({"message": "Tạo tài khoản thành công!", "account_id": str(account.id)}, status=201)
 
-        except ValidationError as e:
-            return JsonResponse({"error": str(e)}, status=400)
         except Exception as e:
             return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
 
@@ -116,7 +113,7 @@ def create_account(request):
 
 
 @csrf_exempt
-def login(request):
+async def login(request):
     if request.method == "GET":  # Chấp nhận GET request
         try:
             email = request.GET.get("email")
@@ -127,9 +124,8 @@ def login(request):
                 return JsonResponse({"error": "Thiếu thông tin đăng nhập (email hoặc mật khẩu không được để trống)"}, status=400)
 
             # Kiểm tra email có tồn tại không
-            try:
-                account = Account.objects.get(email=email)
-            except Account.DoesNotExist:
+            account = await sync_to_async(Account.objects.filter(email=email).first)()
+            if not account:
                 return JsonResponse({"error": "Email không tồn tại"}, status=400)
 
             # (3) Kiểm tra tài khoản có bị khóa không
@@ -137,7 +133,8 @@ def login(request):
                 return JsonResponse({"error": "Tài khoản không tồn tại"}, status=403)
 
             # (4) Kiểm tra mật khẩu có đúng không
-            if not check_password(password, account.password):
+            is_valid_password = await sync_to_async(check_password)(password, account.password)
+            if not is_valid_password:
                 return JsonResponse({"error": "Mật khẩu không đúng"}, status=400)
             
             if account.status == "inactive":
@@ -166,15 +163,14 @@ def login(request):
 
 
 @csrf_exempt
-def patch_account(request, account_id):
+async def patch_account(request, account_id):
     if request.method == "PATCH":
         try:
             data = json.loads(request.body)
 
             # Kiểm tra tài khoản có tồn tại không
-            try:
-                account = Account.objects.get(id=account_id)
-            except Account.DoesNotExist:
+            account = await sync_to_async(Account.objects.filter(id=account_id).first)()
+            if not account:
                 return JsonResponse({"error": "Tài khoản không tồn tại!"}, status=404)
 
             # Kiểm tra fullName không được để trống
@@ -188,7 +184,7 @@ def patch_account(request, account_id):
             if "password" in data:
                 new_password = data["password"]
                 if new_password:  # Chỉ cập nhật nếu mật khẩu không rỗng
-                    account.password = make_password(new_password)
+                    account.password = await sync_to_async(make_password)(new_password)
 
             # Kiểm tra số điện thoại hợp lệ
             if "phone" in data:
@@ -210,7 +206,7 @@ def patch_account(request, account_id):
                 else:
                     return JsonResponse({"error": "Giá trị deleted không hợp lệ!"}, status=400)
 
-            account.save()
+            await sync_to_async(account.save)()
             return JsonResponse({"message": "Cập nhật thông tin tài khoản thành công!", "id": account_id}, status=200)
 
         except json.JSONDecodeError:
@@ -222,14 +218,17 @@ def patch_account(request, account_id):
 
 
 
-
 @csrf_exempt
-def get_account_by_id(request, account_id):
+async def get_account_by_id(request, account_id):
     if request.method == "GET":
         try:
             # Lấy tài khoản với điều kiện deleted=False
-            account = Account.objects.get(id=account_id, deleted=False)
+            # account = await sync_to_async(Account.objects.filter(id=account_id, deleted=False).afirst)()
+            account = await sync_to_async(lambda: Account.objects.filter(id=account_id, deleted=False).first())()
 
+            if not account:
+                return JsonResponse({"error": "Tài khoản không tồn tại hoặc đã bị xóa!"}, status=404)
+            
             # Trả về thông tin tài khoản
             account_data = {
                 "id": str(account.id),
@@ -243,8 +242,6 @@ def get_account_by_id(request, account_id):
             }
             return JsonResponse({"account": account_data}, status=200)
 
-        except Account.DoesNotExist:
-            return JsonResponse({"error": "Tài khoản không tồn tại hoặc đã bị xóa!"}, status=404)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
 
