@@ -6,7 +6,7 @@ from models.user import User  # Thay đổi import thành model User
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Q
-from models.user import User  # Thay đổi import thành model User
+from models.user import User  
 
 
 @csrf_exempt

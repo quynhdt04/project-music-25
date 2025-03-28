@@ -2,30 +2,43 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Profile.css";
 
+
 function Profile() {
-    const navigate = useNavigate();
-    const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
-    useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch (error) {
-                console.error("Error parsing user from localStorage:", error);
-            }
-        }
-    }, []);
+  useEffect(() => {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+          try {
+              const parsedUser = JSON.parse(storedUser);
 
-    if (!user) {
-        return (
-            <div className="profile-container">
-                <h2>Trang cá nhân</h2>
-                <p>Loading...</p>
-                <button className="back-button" onClick={() => navigate(-1)}>Quay lại</button>
-            </div>
-        );
-    }
+              // Kiểm tra dữ liệu hợp lệ
+              if (typeof parsedUser === "object" && parsedUser !== null) {
+                  console.log("User from localStorage:", parsedUser);
+                  setUser(parsedUser);
+              } else {
+                  console.error("Invalid user data in localStorage");
+                  // Xử lý trường hợp dữ liệu bị hỏng (ví dụ: chuyển hướng người dùng đến trang đăng nhập)
+                  setUser(null); // Đặt user về null để hiển thị "Loading..." hoặc thông báo lỗi
+              }
+          } catch (error) {
+              console.error("Error parsing user from localStorage:", error);
+              // Xử lý trường hợp lỗi parse JSON (ví dụ: chuyển hướng người dùng đến trang đăng nhập)
+              setUser(null); // Đặt user về null để hiển thị "Loading..." hoặc thông báo lỗi
+          }
+      }
+  }, []);
+
+  if (!user) {
+      return (
+          <div className="profile-container">
+              <h2>Trang cá nhân</h2>
+              <p>Loading...</p>
+              <button className="back-button" onClick={() => navigate(-1)}>Quay lại</button>
+          </div>
+      );
+  }
 
     return (
         <div className="profile-container">

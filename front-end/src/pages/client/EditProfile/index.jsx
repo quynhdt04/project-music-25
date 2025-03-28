@@ -1,20 +1,46 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./EditProfile.css";
-// import { update_my_account } from "../../../services/AccountServices";
+import { updateProfile } from "../../../services/UserService"; // Giả sử bạn đã tạo hàm này trong UserServices
 
 function EditProfile({ user, onClose, onSave }) {
-  const [userData, setUserData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    password: "",
-    phone: user?.phone || "",
-    avatar: user?.avatar || "",
-    accountType: user?.accountType || "client",
-  });
+    const navigate = useNavigate();
+    const [userData, setUserData] = useState({
+        name: user?.fullName || "",
+        email: user?.email || "",
+        password: "",
+        phone: user?.phone || "",
+        avatar: user?.avatar || "",
+    });
 
-  const handleSave = async () => {
-   
-  };
+    const handleSave = async () => {
+        try {
+            // Gọi hàm updateProfile từ UserService
+            const updatedUser = await updateProfile(user.id, {
+                fullName: userData.name,
+                phone: userData.phone,
+                password: userData.password, // Gửi mật khẩu nếu có thay đổi
+                avatar: userData.avatar, // Gửi avatar nếu có thay đổi
+            });
+
+            if (updatedUser) {
+                // Cập nhật thông tin người dùng trong localStorage (nếu cần)
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+
+                // Gọi hàm onSave nếu được cung cấp
+                if (onSave) {
+                    onSave(updatedUser);
+                }
+
+                // Đóng modal
+                onClose();
+            }
+        } catch (error) {
+            console.error("Lỗi cập nhật hồ sơ:", error);
+            // Xử lý lỗi nếu cần
+        }
+    };
+
 
   return (
     <div className="modal">

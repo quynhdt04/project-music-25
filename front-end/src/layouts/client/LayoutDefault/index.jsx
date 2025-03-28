@@ -23,13 +23,19 @@ function LayoutDefault() {
     alert("Đăng ký thành công!");
   };
   const handleLoginSuccess = (userData) => {
+    console.log("userData received:", userData);
     setIsLogin(true);
-    setUser(userData); // Cập nhật state user
+    setUser(userData);
+    console.log("user state updated:", userData);
 };
 const handleLogout = () => {
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
   setIsLogin(false);
+  setUser(null); // Reset user state khi đăng xuất
   setMenuOpen(false);
   alert("Bạn đã đăng xuất!");
+  navigate("/");
 };
 const closeModal = () => {
   setShowRegisterForm(false);
@@ -49,23 +55,24 @@ const closeModal = () => {
   }, []);
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      setIsLogin(true);
-    }
-  }, []);
-  useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
         setIsLogin(true);
         try {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            if (typeof parsedUser === "object" && parsedUser !== null) {
+                console.log("User from localStorage:", parsedUser);
+                setUser(parsedUser);
+            } else {
+                console.error("Invalid user data in localStorage");
+                // Xử lý trường hợp dữ liệu bị hỏng (ví dụ: chuyển hướng người dùng đến trang đăng nhập)
+            }
         } catch (error) {
             console.error("Error parsing user from localStorage:", error);
+            // Xử lý trường hợp lỗi parse JSON (ví dụ: chuyển hướng người dùng đến trang đăng nhập)
         }
     }
 }, []);
-
  
   return (
     <>
@@ -118,7 +125,7 @@ const closeModal = () => {
                         className="dropdown-username"
                         onClick={() => navigate("/profile")}
                       >
-                        {user?.fullName || "Nguyễn Văn A"}
+                        {user?.fullName || "Người dùng"}
                       </p>
                     </div>
                     <div className="dropdown-divider"></div>
@@ -163,14 +170,14 @@ const closeModal = () => {
             setShowLoginForm(false);
             setShowRegisterForm(true);
           }}
-          onLoginSuccess={() =>{handleLoginSuccess}}
+          onLoginSuccess={handleLoginSuccess}
         />
       )}
 
       {showRegisterForm && (
         <RegisterForm
           onClose={closeModal}
-          onRegisterSuccess={handleRegisterSuccess} // Chỉ cần truyền hàm onRegisterSuccess
+          onRegisterSuccess={handleRegisterSuccess} 
         />
       )}
 

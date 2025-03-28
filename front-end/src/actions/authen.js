@@ -18,3 +18,8 @@ export const setAuthRole = (value) => {
         value: value
     };
 };
+export const clearAuthAccount = () => {
+    return {
+        type: "CLEAR_AUTH_ACCOUNT",
+    };
+};
