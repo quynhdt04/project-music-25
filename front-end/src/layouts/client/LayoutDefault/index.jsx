@@ -1,12 +1,12 @@
-import { Outlet, Link ,useNavigate } from "react-router-dom";
+import { Outlet, Link, useNavigate } from "react-router-dom";
 import "./LayoutDefault.css";
 import { IoIosLogOut } from "react-icons/io";
 import { FaRegUser } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
-import LoginForm from "../../../pages/client/Login1";
-import RegisterForm from "../../../pages/client/Register1";
-import EditProfileForm from "../../../pages/client/EditProfile1";
-import Profile from "../../../pages/client/Profile1";
+import LoginForm from "../../../pages/client/Login";
+import RegisterForm from "../../../pages/client/Register";
+import EditProfileForm from "../../../pages/client/EditProfile";
+import Profile from "../../../pages/client/Profile";
 function LayoutDefault() {
   const [isLogin, setIsLogin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -85,7 +85,7 @@ function LayoutDefault() {
                 className="avatar"
                 onClick={() => setMenuOpen(!menuOpen)}
               />
-<div className={`dropdown-menu ${menuOpen ? "open" : ""}`}>
+              <div className={`dropdown-menu ${menuOpen ? "open" : ""}`}>
                 {isLogin ? (
                   <>
                     <div className="dropdown-user-info">
@@ -110,10 +110,10 @@ function LayoutDefault() {
                       className="menu-item"
                       onClick={() => setShowEditForm(true)}
                     >
-                      <FaRegUser />  Chỉnh sửa tài khoản 
+                      <FaRegUser /> Chỉnh sửa tài khoản
                     </button>
                     <button className="menu-item" onClick={handleLogout}>
-                    <IoIosLogOut />  Đăng xuất 
+                      <IoIosLogOut /> Đăng xuất
                     </button>
                   </>
                 ) : (
@@ -150,14 +150,13 @@ function LayoutDefault() {
           onLoginSuccess={() => setIsLogin(true)}
         />
       )}
-  
-  {showRegisterForm && (
-  <RegisterForm 
-    onClose={closeModal} 
-    onRegisterSuccess={handleRegisterSuccess} // Chỉ cần truyền hàm onRegisterSuccess
-  />
-)}
 
+      {showRegisterForm && (
+        <RegisterForm
+          onClose={closeModal}
+          onRegisterSuccess={handleRegisterSuccess} // Chỉ cần truyền hàm onRegisterSuccess
+        />
+      )}
 
       {showEditForm && (
         <EditProfileForm onClose={() => setShowEditForm(false)} />
@@ -166,9 +165,5 @@ function LayoutDefault() {
     </>
   );
 }
-    
-
-
-
 
 export default LayoutDefault;
