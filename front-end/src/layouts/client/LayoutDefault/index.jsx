@@ -1,9 +1,56 @@
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link ,useNavigate } from "react-router-dom";
 import "./LayoutDefault.css";
 import { IoIosLogOut } from "react-icons/io";
 import { FaRegUser } from "react-icons/fa";
-
+import { useState, useEffect, useRef } from "react";
+import LoginForm from "../../../pages/client/Login";
+import RegisterForm from "../../../pages/client/Register";
+import EditProfileForm from "../../../pages/client/EditProfile";
+import Profile from "../../../pages/client/Profile";
 function LayoutDefault() {
+  const [isLogin, setIsLogin] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const menuRef = useRef(null);
+  const profileRef = useRef(null);
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  const handleRegisterSuccess = () => {
+    alert("Đăng ký thành công!");
+  };
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setShowProfile(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) {
+      setIsLogin(true);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    setIsLogin(false);
+    setMenuOpen(false);
+    alert("Bạn đã đăng xuất!");
+  };
+  const closeModal = () => {
+    setShowRegisterForm(false);
+  };
   return (
     <>
       <div className="app-container">
@@ -31,20 +78,52 @@ function LayoutDefault() {
             <div className="search-bar">
               <input type="text" placeholder="Tìm kiếm bài hát, nghệ sĩ..." />
             </div>
-            <div className="user-menu">
+            <div className="user-menu" ref={menuRef}>
               <img
                 src="https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg"
                 alt="User Avatar"
+                className="avatar"
+                onClick={() => setMenuOpen(!menuOpen)}
               />
-              <div className="user-menu__sub">
-                <button className="menu-item">
-                  Cá nhân <FaRegUser />
-                </button>
-                <Link to="/logout">
-                  <button className="menu-item">
-                    Đăng xuất <IoIosLogOut />
+<div className={`dropdown-menu ${menuOpen ? "open" : ""}`}>
+                {isLogin ? (
+                  <>
+                    <div className="dropdown-user-info">
+                      <img
+                        onClick={() => navigate("/profile")}
+                        src={
+                          user?.avatar ||
+                          "https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg"
+                        }
+                        alt="User Avatar"
+                        className="dropdown-avatar"
+                      />
+                      <p
+                        className="dropdown-username"
+                        onClick={() => navigate("/profile")}
+                      >
+                        {user?.name || "Nguyễn Văn A"}
+                      </p>
+                    </div>
+                    <div className="dropdown-divider"></div>
+                    <button
+                      className="menu-item"
+                      onClick={() => setShowEditForm(true)}
+                    >
+                      <FaRegUser />  Chỉnh sửa tài khoản 
+                    </button>
+                    <button className="menu-item" onClick={handleLogout}>
+                    <IoIosLogOut />  Đăng xuất 
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="menu-item"
+                    onClick={() => setShowLoginForm(true)}
+                  >
+                    Đăng nhập
                   </button>
-                </Link>
+                )}
               </div>
             </div>
           </header>
@@ -53,9 +132,43 @@ function LayoutDefault() {
           </main>
         </div>
       </div>
+      {showProfile && (
+        <div className="profile-modal">
+          <div className="profile-content" ref={profileRef}>
+            <Profile />
+          </div>
+        </div>
+      )}
+
+      {showLoginForm && (
+        <LoginForm
+          onClose={() => setShowLoginForm(false)}
+          onRegisterClick={() => {
+            setShowLoginForm(false);
+            setShowRegisterForm(true);
+          }}
+          onLoginSuccess={() => setIsLogin(true)}
+        />
+      )}
+  
+  {showRegisterForm && (
+  <RegisterForm 
+    onClose={closeModal} 
+    onRegisterSuccess={handleRegisterSuccess} // Chỉ cần truyền hàm onRegisterSuccess
+  />
+)}
+
+
+      {showEditForm && (
+        <EditProfileForm onClose={() => setShowEditForm(false)} />
+      )}
       <footer className="footer"></footer>
     </>
   );
 }
+    
+
+
+
 
 export default LayoutDefault;

@@ -25,6 +25,7 @@ import InfoUser from "../pages/admin/InfoUser";
 import EditAccount from "../pages/admin/Account/editAccount";
 import CreateTopic from "../pages/admin/Topic/createTopic";
 import EditTopic from "../pages/admin/Topic/editTopic";
+import Profile from "../pages/client/Profile";
 
 export const allRoutes = [
   // Routes cho Client
@@ -52,6 +53,10 @@ export const allRoutes = [
             element: <MusicLove />,
           },
         ],
+      },
+      {
+        path: "profile",
+        element: <Profile />,
       },
     ],
   },
