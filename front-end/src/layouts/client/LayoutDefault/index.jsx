@@ -96,7 +96,7 @@ const closeModal = () => {
             </div>
             <div className="user-menu" ref={menuRef}>
               <img
-                src="https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg"
+                src={user?.avatar ||"https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg"}
                 alt="User Avatar"
                 className="avatar"
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -118,7 +118,7 @@ const closeModal = () => {
                         className="dropdown-username"
                         onClick={() => navigate("/profile")}
                       >
-                        {user?.name || "Nguyễn Văn A"}
+                        {user?.fullName || "Nguyễn Văn A"}
                       </p>
                     </div>
                     <div className="dropdown-divider"></div>
