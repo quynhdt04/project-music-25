@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import check_password
+# from django.contrib.auth.hashers import check_password
 import json
 from models.user import User  # Thay đổi import thành model User
 from django.core.exceptions import ValidationError
@@ -16,7 +16,7 @@ def register_user(request):
             data = json.loads(request.body)
 
             # Lấy dữ liệu từ request
-            full_name = data.get("fullName", "")
+            fullName = data.get("fullName", "")
             email = data.get("email", "")
             password = data.get("password", "")
             phone = data.get("phone", "")
@@ -24,7 +24,7 @@ def register_user(request):
             status = data.get("status", "active")
 
             # Kiểm tra các trường bắt buộc
-            if not full_name or not email or not password:
+            if not fullName or not email or not password:
                 return JsonResponse({"error": "Họ tên, email và mật khẩu không được để trống!"}, status=400)
 
             # Kiểm tra định dạng email và độ dài mật khẩu
@@ -37,12 +37,9 @@ def register_user(request):
             if User.objects(email=email).first():
                 return JsonResponse({"error": "Email đã tồn tại!"}, status=400)
 
-            # Mã hóa mật khẩu
-            # hashed_password = make_password(password)
-
             # Tạo người dùng mới
             user = User(
-                fullName=full_name,
+                fullName=fullName,
                 email=email,
                 phone=phone,
                 avatar=avatar,

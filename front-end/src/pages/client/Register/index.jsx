@@ -1,88 +1,71 @@
-import { useState } from "react";
-import { create_account } from "../../../services/AccountServices";
+import React, { useState } from "react";
+import "./Register.css"; // Tạo file CSS nếu cần
+import { registerUser } from "../../../services/UserService";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 function RegisterForm({ onClose, onRegisterSuccess }) {
   const [userData, setUserData] = useState({
-    name: "",
+    fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
     phone: "",
-    avatar: "",
+    avatar: null,
   });
+  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
 
   const handleRegister = async () => {
-    // Kiểm tra mật khẩu
-    if (userData.password !== userData.confirmPassword) {
-      alert("Mật khẩu nhập lại không khớp!");
+    console.log("userData:", userData);
+    const validationErrors = validate(userData);
+    console.log("validationErrors:", validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
-    // Kiểm tra các trường bắt buộc
-    if (
-      !userData.name ||
-      !userData.email ||
-      !userData.password ||
-      !userData.phone 
-      
-    ) {
-      alert("Vui lòng điền đầy đủ thông tin!");
-      return;
-    }
-
-    // Kiểm tra file avatar
-    let avatarUrl = userData.avatar;
-    if (userData.avatar && userData.avatar instanceof File) {
-      // Upload ảnh lên Cloudinary nếu người dùng chọn file ảnh
-      const formData = new FormData();
-      formData.append("file", userData.avatar);
-      formData.append("upload_preset", "your_cloudinary_preset");
-
-      try {
-        const response = await fetch(
-          "https://api.cloudinary.com/v1_1/your_cloudinary_account/image/upload",
-          {
-            method: "POST",
-            body: formData,
-          }
-        );
-        const data = await response.json();
-        avatarUrl = data.secure_url; // Lấy URL ảnh đã upload
-      } catch (error) {
-        console.error("Lỗi tải ảnh lên Cloudinary:", error);
-        alert("Có lỗi xảy ra khi tải ảnh lên!");
-        return;
-      }
-    }
-
-    // Gửi yêu cầu đăng ký
     try {
-      const newAccount = {
-        fullName: userData.name,
-        email: userData.email,
-        password: userData.password,
-        phone: userData.phone,
-        avatar:
-          userData.avatar ||
-          "https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg",
-       
-      };
-      
-      console.log(newAccount);
-
-      const res = await create_account(newAccount);
-
-      if (res.message) {
-        alert("Đăng ký thành công! 🎉");
-        onRegisterSuccess(); // Gọi hàm từ LayoutDefault để xử lý đăng ký thành công
-        onClose(); // Đóng modal
-      } else {
-        alert("Lỗi đăng ký: " + res.error);
-      }
+      const response = await registerUser(userData);
+      console.log("Đăng ký thành công!");
+      // toast.success("Đăng ký thành công!");
+      onRegisterSuccess();
+      onClose();
+      navigate("/");
     } catch (error) {
       console.error("Lỗi đăng ký:", error);
-      alert("Có lỗi xảy ra, vui lòng thử lại!");
+      if (error.message.includes("400")) {
+        try {
+          const errorData = JSON.parse(error.message.split("400 - ")[1]);
+          console.log("Lỗi từ server:", errorData.error);
+          // toast.error(errorData.error);
+        } catch (parseError) {
+          console.log("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
+          // toast.error("Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.");
+        }
+      } else {
+        console.log(error.message || "Đã xảy ra lỗi khi đăng ký.");
+        // toast.error(error.message || "Đã xảy ra lỗi khi đăng ký.");
+      }
     }
+  };
+  const validate = (data) => {
+    const errors = {};
+    if (!data.fullName) errors.fullName = "Họ tên không được để trống.";
+    if (!data.email) errors.email = "Email không được để trống.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
+      errors.email = "Email không hợp lệ."; // Xác thực email
+    if (!data.password) errors.password = "Mật khẩu không được để trống.";
+    else if (data.password.length < 6)
+      errors.password = "Mật khẩu phải có ít nhất 6 ký tự."; // Xác thực mật khẩu
+    if (data.password !== data.confirmPassword)
+      errors.confirmPassword = "Mật khẩu không khớp.";
+    if (!data.phone) {
+      errors.phone = "Số điện thoại không được để trống.";
+    } else if (!/^0\d{9}$/.test(data.phone)) {
+      errors.phone = "Số điện thoại không hợp lệ.";
+    }
+    return errors;
   };
 
   return (
@@ -92,13 +75,17 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
         <input
           type="text"
           placeholder="Họ tên"
-          onChange={(e) => setUserData({ ...userData, name: e.target.value })}
+          onChange={(e) =>
+            setUserData({ ...userData, fullName: e.target.value })
+          }
         />
+        {errors.fullName && <p className="error-message">{errors.fullName}</p>}
         <input
           type="email"
           placeholder="Email"
           onChange={(e) => setUserData({ ...userData, email: e.target.value })}
         />
+        {errors.email && <p className="error-message">{errors.email}</p>}
         <input
           type="password"
           placeholder="Mật khẩu"
@@ -106,6 +93,7 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
             setUserData({ ...userData, password: e.target.value })
           }
         />
+        {errors.password && <p className="error-message">{errors.password}</p>}
         <input
           type="password"
           placeholder="Nhập lại mật khẩu"
@@ -113,11 +101,15 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
             setUserData({ ...userData, confirmPassword: e.target.value })
           }
         />
+        {errors.confirmPassword && (
+          <p className="error-message">{errors.confirmPassword}</p>
+        )}
         <input
           type="text"
           placeholder="Số điện thoại"
           onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
         />
+        {errors.phone && <p className="error-message">{errors.phone}</p>}
         <input
           type="file"
           onChange={(e) =>

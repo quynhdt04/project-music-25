@@ -1,4 +1,5 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import "./LayoutDefault.css";
 import { IoIosLogOut } from "react-icons/io";
 import { FaRegUser } from "react-icons/fa";
@@ -7,6 +8,7 @@ import LoginForm from "../../../pages/client/Login";
 import RegisterForm from "../../../pages/client/Register";
 import EditProfileForm from "../../../pages/client/EditProfile";
 import Profile from "../../../pages/client/Profile";
+
 function LayoutDefault() {
   const [isLogin, setIsLogin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -20,26 +22,27 @@ function LayoutDefault() {
   const [user, setUser] = useState(null);
 
   const handleRegisterSuccess = () => {
-    alert("Đăng ký thành công!");
+    toast.success("Đăng ký thành công!");
+    navigate("/login"); // Chuyển hướng đến trang đăng nhập
   };
   const handleLoginSuccess = (userData) => {
     console.log("userData received:", userData);
     setIsLogin(true);
     setUser(userData);
     console.log("user state updated:", userData);
-};
-const handleLogout = () => {
-  localStorage.removeItem('user');
-  localStorage.removeItem('token');
-  setIsLogin(false);
-  setUser(null); // Reset user state khi đăng xuất
-  setMenuOpen(false);
-  alert("Bạn đã đăng xuất!");
-  navigate("/");
-};
-const closeModal = () => {
-  setShowRegisterForm(false);
-};
+  };
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setIsLogin(false);
+    setUser(null); // Reset user state khi đăng xuất
+    setMenuOpen(false);
+    alert("Bạn đã đăng xuất!");
+    navigate("/");
+  };
+  const closeModal = () => {
+    setShowRegisterForm(false);
+  };
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -57,23 +60,23 @@ const closeModal = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-        setIsLogin(true);
-        try {
-            const parsedUser = JSON.parse(storedUser);
-            if (typeof parsedUser === "object" && parsedUser !== null) {
-                console.log("User from localStorage:", parsedUser);
-                setUser(parsedUser);
-            } else {
-                console.error("Invalid user data in localStorage");
-                // Xử lý trường hợp dữ liệu bị hỏng (ví dụ: chuyển hướng người dùng đến trang đăng nhập)
-            }
-        } catch (error) {
-            console.error("Error parsing user from localStorage:", error);
-            // Xử lý trường hợp lỗi parse JSON (ví dụ: chuyển hướng người dùng đến trang đăng nhập)
+      setIsLogin(true);
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        if (typeof parsedUser === "object" && parsedUser !== null) {
+          console.log("User from localStorage:", parsedUser);
+          setUser(parsedUser);
+        } else {
+          console.error("Invalid user data in localStorage");
+          // Xử lý trường hợp dữ liệu bị hỏng (ví dụ: chuyển hướng người dùng đến trang đăng nhập)
         }
+      } catch (error) {
+        console.error("Error parsing user from localStorage:", error);
+        // Xử lý trường hợp lỗi parse JSON (ví dụ: chuyển hướng người dùng đến trang đăng nhập)
+      }
     }
-}, []);
- 
+  }, []);
+
   return (
     <>
       <div className="app-container">
@@ -103,7 +106,10 @@ const closeModal = () => {
             </div>
             <div className="user-menu" ref={menuRef}>
               <img
-                src={user?.avatar ||"https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg"}
+                src={
+                  user?.avatar ||
+                  "https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg"
+                }
                 alt="User Avatar"
                 className="avatar"
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -176,8 +182,14 @@ const closeModal = () => {
 
       {showRegisterForm && (
         <RegisterForm
-          onClose={closeModal}
-          onRegisterSuccess={handleRegisterSuccess} 
+          onClose={() => {
+            console.log("Closing register form");
+            closeModal();
+          }}
+          onRegisterSuccess={() => {
+            console.log("Register success");
+            handleRegisterSuccess();
+          }}
         />
       )}
 
