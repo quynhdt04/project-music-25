@@ -3,10 +3,10 @@ import "./LayoutDefault.css";
 import { IoIosLogOut } from "react-icons/io";
 import { FaRegUser } from "react-icons/fa";
 import { useState, useEffect, useRef } from "react";
-import LoginForm from "../../../pages/client/Login";
-import RegisterForm from "../../../pages/client/Register";
-import EditProfileForm from "../../../pages/client/EditProfile";
-import Profile from "../../../pages/client/Profile";
+import LoginForm from "../../../pages/client/Login1";
+import RegisterForm from "../../../pages/client/Register1";
+import EditProfileForm from "../../../pages/client/EditProfile1";
+import Profile from "../../../pages/client/Profile1";
 function LayoutDefault() {
   const [isLogin, setIsLogin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
