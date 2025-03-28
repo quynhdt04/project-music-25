@@ -22,6 +22,18 @@ function LayoutDefault() {
   const handleRegisterSuccess = () => {
     alert("Đăng ký thành công!");
   };
+  const handleLoginSuccess = (userData) => {
+    setIsLogin(true);
+    setUser(userData); // Cập nhật state user
+};
+const handleLogout = () => {
+  setIsLogin(false);
+  setMenuOpen(false);
+  alert("Bạn đã đăng xuất!");
+};
+const closeModal = () => {
+  setShowRegisterForm(false);
+};
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -42,15 +54,19 @@ function LayoutDefault() {
       setIsLogin(true);
     }
   }, []);
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+        setIsLogin(true);
+        try {
+            setUser(JSON.parse(storedUser));
+        } catch (error) {
+            console.error("Error parsing user from localStorage:", error);
+        }
+    }
+}, []);
 
-  const handleLogout = () => {
-    setIsLogin(false);
-    setMenuOpen(false);
-    alert("Bạn đã đăng xuất!");
-  };
-  const closeModal = () => {
-    setShowRegisterForm(false);
-  };
+ 
   return (
     <>
       <div className="app-container">
@@ -147,7 +163,7 @@ function LayoutDefault() {
             setShowLoginForm(false);
             setShowRegisterForm(true);
           }}
-          onLoginSuccess={() => setIsLogin(true)}
+          onLoginSuccess={() =>{handleLoginSuccess}}
         />
       )}
 

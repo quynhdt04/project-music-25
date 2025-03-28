@@ -9,7 +9,6 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
     confirmPassword: "",
     phone: "",
     avatar: "",
-    accountType: "client", // mặc định là client
   });
 
   const handleRegister = async () => {
@@ -24,8 +23,8 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
       !userData.name ||
       !userData.email ||
       !userData.password ||
-      !userData.phone ||
-      !userData.accountType
+      !userData.phone 
+      
     ) {
       alert("Vui lòng điền đầy đủ thông tin!");
       return;
@@ -66,9 +65,9 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
         avatar:
           userData.avatar ||
           "https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg",
-        accountType: userData.accountType, // Đảm bảo gửi đúng accountType
+       
       };
-      console.log("Account Type: ", userData.accountType);
+      
       console.log(newAccount);
 
       const res = await create_account(newAccount);
@@ -125,15 +124,6 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
             setUserData({ ...userData, avatar: e.target.files[0] })
           }
         />
-        <select
-          onChange={(e) =>
-            setUserData({ ...userData, accountType: e.target.value })
-          }
-          value={userData.accountType}
-        >
-          <option value="client">Client</option>
-          <option value="singer">Singer</option>
-        </select>
         <div className="button-group">
           <button onClick={handleRegister}>Đăng ký</button>
           <button onClick={onClose}>Đóng</button>

@@ -1,75 +1,63 @@
-import { useState } from "react";
+import { useRef } from "react";
 import "./login.css";
-import { login } from "../../../services/AccountServices";
 import { setCookie } from "../../../helpers/cookie";
 import { useNavigate } from "react-router-dom";
+import { get_role } from "../../../services/RoleServices";
+import { setAuthAccount, setAuthRole } from "../../../actions/authen";
 import { useDispatch } from "react-redux";
-import { setAuthAccount } from "../../../actions/authen";
 import { toast, Bounce } from "react-toastify";
+import { loginUser } from "../../../services/UserService";
 
-function LoginForm({ onClose, onRegisterClick, onLoginSuccess }) {
-  const [loginData, setLoginData] = useState({ email: "", password: "" });
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+function LoginForm({ onClose, onRegisterClick }) {
+    const formRef = useRef(null);
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-  const handleLogin = async () => {
-    try {
-      const response = await login(loginData.email, loginData.password);
-      if (response.account) {
-        const account = response.account;
-        setCookie("account", JSON.stringify(account), 1);
-        setCookie("token", account.token, 1);
-        dispatch(setAuthAccount(account));
-        
-        // Save user to localStorage for use in LayoutDefault
-        localStorage.setItem("user", JSON.stringify(account));
-
-        // Trigger login success and redirect to home page
-        onLoginSuccess();
-        toast.success("Đăng nhập thành công!", { transition: Bounce });
-
-        navigate("/"); // Redirect to home page
-        onClose();
-      } else {
-        toast.error(response.error || "Đăng nhập thất bại!", { transition: Bounce });
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      const formData = new FormData(formRef.current);
+      const accountData = Object.fromEntries(formData.entries());
+  
+      try {
+          const loginResponse = await loginUser(accountData.email, accountData.password);
+          if (loginResponse.message) {
+              const time = 1;
+              const user = loginResponse.user;
+              setCookie("user", JSON.stringify(user), time);
+              setCookie("token", user.token, time); // Giả sử bảng users có token
+              dispatch(setAuthAccount(user));
+              navigate("/");
+              toast.success("Đăng nhập thành công!", { transition: Bounce });
+          } else {
+              toast.error(loginResponse.error, { transition: Bounce });
+          }
+      } catch (error) {
+          console.error("Lỗi:", error);
+          toast.error("Đã xảy ra lỗi. Vui lòng thử lại sau.", { transition: Bounce });
       }
-    } catch (error) {
-      console.error("Lỗi đăng nhập:", error);
-      toast.error("Có lỗi xảy ra, vui lòng thử lại!", { transition: Bounce });
-    }
-  };
+  };  
 
-  return (
-    <div className="modal">
-      <div className="modal-content">
-        <h2>Đăng nhập</h2>
-        <input
-          type="email"
-          placeholder="Email"
-          value={loginData.email}
-          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          value={loginData.password}
-          onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-          required
-        />
-        <div className="separator">
-          <button onClick={handleLogin}>Đăng nhập</button>
-          <button onClick={onClose}>Đóng</button>
+    return (
+        <div className="modal">
+            <div className="modal-content">
+                <h2>Đăng nhập</h2>
+                <form ref={formRef} onSubmit={handleSubmit}>
+                    <input name="email" type="email" placeholder="Email" required />
+                    <input name="password" type="password" placeholder="Mật khẩu" required />
+                    <div className="separator">
+                        <button type="submit">Đăng nhập</button>
+                        <button onClick={onClose}>Đóng</button>
+                    </div>
+                </form>
+                <p className="signup-text">
+                    Bạn chưa có tài khoản?{" "}
+                    <span onClick={onRegisterClick} className="signup-link" style={{ cursor: "pointer", textDecoration: "underline" }}>
+                        Đăng ký
+                    </span>
+                </p>
+            </div>
         </div>
-        <p className="signup-text">
-          Bạn chưa có tài khoản?{" "}
-          <span onClick={onRegisterClick} className="signup-link" style={{ cursor: "pointer", textDecoration: "underline" }}>
-            Đăng ký
-          </span>
-        </p>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default LoginForm;
