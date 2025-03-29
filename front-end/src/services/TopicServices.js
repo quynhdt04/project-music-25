@@ -1,8 +1,12 @@
 import {
     get,
-    post
+    post,
+    patch
 } from "../utils/request";
 import { toast } from 'react-toastify';
+
+  
+
 
 
  const BASE_URL = "http://localhost:8000";
@@ -86,6 +90,37 @@ export async function get_topic_by_id(id) {
   }
   
   // Cập nhật chủ đề
+  export const patch_topic = async (id, data) => {
+    const url = `http://localhost:8000/api/topics/edit/${id}/`;
+  
+    try {
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+  
+      const text = await response.text();
+      console.log("Phản hồi từ server:", text);
+  
+      if (!response.ok) {
+        throw new Error(`Lỗi khi cập nhật chủ đề: ${response.statusText}`);
+      }
+  
+      try {
+        return JSON.parse(text);
+      } catch (e) {
+        console.error("LỖI PARSE JSON:", e);
+        throw new Error("Phản hồi không phải JSON hợp lệ!");
+      }
+  
+    } catch (err) {
+      console.error("Lỗi khi gửi PATCH:", err);
+      throw err;
+    }
+  };
   
   export async function update_topic(id, data) {
     const url = `http://localhost:8000/api/topics/edit/${id}/`;
@@ -122,4 +157,5 @@ export async function get_topic_by_id(id) {
     }
   }
   
+
   
