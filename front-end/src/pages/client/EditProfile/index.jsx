@@ -5,57 +5,9 @@ import {
   getUserById,
   editProfileWithAvatar
 } from "../../../services/UserService"; 
-import { toast } from "react-toastify";
 
-// function EditProfileModal({ onClose, id, onSaveSuccess }) {
-//   console.log("id: là ", id);
-//   const [userData, setUserData] = useState({
-//     name: "",
-//     email: "",
-//     password: "",
-//     phone: "",
-//     avatar: null,
-//   });
 
-//   useEffect(() => {
-//     const fetchUserData = async () => {
-//       try {
-//         const data = await getUserById(id);
-//         console.log("Dữ liệu từ API:", data);
-//         setUserData((prevUserData) => ({
-//           ...prevUserData,
-//           name:  data.user.fullName || "đfs",
-//           email:  data.user.email || "",
-//           phone:  data.user.phone || "",
-//           // Không cập nhật password ở đây để giữ nguyên giá trị rỗng nếu không thay đổi
-//           avatar:  data.user.avatar || null,
-//         }));
-//       } catch (error) {
-//         console.error("Lỗi lấy thông tin người dùng:", error);
-//         toast.error("Lỗi lấy thông tin người dùng!");
-//       }
-//     };
 
-//     fetchUserData();
-//   }, [id]);
-
-//   const handleSave = async () => {
-//     try {
-//       let response;
-//       if (userData.avatar) {
-//         response = await editProfileWithAvatar(id, userData, userData.avatar);
-//       } else {
-//         response = await editProfile(id, userData);
-//       }
-
-//       toast.success("Cập nhật thông tin thành công!");
-//       onSaveSuccess();
-//       onClose();
-//     } catch (error) {
-//       console.error("Lỗi cập nhật thông tin:", error);
-//       toast.error(error.message || "Lỗi cập nhật thông tin!");
-//     }
-//   };
 const EditProfileModal = ({ user, onClose }) => {
   const storedUser = localStorage.getItem("user");
 if (storedUser) {
@@ -105,30 +57,7 @@ if (storedUser) {
   }, [user]);
   
 
-  // const handleSave = async () => {
-  //   try {
-  //     console.log("📤 Dữ liệu gửi lên API:", userData);
   
-  //     let response;
-  //     if (userData.avatar && userData.avatar instanceof File) {
-  //       response = await editProfileWithAvatar(user.id, userData, userData.avatar);
-  //     } else {
-  //       response = await editProfile(user.id, userData);
-  //     }
-  
-  //     console.log("✅ Kết quả sau khi cập nhật:", response);
-  
-  //     if (response) {
-  //       localStorage.setItem("user", JSON.stringify(response));
-  //     }
-  
-  //     alert("Cập nhật thành công!");
-  //     onClose();
-  //   } catch (error) {
-  //     console.error("❌ Lỗi khi cập nhật:", error);
-  //     alert("Có lỗi xảy ra khi cập nhật!");
-  //   }
-  // };
   const handleSave = async () => {
     try {
       let response;
@@ -185,6 +114,7 @@ if (storedUser) {
           value={userData.phone}
           onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
         />
+        <div className="avatar-preview"> 
         {userData.avatar ? (
           <img
             src={
@@ -194,10 +124,10 @@ if (storedUser) {
             }
             alt="Avatar"
             style={{
-              width: 100,
-              height: 100,
+              width: 150,
+              height: 120,
               objectFit: "cover",
-              borderRadius: "50%",
+              
             }}
           />
         ) : (
@@ -213,6 +143,7 @@ if (storedUser) {
             }
           }}
         />
+        </div>
 
         <div className="button-group">
           <button onClick={handleSave}>Lưu thay đổi</button>

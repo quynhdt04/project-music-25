@@ -260,15 +260,16 @@ main {
 
 /* Avatar upload */
 .avatar-preview {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
+
     object-fit: cover;
     margin: 10px auto;
-    display: block;
-    border: 2px solid #ccc;
+    display: flex;
+    border: 0px;
+    gap: 10px;
 }
-
+.modal-content h2{
+    color: #14274E  !important;
+}
 /* Dropdown user menu */
 .user-menu {
     position: relative;

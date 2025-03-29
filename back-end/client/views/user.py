@@ -1,6 +1,5 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-# from django.contrib.auth.hashers import check_password
 import json
 from models.user import User  
 from django.core.exceptions import ValidationError
@@ -17,7 +16,8 @@ import hashlib
 import hmac
 import time
 from django.conf import settings
-print("Cloudinary Config:", cloudinary.config().cloud_name, cloudinary.config().api_key)
+from django.shortcuts import get_object_or_404
+
 
 CLOUDINARY_API_SECRET = "your_api_secret"
 
@@ -79,7 +79,7 @@ def register_user(request):
             user = User(
                 fullName=full_name,
                 email=email,
-                password=password,  # Nên hash password trước khi lưu
+                password=password,  
                 phone=phone,
                 avatar=avatar_url
             )
@@ -149,63 +149,7 @@ def login_user(request):
             return JsonResponse({"error": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=405)
-# @csrf_exempt
-# def update_user_profile(request, _id):
-#     if request.method == "PATCH":
-#         try:
-#             data = json.loads(request.body)
 
-#             # Lấy ID từ token (nếu có)
-#             auth_header = request.headers.get('Authorization')
-#             if auth_header and auth_header.startswith('Bearer '):
-#                 token = auth_header.split('Bearer ')[1]
-#                 try:
-#                     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=['HS256'])
-#                     user_id_from_token = payload['_id']
-#                     if _id and str(_id) != str(user_id_from_token):
-#                         return JsonResponse({"error": "ID người dùng trong token không khớp với ID trong URL."}, status=403)
-#                     _id = user_id_from_token
-#                 except jwt.ExpiredSignatureError:
-#                     return JsonResponse({"error": "Token đã hết hạn."}, status=401)
-#                 except jwt.InvalidTokenError:
-#                     return JsonResponse({"error": "Token không hợp lệ."}, status=401)
-#             elif not _id:
-#                 return JsonResponse({"error": "ID người dùng không được cung cấp."}, status=400)
-
-#             try:
-#                 user = User.objects.get(_id=ObjectId(_id)) # Thay đổi ở đây
-#             except User.DoesNotExist:
-#                 return JsonResponse({"error": "Người dùng không tồn tại!"}, status=404)
-
-#             if "fullName" in data:
-#                 new_fullName = data["fullName"]
-#                 if not new_fullName:
-#                     return JsonResponse({"error": "Không được để trống họ & tên"}, status=400)
-#                 user.fullName = new_fullName
-
-#             if "password" in data:
-#                 new_password = data["password"]
-#                 user.password = new_password
-
-#             if "phone" in data:
-#                 phone = data["phone"]
-#                 if not phone.isdigit() or len(phone) != 10:
-#                     return JsonResponse({"error": "Số điện thoại không hợp lệ!"}, status=400)
-#                 user.phone = phone
-
-#             for field in ["avatar", "status", "deleted"]:
-#                 if field in data:
-#                     setattr(user, field, data[field])
-
-#             user.save()
-#             return JsonResponse({"message": "Cập nhật thông tin người dùng thành công!", "id": str(user._id)}, status=200) # Thay đổi ở đây
-
-#         except json.JSONDecodeError:
-#             return JsonResponse({"error": "Dữ liệu không hợp lệ!"}, status=400)
-#         except Exception as e:
-#             return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
-
-#     return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
 
 @csrf_exempt
 def get_user_by_id(request, _id):
@@ -228,47 +172,8 @@ def get_user_by_id(request, _id):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-from django.shortcuts import get_object_or_404
-# @csrf_exempt
-# def update_user(request, _id):
-#     if request.method != "PUT":
-#         return JsonResponse({"error": "Phương thức không hợp lệ"}, status=405)
 
-#     try:
-#         user = User.objects.get(id=ObjectId(_id))  # Lấy user bằng ObjectId
 
-#         # Đọc JSON từ request.body
-#         try:
-#             data = json.loads(request.body.decode("utf-8"))
-#         except json.JSONDecodeError:
-#             return JsonResponse({"error": "Dữ liệu không hợp lệ"}, status=400)
-
-#         # Lấy dữ liệu từ JSON request
-#         fullName = data.get("fullName", user.fullName)
-#         phone = data.get("phone", user.phone)
-#         password = data.get("password", None)
-#         avatar = request.FILES.get("avatar", None)  # Kiểm tra file ảnh
-
-#         # Cập nhật thông tin
-#         user.fullName = fullName
-#         user.phone = phone
-#         if password:
-#             user.set_password(password)
-
-#         if avatar:
-#             user.avatar = avatar
-        
-#         user.save()
-#         updated_user = User.objects.get(id=ObjectId(_id))
-#         print("✅ Dữ liệu sau khi cập nhật:", updated_user.fullName, updated_user.phone)
-#         return JsonResponse({"message": "Cập nhật thành công", "fullName": user.fullName,"avatar": str(user.avatar)}, status=200)
-        
-
-#     except User.DoesNotExist:
-#         return JsonResponse({"error": "User không tồn tại"}, status=404)
-
-#     except Exception as e:
-#         return JsonResponse({"error": str(e)}, status=500)
 @csrf_exempt
 def update_user(request, _id):
     if request.method != "PUT":
