@@ -6,7 +6,6 @@ import {
   get_latest_song,
   get_song_by_id,
 } from "../../../../services/SongServices";
-import SongDetailPage from "../SongDetailPage/SongDetailPage";
 import { get_all_singers } from "../../../../services/SingerServices";
 import { get_all_topics } from "../../../../services/TopicServices";
 
@@ -127,14 +126,12 @@ const SongFormManagementPage = () => {
       existingSong={data}
       listDataOption={listDataOption}
     />
-  ) : action === "edit-info" ? (
+  ) : (
     <SongForm
       type="update"
       existingSong={data}
       listDataOption={listDataOption}
     />
-  ) : (
-    <SongDetailPage song={data} />
   );
 };
 

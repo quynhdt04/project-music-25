@@ -94,6 +94,9 @@ function LayoutDefault() {
                 <Link to="/music-love">Bài hát yêu thích</Link>
               </li>
               <li>
+                <Link to="/playlist">Danh sách phát nhạc</Link>
+              </li>
+              <li>
                 <Link to="/bxh">BXH</Link>
               </li>
             </ul>

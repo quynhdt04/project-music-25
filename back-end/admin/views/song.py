@@ -204,6 +204,9 @@ async def get_song_by_id(request, song_id):
                 ],
                 "status": song.status,
                 "deleted": song.deleted,
+                "isPremiumOnly": song.isPremiumOnly,
+                "createdBy": song.createdBy,
+                "approvedBy": song.approvedBy,
                 "slug": song.slug,
                 "createdAt": song.createdAt.isoformat() if song.createdAt else None,
                 "updatedAt": song.updatedAt.isoformat() if song.updatedAt else None,
@@ -433,5 +436,35 @@ async def restore_multiple_songs(request):
             return JsonResponse({"error": "Không tìm thấy bài hát!"}, status=404)
         except Exception as e:
             logger.error("Error in restore_multiple_songs: %s", traceback.format_exc())
+            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
+    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+
+@csrf_exempt
+async def get_all_pending_songs(request):
+    if request.method == "GET":
+        try:
+            songs = await sync_to_async(lambda: list(Song.objects.filter(status="pending", deleted=False).order_by("updatedAt")))()
+            songs = await sync_to_async(list)(songs)
+
+            # Serialize the songs into JSON-compatible data
+            serialized_songs = [
+                {
+                    "_id": str(song._id),
+                    "title": song.title,
+                    "singers": [
+                        {"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers
+                    ],  # Serialize each Singer object
+                    "status": song.status,
+                    "isPremiumOnly": song.isPremiumOnly,
+                    "createdBy": song.createdBy,
+                    "updatedAt": song.updatedAt,
+                }
+                for song in songs
+            ]
+
+            return JsonResponse({"data": serialized_songs}, status=200)
+        
+        except Exception as e:
+            logger.error("Error in get_all_pending_song: %s", traceback.format_exc())
             return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
     return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
