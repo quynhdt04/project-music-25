@@ -26,10 +26,19 @@ import {
 } from "../../services/SongServices";
 import { toast } from "react-toastify";
 
-const BaseTable = ({ data, columns, filters, basePath, fetchListData }) => {
+const BaseTable = ({
+  data,
+  columns,
+  filters,
+  multipleActions,
+  tableActions = "full",
+  basePath,
+  fetchListData,
+  canCreateNewData = true,
+}) => {
   const [checkedItems, setCheckedItems] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = useRef(10);
+  const rowsPerPage = useRef(5);
   const [offset, setOffset] = useState(0);
   const totalPage = useRef(0);
   const [visibleRows, setVisibleRows] = useState([]);
@@ -80,10 +89,7 @@ const BaseTable = ({ data, columns, filters, basePath, fetchListData }) => {
 
   useEffect(() => {
     setVisibleRows(
-      [...filteredData].slice(
-        offset * rowsPerPage.current,
-        offset * rowsPerPage.current + rowsPerPage.current
-      )
+      [...filteredData].slice(offset, offset + rowsPerPage.current)
     );
   }, [offset, rowsPerPage, filteredData]);
 
@@ -112,12 +118,6 @@ const BaseTable = ({ data, columns, filters, basePath, fetchListData }) => {
   const onPageChange = (page) => {
     setCurrentPage(page);
     setOffset((page - 1) * rowsPerPage.current);
-    // setVisibleRows(
-    //   filteredData.slice(
-    //     (page - 1) * rowsPerPage.current,
-    //     page * rowsPerPage.current
-    //   )
-    // );
   };
 
   const handleDeleteSong = async (id) => {
@@ -174,33 +174,37 @@ const BaseTable = ({ data, columns, filters, basePath, fetchListData }) => {
       <Row>
         <Col>
           <div className="filter-section">
-            <div className="filter-header">
-              <span>Bộ lọc</span>
-            </div>
-            <div className="filter-body">
-              {filters.map((filter) => (
-                <div className="filter-container" key={filter.id}>
-                  <Form.Group controlId={filter.id}>
-                    <Form.Label>{filter.label}</Form.Label>
-                    {/* Use Form.Label */}
-                    <Form.Select
-                      className="form-select"
-                      id={filter.id}
-                      onChange={(e) =>
-                        handleFilterChange(filter.id, e.target.value)
-                      } // Add onChange handler if needed
-                    >
-                      {filter.options.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </Form.Select>
-                    {/* Use Form.Select */}
-                  </Form.Group>
+            {filters && filters.length > 0 && (
+              <>
+                <div className="filter-header">
+                  <span>Bộ lọc</span>
                 </div>
-              ))}
-            </div>
+                <div className="filter-body">
+                  {filters.map((filter) => (
+                    <div className="filter-container" key={filter.id}>
+                      <Form.Group controlId={filter.id}>
+                        <Form.Label>{filter.label}</Form.Label>
+                        {/* Use Form.Label */}
+                        <Form.Select
+                          className="form-select"
+                          id={filter.id}
+                          onChange={(e) =>
+                            handleFilterChange(filter.id, e.target.value)
+                          } // Add onChange handler if needed
+                        >
+                          {filter.options.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </Form.Select>
+                        {/* Use Form.Select */}
+                      </Form.Group>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </Col>
       </Row>
@@ -224,12 +228,11 @@ const BaseTable = ({ data, columns, filters, basePath, fetchListData }) => {
                 onChange={(e) => setActionForMultipleItems(e.target.value)} // Pass the selected value
               >
                 <option value="no">-- Chọn hành động --</option>
-                <option value="delete-multiple">
-                  Xóa bản {numberOfSelectedItems} ghi
-                </option>
-                <option value="restore-multiple">
-                  Phục hồi {numberOfSelectedItems} bản ghi
-                </option>
+                {multipleActions.map((action) => (
+                  <option key={action.value} value={action.value}>
+                    {action.render(numberOfSelectedItems)}
+                  </option>
+                ))}
               </Form.Select>
               <ButtonWithModal
                 type="button-with-icon"
@@ -265,13 +268,20 @@ const BaseTable = ({ data, columns, filters, basePath, fetchListData }) => {
                     : true
                 }
               />
-              <div className="vr"></div>
-              <Link to="/admin/songs/create" style={{ textDecoration: "none" }}>
-                <Button className="btn add-btn">
-                  <Plus size={20} style={{ marginRight: "0.313rem" }} />
-                  Thêm bài hát
-                </Button>
-              </Link>
+              {canCreateNewData && (
+                <>
+                  <div className="vr"></div>
+                  <Link
+                    to="/admin/songs/create"
+                    style={{ textDecoration: "none" }}
+                  >
+                    <Button className="btn add-btn">
+                      <Plus size={20} style={{ marginRight: "0.313rem" }} />
+                      Thêm bài hát
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </Col>
@@ -301,74 +311,103 @@ const BaseTable = ({ data, columns, filters, basePath, fetchListData }) => {
               </th>
               {columns.map((col, index) => (
                 <th key={index} className={col.headerClassName || ""}>
-                  <div>
+                  <div style={{ textAlign: col.isCenter ? "center" : "left" }}>
                     <span>{col.header}</span>
                   </div>
                 </th>
               ))}
               <th>
-                <div className="table-header-action">
+                <div
+                  className="table-header-action"
+                  style={{ textAlign: "center" }}
+                >
                   <span>Hành động</span>
                 </div>
               </th>
             </tr>
           </thead>
           <tbody>
-            {visibleRows.map((item) => (
-              <tr key={item.id}>
-                <td>
-                  <div className="table-data-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={checkedItems[item.id] || false}
-                      onChange={() =>
-                        setCheckedItems({
-                          ...checkedItems,
-                          [item.id]: !checkedItems[item.id],
-                        })
-                      }
-                    />
-                  </div>
-                </td>
-                {columns.map((col, index) => (
-                  <td key={index}>
-                    <div className={col.className || ""}>
-                      {col.render
-                        ? col.render(item[col.key], item)
-                        : item[col.key]}
-                    </div>
-                  </td>
-                ))}
-                <td>
-                  <div className="table-data-action">
-                    <div className="img-container view-detail-btn">
-                      <Link to={`${basePath}/view-detail/${item.id}`}>
-                        <Eye size={20} />
-                      </Link>
-                    </div>
-                    <div className="img-container edit-info-btn">
-                      <Link to={`${basePath}/edit-info/${item.id}`}>
-                        <PencilSquare size={20} />
-                      </Link>
-                    </div>
-                    <div className="img-container delete-data-btn">
-                      {/* <Link to={`${basePath}/delete-data?item=${item.id}`}>
-                        <Trash size={20} />
-                      </Link> */}
-                      <ButtonWithModal
-                        type="icon"
-                        buttonIcon={<Trash size={20} />}
-                        modalTitle="Xác nhận"
-                        modalContent={
-                          <p>Bạn có chắc chắn muốn xóa bản ghi: {item.id} ?</p>
+            {visibleRows.length > 0 ? (
+              visibleRows.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <div className="table-data-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={checkedItems[item.id] || false}
+                        onChange={() =>
+                          setCheckedItems({
+                            ...checkedItems,
+                            [item.id]: !checkedItems[item.id],
+                          })
                         }
-                        onSubmit={() => handleDeleteSong(item.id)}
                       />
                     </div>
-                  </div>
+                  </td>
+                  {columns.map((col, index) => (
+                    <td key={index}>
+                      <div
+                        className={col.className || ""}
+                        style={{ textAlign: col.isCenter ? "center" : "left" }}
+                      >
+                        {col.render
+                          ? col.render(item[col.key], item)
+                          : item[col.key]}
+                      </div>
+                    </td>
+                  ))}
+                  <td>
+                    <div
+                      className={`table-data-action d-flex ${
+                        tableActions === "view-only"
+                          ? "justify-content-center"
+                          : "justify-content-start"
+                      }`}
+                    >
+                      {tableActions === "view-only" ? (
+                        <div className="img-container view-detail-btn">
+                          <Link to={`${basePath}/view-detail/${item.id}`}>
+                            <Eye size={20} />
+                          </Link>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="img-container view-detail-btn">
+                            <Link to={`${basePath}/view-detail/${item.id}`}>
+                              <Eye size={20} />
+                            </Link>
+                          </div>
+                          <div className="img-container edit-info-btn">
+                            <Link to={`${basePath}/edit-info/${item.id}`}>
+                              <PencilSquare size={20} />
+                            </Link>
+                          </div>
+                          <div className="img-container delete-data-btn">
+                            <ButtonWithModal
+                              type="icon"
+                              buttonIcon={<Trash size={20} />}
+                              modalTitle="Xác nhận"
+                              modalContent={
+                                <p>
+                                  Bạn có chắc chắn muốn xóa bản ghi: {item.id} ?
+                                </p>
+                              }
+                              onSubmit={() => handleDeleteSong(item.id)}
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={columns.length + 2}>
+                  <div className="text-center">Không có dữ liệu</div>
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
         <div className="table-pagination-section">

@@ -54,3 +54,8 @@ export const delete_multiple_songs = async (data) => {
   });
   return result;
 };
+
+export const get_all_pending_songs = async () => {
+  const result = await get(`api/songs/get-all-pending-songs`);
+  return result;
+};

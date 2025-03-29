@@ -76,7 +76,7 @@ $status-badges-border-radius: 30px;
           }
 
           .status-cell {
-            display: inline-block;
+            display: block;
             font-size: 14px;
 
             .status-green {
@@ -116,9 +116,7 @@ $status-badges-border-radius: 30px;
           }
 
           .table-data-action {
-            display: flex;
             gap: 10px; /* Reduce the gap between icons */
-            justify-content: flex-start;
 
             .img-container {
               width: 36px;

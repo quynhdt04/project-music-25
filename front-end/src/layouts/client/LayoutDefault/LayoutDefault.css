@@ -3,11 +3,14 @@
     --base-color: #394867;
    --sider-color: #14274E;
     --text-color: #333;
+    --zm-sidebar-color: #231B2E;
+    --zm-main-content-color: #170F23;
 }
 
 .sidebar {
     width: 220px;
-    background: var(--base-color);
+    /* background: var(--base-color); */
+    background-color: var(--zm-sidebar-color);
     color: white;
     padding: 20px;
 }
@@ -44,12 +47,14 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: var(--sider-color);
+    /* background: var(--sider-color); */
+    background-color: var(--zm-main-content-color);
     overflow: hidden;
 }
 
 .header {
-    background: var(--sider-color);
+    /* background: var(--sider-color); */
+    background-color: var(--zm-main-content-color);
     padding: 10px 20px;
     display: flex;
     justify-content: space-between;
