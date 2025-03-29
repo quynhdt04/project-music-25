@@ -5,91 +5,7 @@ import { Row, Col, Alert, Spinner } from "react-bootstrap";
 import BaseTable from "../../../components/BaseTable/BaseTable";
 import { get_all_songs } from "../../../services/SongServices";
 import "./Song.scss";
-
-const tableConfig = {
-  columns: [
-    { key: "id", header: "ID", searchable: true },
-    { key: "title", header: "Tên bài hát", searchable: true },
-    {
-      key: "singer",
-      header: "Tên ca sĩ",
-      render: (value) => {
-        // Assuming `value` is an array of singer names
-        if (Array.isArray(value)) {
-          return value.join(", "); // Join multiple singers with a comma
-        }
-        return value; // Fallback for single singer or invalid data
-      },
-      searchable: true,
-    },
-    { key: "like", header: "Lượt thích", searchable: true },
-    {
-      key: "status",
-      header: "Trạng thái hoạt động",
-      headerClassName: "status-cell-header",
-      className: "status-cell",
-      render: (value) => {
-        const statusMap = {
-          active: { label: "Đang hoạt động", className: "status-green" },
-          inactive: { label: "Đã ẩn", className: "status-red" },
-        };
-        const status = statusMap[value] || { label: value, className: "" };
-        return (
-          <span className={`${status.className} col-using-render`}>
-            {status.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "isDeleted",
-      header: "Trạng thái xóa",
-      headerClassName: "status-cell-header",
-      className: "status-cell",
-      render: (value) => {
-        const statusMap = {
-          false: { label: "Đang hoạt động", className: "status-green" },
-          true: { label: "Đã xóa", className: "status-red" },
-        };
-        const status = statusMap[value] || { label: value, className: "" };
-        return (
-          <span className={`${status.className} col-using-render`}>
-            {status.label}
-          </span>
-        );
-      },
-    },
-    {
-      key: "createdAt",
-      header: "Ngày tạo",
-    },
-    {
-      key: "updatedAt",
-      header: "Ngày cập nhật",
-    },
-  ],
-  basePath: "/admin/songs",
-  filters: [
-    {
-      id: "status",
-      label: "Trạng thái hoạt động",
-      options: [
-        { value: "", label: "Tất cả" },
-        { value: "active", label: "Đang hoạt động" },
-        { value: "inactive", label: "Đã ẩn" },
-      ],
-    },
-    {
-      id: "isDeleted",
-      label: "Trạng thái xóa",
-      options: [
-        { value: "", label: "Tất cả" },
-        { value: "true", label: "Đã xóa" },
-        { value: "false", label: "Chưa xóa" },
-      ],
-    },
-  ],
-};
+import { tableConfigs } from "../../../utils/constants";
 
 function Song() {
   const [data, setData] = useState([]);
@@ -97,6 +13,7 @@ function Song() {
     isLoading: true,
     isError: false,
   });
+  const tableConfig = tableConfigs["songs"];
 
   const fetchData = async () => {
     try {
@@ -149,6 +66,7 @@ function Song() {
             data={data}
             columns={tableConfig.columns}
             filters={tableConfig.filters}
+            multipleActions={tableConfig.multipleActions}
             basePath={tableConfig.basePath}
             fetchListData={fetchData}
           />

@@ -1,46 +1,192 @@
-import React from "react";
-import { Container, Row, Col, Card } from "react-bootstrap";
-import { Calendar, Clock } from "react-bootstrap-icons";
+import React, { useState, useEffect, useCallback } from "react";
+import Select from "react-select";
+import { useParams } from "react-router-dom";
+import { format } from "date-fns";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Spinner,
+  Alert,
+  Button,
+} from "react-bootstrap";
+import { Calendar, Clock, Person, PersonCheck } from "react-bootstrap-icons";
 import "./SongDetailPage.scss";
+import { get_song_by_id } from "../../../../services/SongServices";
+import { color } from "@cloudinary/url-gen/qualifiers/background";
 
-const SongDetailPage = ({ song }) => {
-  console.log(song);
+const getStatusClass = (status) => {
+  const statusMap = {
+    approved: "status-green",
+    rejected: "status-red",
+    pending: "status-grey",
+  };
+  return statusMap[status] || "";
+};
 
-  const getStatusClass = (status) => {
-    const statusMap = {
-      active: "status-green",
+const getStatusLabel = (status) => {
+  const statusMap = {
+    approved: "Đã duyệt",
+    rejected: "Đã từ chối",
+    pending: "Đang chờ duyệt",
+  };
+  return statusMap[status] || status;
+};
 
-      inactive: "status-red",
+const getDeletedStatusClass = (isDeleted) => {
+  return isDeleted === true ? "status-red" : "status-green";
+};
+
+const getDeletedStatusLabel = (isDeleted) => {
+  return isDeleted === true ? "Đã xóa" : "Chưa xóa";
+};
+
+const getPremiumStatusClass = (isPremium) => {
+  return isPremium === true ? "status-green" : "status-grey";
+};
+
+const getPremiumStatusLabel = (isPremium) => {
+  return isPremium === true ? "Chỉ Premium" : "Miễn phí";
+};
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const statusOptions = [
+  {
+    value: "approved",
+    label: "Đã duyệt",
+    className: "status-green",
+    color: "rgba(0, 200, 0, 0.1)",
+  },
+  {
+    value: "rejected",
+    label: "Đã từ chối",
+    className: "status-red",
+    color: "rgba(255, 0, 0, 0.1)",
+  },
+  {
+    value: "pending",
+    label: "Đang chờ duyệt",
+    className: "status-grey",
+    color: "rgba(128, 128, 128, 0.1)",
+  },
+];
+
+const customStyles = {
+  control: (styles) => ({
+    ...styles,
+    minHeight: "30px",
+    height: "40px",
+    width: "200px",
+    fontSize: "14px",
+  }),
+  valueContainer: (styles) => ({
+    ...styles,
+    height: "30px",
+    padding: "0 6px",
+  }),
+  singleValue: (styles, state) => ({
+    ...styles,
+    color: state.data.color,
+  }),
+  option: (styles, state) => {
+    const color = state.data.color;
+    console.log("state: ", state);
+    return {
+      ...styles,
+      backgroundColor: state.isFocused ? color : "transparent",
+      color: state.data.color,
+      padding: "10px",
+      display: "flex",
+      alignItems: "center",
     };
-    return statusMap[status] || "";
-  };
+  },
+};
 
-  const getStatusLabel = (status) => {
-    const statusMap = {
-      active: "Đang hoạt động",
-      inactive: "Đã ẩn",
-    };
-    return statusMap[status] || status;
-  };
+const SongDetailPage = ({ managementPage = "songs" }) => {
+  const [song, setSong] = useState({});
+  const [fetchingStatus, setFetchingStatus] = useState({
+    isLoading: true,
+    isError: false,
+  });
+  const { id } = useParams();
 
-  const getDeletedStatusClass = (isDeleted) => {
-    return isDeleted === true ? "status-red" : "status-green";
-  };
+  const fetchData = useCallback(async () => {
+    try {
+      setFetchingStatus({ isLoading: true, isError: false });
+      let songByIdResponse = null;
+      let formattedData = null;
+      switch (managementPage) {
+        // case "songs-approval": {
 
-  const getDeletedStatusLabel = (isDeleted) => {
-    return isDeleted === true ? "Đã xóa" : "Chưa xóa";
-  };
+        // }
+        default: {
+          songByIdResponse = await get_song_by_id(id);
+          formattedData = {
+            songId: songByIdResponse.data._id,
+            title: songByIdResponse.data.title,
+            avatar: songByIdResponse.data.avatar,
+            audio: songByIdResponse.data.audio,
+            video: songByIdResponse.data.video,
+            description: songByIdResponse.data.description,
+            singers: songByIdResponse.data.singers.map((singer) => ({
+              value: singer.singerId,
+              label: singer.singerName,
+            })),
+            topics: songByIdResponse.data.topics.map((topic) => ({
+              value: topic.topicId,
+              label: topic.topicName,
+            })),
+            like: songByIdResponse.data.like,
+            lyrics: songByIdResponse.data.lyrics.map((sentence) => ({
+              content: sentence.lyricContent,
+              beginAt: sentence.lyricStartTime,
+              endAt: sentence.lyricEndTime,
+            })),
+            status: songByIdResponse.data.status,
+            isPremiumOnly: songByIdResponse.data.isPremiumOnly,
+            createdBy: songByIdResponse.data.createdBy,
+            approvedBy: songByIdResponse.data.approvedBy,
+            deleted: songByIdResponse.data.deleted,
+            createdAt: songByIdResponse.data.createdAt,
+            updatedAt: songByIdResponse.data.updatedAt,
+          };
+        }
+      }
+      setSong(formattedData);
+      setFetchingStatus({ isLoading: false, isError: false });
+    } catch (error) {
+      console.error("Failed to fetch data: ", error);
+      setFetchingStatus({ isLoading: false, isError: true });
+    }
+  }, [id, managementPage]);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  if (fetchingStatus.isLoading) {
+    return (
+      <div className="text-center my-5">
+        <Spinner animation="border" variant="primary" />
+        <p className="mt-2">Xin vui lòng chờ đợi trong giây lát...</p>
+      </div>
+    );
+  }
+
+  if (fetchingStatus.isError) {
+    return <Alert variant="danger">Đã xảy ra lỗi khi tải dữ liệu</Alert>;
+  }
 
   return (
     <Container fluid className="song-detail-container">
@@ -48,27 +194,71 @@ const SongDetailPage = ({ song }) => {
         {/* Header Section */}
         <Card.Header className="song-detail-header">
           <div className="d-flex justify-content-between align-items-start">
-            <div>
+            <div style={{ flexBasis: "50%" }}>
               <h2 className="song-title">{song.title}</h2>
               <div className="song-id">ID: {song.songId}</div>
             </div>
-            <div className="d-flex flex-column align-items-end">
-              <span>
-                Trạng thái hoạt động:{" "}
-                <span className={`status-badge ${getStatusClass(song.status)}`}>
-                  {getStatusLabel(song.status)}
-                </span>
-              </span>
-              <span>
-                Trạng thái xóa:{" "}
-                <span
-                  className={`status-badge mt-2 ${getDeletedStatusClass(
-                    song.deleted
-                  )}`}
-                >
-                  {getDeletedStatusLabel(song.deleted)}
-                </span>
-              </span>
+            <div
+              className="d-flex flex-column align-items-end"
+              style={{ flexBasis: "50%" }}
+            >
+              {managementPage === "songs" ? (
+                <>
+                  <span>
+                    Trạng thái Premium:{" "}
+                    <span
+                      className={`status-badge ${getPremiumStatusClass(
+                        song.status
+                      )}`}
+                    >
+                      {getPremiumStatusLabel(song.status)}
+                    </span>
+                  </span>
+                  <span>
+                    Trạng thái duyệt:{" "}
+                    <span
+                      className={`status-badge mt-2 ${getStatusClass(
+                        song.status
+                      )}`}
+                    >
+                      {getStatusLabel(song.status)}
+                    </span>
+                  </span>
+                  <span>
+                    Trạng thái xóa:{" "}
+                    <span
+                      className={`status-badge mt-2 ${getDeletedStatusClass(
+                        song.deleted
+                      )}`}
+                    >
+                      {getDeletedStatusLabel(song.deleted)}
+                    </span>
+                  </span>
+                </>
+              ) : (
+                <div className="d-flex">
+                  <Select
+                    classNamePrefix="react-select"
+                    options={statusOptions}
+                    styles={customStyles}
+                    getOptionLabel={(e) => (
+                      <div className={`status-badge ${e.className}`}>
+                        {e.label}
+                      </div>
+                    )}
+                    getOptionValue={(e) => e.value}
+                  />
+                  <Button
+                    className="ms-3"
+                    style={{
+                      backgroundColor: "#6f42c1",
+                      padding: "0.5rem 1rem",
+                    }}
+                  >
+                    Lưu thay đổi
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </Card.Header>
@@ -177,8 +367,8 @@ const SongDetailPage = ({ song }) => {
 
           {/* Timestamps */}
           <Row>
-            <Col md={12}>
-              <div className="timestamps">
+            <Col md={6}>
+              <div className="timestamps justify-content-start">
                 <div className="timestamp-item">
                   <Calendar className="icon" />
                   <span>Ngày tạo: {formatDate(song.createdAt)}</span>
@@ -186,6 +376,18 @@ const SongDetailPage = ({ song }) => {
                 <div className="timestamp-item">
                   <Clock className="icon" />
                   <span>Ngày cập nhật: {formatDate(song.updatedAt)}</span>
+                </div>
+              </div>
+            </Col>
+            <Col md={6}>
+              <div className="timestamps justify-content-end">
+                <div className="timestamp-item">
+                  <Person className="icon" />
+                  <span>Người tạo: {song.createdBy}</span>
+                </div>
+                <div className="timestamp-item">
+                  <PersonCheck className="icon" />
+                  <span>Người duyệt: {song.approvedBy}</span>
                 </div>
               </div>
             </Col>

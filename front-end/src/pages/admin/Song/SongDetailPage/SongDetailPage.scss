@@ -48,6 +48,13 @@ $border-color: #d8c2ff;
       background-color: rgba(255, 0, 0, 0.1);
       color: #d00000;
     }
+
+    .status-grey {
+      padding: 0.25rem 1rem;
+      border-radius: 30px;
+      background-color: rgba(128, 128, 128, 0.1);
+      color: #808080;
+    }
   }
 
   .song-avatar {
