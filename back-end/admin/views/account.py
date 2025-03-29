@@ -7,15 +7,31 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Q
 from asgiref.sync import sync_to_async
+import uuid
 
 @csrf_exempt
 async def get_all_accounts(request):
     if request.method == "GET":
         try:
-            page = int(request.GET.get("page", 1))  # Trang mặc định là 1
-            limit = int(request.GET.get("limit", 3))  # Số lượng item trên mỗi trang mặc định là 3
+            # Đảm bảo request.GET không bị lỗi nếu URL sai cú pháp
+            query_params = request.GET.dict()
+            page = int(query_params.get("page", 1))
+            limit = int(query_params.get("limit", 3))
+            search_query = query_params.get("search", "").strip()
 
-            accounts = await sync_to_async(list)(Account.objects.filter(deleted=False).order_by("id"))
+            # Lọc kết quả theo từ khóa tìm kiếm trước
+            if search_query:
+                accounts = await sync_to_async(list)(
+                    Account.objects.filter(
+                        deleted=False,
+                        fullName__icontains=search_query  # Tìm kiếm không phân biệt chữ hoa/thường
+                    ).order_by("id")
+                )
+            else:
+                accounts = await sync_to_async(list)(
+                    Account.objects.filter(deleted=False).order_by("id")
+                )
+
             paginator = Paginator(accounts, limit)  # Áp dụng phân trang
 
             if page > paginator.num_pages or page < 1:
@@ -47,8 +63,8 @@ async def get_all_accounts(request):
             }, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-    
-    return JsonResponse({"error": "Invalid request"}, status=405)
+
+
 
 
 @csrf_exempt
