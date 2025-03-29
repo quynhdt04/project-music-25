@@ -1,14 +1,16 @@
 import BoxHead from "../../../components/BoxHead";
 import { useEffect, useState } from "react";
 import "./Singer.scss";
-import { get_all_singers } from "../../../services/SingerServices";
+import { get_all_singers, delete_singer } from "../../../services/SingerServices";
 import { Link } from "react-router-dom";
-// import Swal from "sweetalert2";
-// import withReactContent from "sweetalert2-react-content";
-
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+import { toast, Bounce } from "react-toastify";
 function Singer() {
     const [singers, setSingers] = useState([]);
     const [refresh, setRefresh] = useState(false);
+    const MySwal = withReactContent(Swal);
+    const [searchTerm, setSearchTerm] = useState(""); // Lưu từ khóa tìm kiếm
 
     useEffect(() => {
         const fetchAPI = async () => {
@@ -26,6 +28,58 @@ function Singer() {
     // Gọi hàm này sau khi thêm/sửa/xóa ca sĩ để làm mới danh sách
     const reloadSingers = () => setRefresh((prev) => !prev);
 
+    const handleDelete = async (singer_id) => {
+        console.log("Đang xoá ca sĩ với ID:", singer_id);
+
+        if (!singer_id) {
+            console.error("Lỗi: ID ca sĩ bị undefined!");
+            return;
+        }
+
+        MySwal.fire({
+            title: "Xác nhận xóa",
+            text: "Bạn có chắc chắn muốn xóa ca sĩ này không?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await delete_singer(singer_id);
+                    console.log("Phản hồi từ server:", response);
+
+                    if (response.message) {
+                        reloadSingers();
+                        Swal.fire("Thành công!", "Ca sĩ đã được xóa.", "success");
+                    } else {
+                        Swal.fire("Thất bại!", response.error || "Không thể xóa ca sĩ.", "error");
+                    }
+                } catch (error) {
+                    console.error("Lỗi khi xoá ca sĩ:", error);
+                    Swal.fire("Lỗi!", "Không thể kết nối tới server.", "error");
+                }
+            }
+        });
+    };
+
+    // Hàm xử lý tìm kiếm
+    const searchSingers = (singers, searchTerm) => {
+        const removeAccents = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+        // Nếu không có từ khóa tìm kiếm, trả về danh sách gốc
+        if (!searchTerm.trim()) return singers;
+
+        return singers.filter((singer) =>
+            removeAccents(singer.fullName).toLowerCase().includes(removeAccents(searchTerm).toLowerCase())
+        );
+    };
+
+    // Lọc ca sĩ theo từ khóa tìm kiếm
+    const filteredSingers = searchSingers(singers, searchTerm);
+
     return (
         <>
             <BoxHead title="Danh sách ca sĩ" />
@@ -33,8 +87,8 @@ function Singer() {
                 <div className="singer__body">
                     <div className="singer__controll">
                         <div className="singer__search">
-                            <input type="text" placeholder="Tìm kiếm..." />
-                            <button>Tìm</button>
+                            <input type="text" placeholder="Tìm kiếm..." value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)} />
                         </div>
                         <div className="singer__create">
                             <Link to="/admin/singers/create" className="singer__btn singer__btn-success" >+ Thêm mới</Link>
@@ -53,8 +107,8 @@ function Singer() {
                             </tr>
                         </thead>
                         <tbody>
-                            {singers.length > 0 ? (
-                                singers.map((singer, index) => (
+                            {filteredSingers.length > 0 ? (
+                                filteredSingers.map((singer, index) => (
                                     <tr key={singer.id}>
                                         <td>{index + 1}</td>
                                         <td>
@@ -78,7 +132,7 @@ function Singer() {
                                                 Sửa
                                             </Link>
 
-                                            <button className="singer__btn singer__btn-danger">Xóa</button>
+                                            <button className="singer__btn singer__btn-danger" onClick={() => handleDelete(singer.id)}>Xóa</button>
                                         </td>
                                     </tr>
 

@@ -11,6 +11,7 @@ function CreateSinger() {
     const formRef = useRef(null);
     const navigate = useNavigate();
 
+
     const handleImageChange = (event) => {
         const file = event.target.files[0];
         if (file) {
@@ -25,7 +26,7 @@ function CreateSinger() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData(formRef.current);
-        const singerData = Object.fromEntries(formData.entries());
+        const singerData = Object.fromEntries(formData.entries()); //json
         try {
             let avatarUrl = null;
 
@@ -36,10 +37,11 @@ function CreateSinger() {
                     return;
                 }
             }
-            const newSinger = { ...singerData, avatar: avatarUrl };
+            const newSinger = { ...singerData, avatar: avatarUrl }; //json
             console.log(newSinger);
 
             const result = await create_singer(newSinger);
+            console.log(result); // Kiểm tra phản hồi từ server
             if (result.message) {
                 toast.success('Tạo ca sĩ thành công!', { transition: Bounce });
                 formRef.current.reset();

@@ -1,7 +1,8 @@
 import {
     get,
     post,
-    patch
+    patch,
+    del
 } from "../utils/request"
 
 export const get_all_singers = async () => {
@@ -24,4 +25,8 @@ export const get_singer_by_id = async (id) => {
     return result;
 };
 
+export const delete_singer = async (id) => {
+    const result = await del(`api/singers/delete`, id);
+    return result;
+}
                 

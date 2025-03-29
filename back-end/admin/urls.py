@@ -1,6 +1,6 @@
 from django.urls import path
 
-from admin.views.singer import get_all_singers, get_singer_by_id, patch_singer
+from admin.views.singer import get_all_singers, get_singer_by_id, patch_singer, create_singer, delete_singer
 from admin.views.account import get_all_accounts, create_account, login, patch_account, get_account_by_id
 from admin.views.role import get_all_roles, create_role, patch_role, get_role_by_id
 from admin.views.song import list_all_song, get_song_by_id, create_new_song, update_song_data, get_latest_song, delete_song_data, delete_multiple_songs, restore_multiple_songs
@@ -30,6 +30,8 @@ urlpatterns = [
     path('singers/',get_all_singers, name='get_all_singers'),
     path('singers/<str:singer_id>/',get_singer_by_id, name='get_singer_by_id'),
     path('singers/edit/<str:singer_id>/', patch_singer, name='patch_singer'),
+    path('singers/create', create_singer, name='singer_account'),
+    path('singers/delete/<str:singer_id>/', delete_singer, name='delete_singer'),
 
     path('topics/', get_all_topics, name='get_all_topics'),
     path('topics/create/', create_topic, name='create_topic'),
