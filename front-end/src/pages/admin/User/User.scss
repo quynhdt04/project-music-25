@@ -1,4 +1,4 @@
-.singer {
+.user {
     background: #fff;
     padding: 20px;
     border-radius: 8px;
@@ -57,6 +57,10 @@
         &-danger {
             background: #dc3545; color: white;
         }
+
+        &-info {
+            background: #6c757d; color: white;
+        }
    }
 
    &__create {
@@ -103,8 +107,8 @@
    }
 }
 
-// from singer 
-.from-singer {
+// from user 
+.from-user {
     max-width: 100%;
     margin: 10px auto;
     padding: 20px;
@@ -214,4 +218,4 @@
         }
     }
 }
-// end from singer 
+// end from user 

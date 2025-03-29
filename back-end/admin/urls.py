@@ -5,6 +5,7 @@ from admin.views.account import get_all_accounts, create_account, login, patch_a
 from admin.views.role import get_all_roles, create_role, patch_role, get_role_by_id
 from admin.views.song import list_all_song, get_song_by_id, create_new_song, update_song_data, get_latest_song, delete_song_data, delete_multiple_songs, restore_multiple_songs
 from admin.views.topic import get_all_topics, create_topic, get_topic_by_id,update_topic,delete_topic
+from admin.views.user import get_all_users, get_user_by_id, create_user, delete_user, patch_user
 
 urlpatterns = [
     path('account/', login, name='account'), 
@@ -38,6 +39,12 @@ urlpatterns = [
     path('topics/<str:topic_id>/', get_topic_by_id, name='get_topic_by_id'),
     path('topics/edit/<str:topic_id>/', update_topic, name='update_topic'),
     path('topics/<str:topic_id>/delete/', delete_topic, name='delete_topic'),
+    
+    path('users/', get_all_users, name='get_all_users'),
+    path('users/<str:user_id>/', get_user_by_id, name='get_user_by_id'),
+    path('users/edit/<str:user_id>/', patch_user, name='patch_user'),
+    path('users/create', create_user, name='create_user'),
+    path('users/delete/<str:user_id>/', delete_user, name='ddelete_user'),
 ]
 
 

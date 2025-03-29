@@ -1,0 +1,81 @@
+/* Bố cục tổng thể */
+.user-detail {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Tiêu đề */
+h2 {
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #007bff;
+}
+
+/* Bố cục thông tin người dùng */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 20px;
+}
+
+/* Ảnh đại diện */
+.user-avatar {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 3px solid #007bff;
+    object-fit: cover;
+    background-color: white;
+    padding: 5px;
+}
+
+/* Thông tin người dùng */
+.user-text {
+    flex: 1;
+}
+.user-text p {
+    margin: 8px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+/* Trạng thái người dùng */
+.status-active {
+    color: #28a745;
+    font-weight: bold;
+}
+.status-inactive {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Nút quay lại */
+.btn-back {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+.btn-back:hover {
+    background-color: #0056b3;
+}
+
+/* Loading & Lỗi */
+.loading-message, .error-message {
+    font-size: 16px;
+    color: #ff6b6b;
+    margin-top: 10px;
+}
