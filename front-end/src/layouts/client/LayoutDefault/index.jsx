@@ -119,7 +119,7 @@ function LayoutDefault() {
                   <>
                     <div className="dropdown-user-info">
                       <img
-                        onClick={() => navigate("/profile")}
+                        onClick={() => navigate(`/profile/${user.id}`)}
                         src={
                           user?.avatar ||
                           "https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg"
@@ -193,9 +193,9 @@ function LayoutDefault() {
         />
       )}
 
-      {showEditForm && (
-        <EditProfileForm onClose={() => setShowEditForm(false)} id={user.id} />
-      )}
+{showEditForm && user && user.id && (
+  <EditProfileForm onClose={() => setShowEditForm(false)} user={user} />
+)}
       <footer className="footer"></footer>
     </>
   );

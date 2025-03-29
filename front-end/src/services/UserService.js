@@ -135,75 +135,75 @@ for (let pair of formData.entries()) {
     throw error;
   }
 }
-export async function editProfile(_id, userData) {
-  try {
-    console.log("Dữ liệu JSON:", JSON.stringify(userData));
-    const response = await fetch(`http://127.0.0.1:8000/update/${_id}/`, {
+// export async function editProfile(_id, userData) {
+//   try {
+//     console.log("Dữ liệu JSON:", JSON.stringify(userData));
+//     const response = await fetch(`http://127.0.0.1:8000/update/${_id}/`, {
       
-      // Kiểm tra URL, đảm bảo có ID người dùng
-      method: "PATCH", 
-      headers: {
-        "Content-Type": "application/json",
-        // Thêm token xác thực nếu cần
-        // 'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(userData),
-    });
+//       // Kiểm tra URL, đảm bảo có ID người dùng
+//       method: "PATCH", 
+//       headers: {
+//         "Content-Type": "application/json",
+//         // Thêm token xác thực nếu cần
+//         // 'Authorization': `Bearer ${token}`
+//       },
+//       body: JSON.stringify(userData),
+//     });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(`Lỗi cập nhật thông tin: ${response.status} - ${errorData}`);
-    }
-    const responseData = await response.json();
-    return responseData;
-  } catch (error) {
-    console.error("Lỗi cập nhật thông tin:", error);
-    throw error;
-  }
-}
+//     if (!response.ok) {
+//       const errorData = await response.text();
+//       throw new Error(`Lỗi cập nhật thông tin: ${response.status} - ${errorData}`);
+//     }
+//     const responseData = await response.json();
+//     return responseData;
+//   } catch (error) {
+//     console.error("Lỗi cập nhật thông tin:", error);
+//     throw error;
+//   }
+// }
 
-//Ví dụ sử dụng formData để có thể update avatar
+// //Ví dụ sử dụng formData để có thể update avatar
 
-export async function editProfileWithAvatar(_id, userData, avatarFile) {
-  console.log("Bắt đầu editProfileWithAvatar");
-  try {
-      const formData = new FormData();
-      formData.append('fullName', userData.fullName || ""); //Thêm kiểm tra rỗng
-      formData.append('email', userData.email || ""); //Thêm kiểm tra rỗng
-      formData.append('phone', userData.phone || ""); //Thêm kiểm tra rỗng
-      //...các trường khác của userData
+// export async function editProfileWithAvatar(_id, userData, avatarFile) {
+//   console.log("Bắt đầu editProfileWithAvatar");
+//   try {
+//       const formData = new FormData();
+//       formData.append('fullName', userData.fullName || ""); //Thêm kiểm tra rỗng
+//       formData.append('email', userData.email || ""); //Thêm kiểm tra rỗng
+//       formData.append('phone', userData.phone || ""); //Thêm kiểm tra rỗng
+//       //...các trường khác của userData
 
-      if (avatarFile && avatarFile instanceof File) {
-          formData.append('avatar', avatarFile);
-      } else {
-          console.warn("avatarFile không hợp lệ hoặc rỗng");
-      }
+//       if (avatarFile && avatarFile instanceof File) {
+//           formData.append('avatar', avatarFile);
+//       } else {
+//           console.warn("avatarFile không hợp lệ hoặc rỗng");
+//       }
 
-      const token = localStorage.getItem('token'); // Lấy token nếu cần
-      const response = await fetch(`http://127.0.0.1:8000/update/${_id}/`, {
-          method: "PATCH",
-          headers: {
-              'Authorization': `Bearer ${token}` // Thêm token nếu cần
-          },
-          body: formData,
-      });
+//       const token = localStorage.getItem('token'); // Lấy token nếu cần
+//       const response = await fetch(`http://127.0.0.1:8000/update/${_id}/`, {
+//           method: "PATCH",
+//           headers: {
+//               'Authorization': `Bearer ${token}` // Thêm token nếu cần
+//           },
+//           body: formData,
+//       });
 
-      if (!response.ok) {
-          let errorData;
-          if (response.headers.get('content-type')?.includes('application/json')) {
-              errorData = await response.json();
-          } else {
-              errorData = await response.text();
-          }
-          throw new Error(`Lỗi cập nhật thông tin: ${response.status} - ${JSON.stringify(errorData)}`);
-      }
-      const responseData = await response.json();
-      return responseData;
-  } catch (error) {
-      console.error("Lỗi cập nhật thông tin:", error);
-      throw error;
-  }
-}
+//       if (!response.ok) {
+//           let errorData;
+//           if (response.headers.get('content-type')?.includes('application/json')) {
+//               errorData = await response.json();
+//           } else {
+//               errorData = await response.text();
+//           }
+//           throw new Error(`Lỗi cập nhật thông tin: ${response.status} - ${JSON.stringify(errorData)}`);
+//       }
+//       const responseData = await response.json();
+//       return responseData;
+//   } catch (error) {
+//       console.error("Lỗi cập nhật thông tin:", error);
+//       throw error;
+//   }
+// }
 export async function getUserById(_id) {
   try {
     const response = await fetch(`http://127.0.0.1:8000/user/${_id}/`);
@@ -217,6 +217,68 @@ export async function getUserById(_id) {
     return data;
   } catch (error) {
     console.error("Lỗi lấy thông tin người dùng:", error);
+    throw error;
+  }
+}
+export async function editProfile(userId, updatedData) {
+  console.log("📤 Dữ liệu gửi lên backend:", JSON.stringify(updatedData, null, 2));
+
+  try {
+      const response = await fetch(`http://127.0.0.1:8000/update/${userId}/`, {
+          method: "PUT",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedData),  // Chuyển object thành JSON
+      });
+
+      if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Lỗi cập nhật hồ sơ: ${response.status} - ${errorText}`);
+      }
+
+      return await response.json();
+  } catch (error) {
+      console.error(error);
+      throw error;
+  }
+}
+
+export async function editProfileWithAvatar(_id, userData, avatarFile) {
+  try {
+    const formData = new FormData();
+    formData.append("fullName", userData.fullName);
+    formData.append("email", userData.email);
+    formData.append("phone", userData.phone);
+
+    // Nếu có mật khẩu mới thì thêm vào
+    if (userData.password) {
+      formData.append("password", userData.password);
+    }
+
+    // Nếu có ảnh đại diện mới thì thêm vào
+    if (avatarFile && avatarFile instanceof File) {
+      formData.append("avatar", avatarFile);
+    }
+
+    console.log("🚀 Đang gửi dữ liệu cập nhật:", Object.fromEntries(formData));
+
+    const response = await fetch(`http://127.0.0.1:8000/user/${_id}/update/`, {
+      method: "PUT",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Lỗi cập nhật hồ sơ: ${response.status} - ${errorData}`);
+    }
+
+    const updatedUser = await response.json();
+    console.log("✅ Cập nhật thành công:", updatedUser);
+
+    return updatedUser;
+  } catch (error) {
+    console.error("❌ Lỗi cập nhật hồ sơ:", error);
     throw error;
   }
 }

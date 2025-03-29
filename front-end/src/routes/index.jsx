@@ -55,7 +55,11 @@ export const allRoutes = [
         ],
       },
       {
-        path: "profile",
+        path: "/profile",
+        element: <Profile />,
+      },
+      {
+        path: "/profile/:userId",
         element: <Profile />,
       },
     ],
