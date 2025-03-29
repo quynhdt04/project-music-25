@@ -229,38 +229,83 @@ def get_user_by_id(request, _id):
         return JsonResponse({"error": str(e)}, status=500)
 
 from django.shortcuts import get_object_or_404
+# @csrf_exempt
+# def update_user(request, _id):
+#     if request.method != "PUT":
+#         return JsonResponse({"error": "Phương thức không hợp lệ"}, status=405)
+
+#     try:
+#         user = User.objects.get(id=ObjectId(_id))  # Lấy user bằng ObjectId
+
+#         # Đọc JSON từ request.body
+#         try:
+#             data = json.loads(request.body.decode("utf-8"))
+#         except json.JSONDecodeError:
+#             return JsonResponse({"error": "Dữ liệu không hợp lệ"}, status=400)
+
+#         # Lấy dữ liệu từ JSON request
+#         fullName = data.get("fullName", user.fullName)
+#         phone = data.get("phone", user.phone)
+#         password = data.get("password", None)
+#         avatar = request.FILES.get("avatar", None)  # Kiểm tra file ảnh
+
+#         # Cập nhật thông tin
+#         user.fullName = fullName
+#         user.phone = phone
+#         if password:
+#             user.set_password(password)
+
+#         if avatar:
+#             user.avatar = avatar
+        
+#         user.save()
+#         updated_user = User.objects.get(id=ObjectId(_id))
+#         print("✅ Dữ liệu sau khi cập nhật:", updated_user.fullName, updated_user.phone)
+#         return JsonResponse({"message": "Cập nhật thành công", "fullName": user.fullName,"avatar": str(user.avatar)}, status=200)
+        
+
+#     except User.DoesNotExist:
+#         return JsonResponse({"error": "User không tồn tại"}, status=404)
+
+#     except Exception as e:
+#         return JsonResponse({"error": str(e)}, status=500)
 @csrf_exempt
 def update_user(request, _id):
     if request.method != "PUT":
         return JsonResponse({"error": "Phương thức không hợp lệ"}, status=405)
 
     try:
-        user = User.objects.get(id=ObjectId(_id))  # Lấy user bằng ObjectId
-
+        user = User.objects.get(id=ObjectId(_id))  
+        
         # Đọc JSON từ request.body
         try:
             data = json.loads(request.body.decode("utf-8"))
+            print("📩 Dữ liệu nhận được:", data)  
         except json.JSONDecodeError:
             return JsonResponse({"error": "Dữ liệu không hợp lệ"}, status=400)
 
-        # Lấy dữ liệu từ JSON request
-        fullName = data.get("fullName", user.fullName)
-        phone = data.get("phone", user.phone)
-        password = data.get("password", None)
-        avatar = request.FILES.get("avatar", None)  # Kiểm tra file ảnh
-
         # Cập nhật thông tin
-        user.fullName = fullName
-        user.phone = phone
-        if password:
-            user.set_password(password)
+        user.fullName = data.get("name", user.fullName)
+        user.email = data.get("email", user.email)  # ✅ Cập nhật email
+        user.phone = data.get("phone", user.phone)
 
-        if avatar:
-            user.avatar = avatar
+        if "password" in data and data["password"]:
+            user.set_password(data["password"])
+
+        if "avatar" in data and data["avatar"]:
+            user.avatar = data["avatar"]
 
         user.save()
-        return JsonResponse({"message": "Cập nhật thành công", "fullName": user.fullName,"avatar": str(user.avatar)}, status=200)
+        print("✅ Dữ liệu sau cập nhật:", user.fullName, user.email, user.phone, user.avatar)
 
+        # ✅ Trả về đầy đủ thông tin sau khi cập nhật
+        return JsonResponse({
+            "message": "Cập nhật thành công",
+            "fullName": user.fullName,
+            "email": user.email,
+            "phone": user.phone,
+            "avatar": str(user.avatar)
+        }, status=200)
 
     except User.DoesNotExist:
         return JsonResponse({"error": "User không tồn tại"}, status=404)

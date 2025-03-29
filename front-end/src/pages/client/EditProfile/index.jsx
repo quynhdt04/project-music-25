@@ -105,6 +105,30 @@ if (storedUser) {
   }, [user]);
   
 
+  // const handleSave = async () => {
+  //   try {
+  //     console.log("📤 Dữ liệu gửi lên API:", userData);
+  
+  //     let response;
+  //     if (userData.avatar && userData.avatar instanceof File) {
+  //       response = await editProfileWithAvatar(user.id, userData, userData.avatar);
+  //     } else {
+  //       response = await editProfile(user.id, userData);
+  //     }
+  
+  //     console.log("✅ Kết quả sau khi cập nhật:", response);
+  
+  //     if (response) {
+  //       localStorage.setItem("user", JSON.stringify(response));
+  //     }
+  
+  //     alert("Cập nhật thành công!");
+  //     onClose();
+  //   } catch (error) {
+  //     console.error("❌ Lỗi khi cập nhật:", error);
+  //     alert("Có lỗi xảy ra khi cập nhật!");
+  //   }
+  // };
   const handleSave = async () => {
     try {
       let response;
@@ -116,9 +140,17 @@ if (storedUser) {
   
       console.log("✅ Kết quả sau khi cập nhật:", response);
   
-      // Cập nhật localStorage để hiển thị ảnh mới ngay lập tức (nếu cần)
       if (response) {
         localStorage.setItem("user", JSON.stringify(response));
+  
+        // 🚀 Cập nhật lại state từ localStorage để React render lại
+        const updatedUser = JSON.parse(localStorage.getItem("user"));
+        setUserData({
+          name: updatedUser.fullName,
+          email: updatedUser.email,
+          phone: updatedUser.phone,
+          avatar: updatedUser.avatar,
+        });
       }
   
       alert("Cập nhật thành công!");
@@ -128,7 +160,6 @@ if (storedUser) {
       alert("Có lỗi xảy ra khi cập nhật!");
     }
   };
-  
   
   return (
     <div className="modal">
