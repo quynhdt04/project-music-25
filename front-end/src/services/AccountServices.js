@@ -4,8 +4,8 @@ import {
     post
 } from "../utils/request"
 
-export const get_all_accounts = async (page, limit) => {
-    const result = await get(`api/accounts?page=${page}&limit=${limit}`);
+export const get_all_accounts = async (url) => {
+    const result = await get(`api/accounts?${url}`);
     return result;
 }
 
