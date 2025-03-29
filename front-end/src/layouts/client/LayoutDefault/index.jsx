@@ -194,7 +194,7 @@ function LayoutDefault() {
       )}
 
       {showEditForm && (
-        <EditProfileForm onClose={() => setShowEditForm(false)} />
+        <EditProfileForm onClose={() => setShowEditForm(false)} id={user.id} />
       )}
       <footer className="footer"></footer>
     </>

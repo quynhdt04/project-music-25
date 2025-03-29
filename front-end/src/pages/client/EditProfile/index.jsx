@@ -1,46 +1,57 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "./EditProfile.css";
-import { updateProfile } from "../../../services/UserService"; // Giả sử bạn đã tạo hàm này trong UserServices
+// import "./EditProfileModal.css";
+import { editProfile, editProfileWithAvatar,getUserById} from "../../../services/UserService"; // Import getUserById
+import { toast } from "react-toastify";
 
-function EditProfile({ user, onClose, onSave }) {
-    const navigate = useNavigate();
-    const [userData, setUserData] = useState({
-        name: user?.fullName || "",
-        email: user?.email || "",
-        password: "",
-        phone: user?.phone || "",
-        avatar: user?.avatar || "",
-    });
+function EditProfileModal({ onClose, id, onSaveSuccess }) {
+  console.log("id: là ", id);
+  const [userData, setUserData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    avatar: null,
+  });
 
-    const handleSave = async () => {
-        try {
-            // Gọi hàm updateProfile từ UserService
-            const updatedUser = await updateProfile(user.id, {
-                fullName: userData.name,
-                phone: userData.phone,
-                password: userData.password, // Gửi mật khẩu nếu có thay đổi
-                avatar: userData.avatar, // Gửi avatar nếu có thay đổi
-            });
-
-            if (updatedUser) {
-                // Cập nhật thông tin người dùng trong localStorage (nếu cần)
-                localStorage.setItem("user", JSON.stringify(updatedUser));
-
-                // Gọi hàm onSave nếu được cung cấp
-                if (onSave) {
-                    onSave(updatedUser);
-                }
-
-                // Đóng modal
-                onClose();
-            }
-        } catch (error) {
-            console.error("Lỗi cập nhật hồ sơ:", error);
-            // Xử lý lỗi nếu cần
-        }
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const data = await getUserById(id);
+        console.log("Dữ liệu từ API:", data);
+        setUserData((prevUserData) => ({
+          ...prevUserData,
+          name:  data.user.fullName || "đfs",
+          email:  data.user.email || "",
+          phone:  data.user.phone || "",
+          // Không cập nhật password ở đây để giữ nguyên giá trị rỗng nếu không thay đổi
+          avatar:  data.user.avatar || null,
+        }));
+      } catch (error) {
+        console.error("Lỗi lấy thông tin người dùng:", error);
+        toast.error("Lỗi lấy thông tin người dùng!");
+      }
     };
+  
+    fetchUserData();
+  }, [id]);
 
+  const handleSave = async () => {
+    try {
+      let response;
+      if (userData.avatar) {
+        response = await editProfileWithAvatar(id, userData, userData.avatar);
+      } else {
+        response = await editProfile(id, userData);
+      }
+
+      toast.success("Cập nhật thông tin thành công!");
+      onSaveSuccess();
+      onClose();
+    } catch (error) {
+      console.error("Lỗi cập nhật thông tin:", error);
+      toast.error(error.message || "Lỗi cập nhật thông tin!");
+    }
+  };
 
   return (
     <div className="modal">
@@ -49,10 +60,10 @@ function EditProfile({ user, onClose, onSave }) {
         <input
           type="text"
           placeholder="Họ tên"
-          value={userData.name}
+          value={userData.name || ""} // Thêm || "" để tránh lỗi undefined
           onChange={(e) => setUserData({ ...userData, name: e.target.value })}
         />
-        <input type="email" value={userData.email} disabled />
+        <input type="email" value={userData.email || ""} disabled />
         <input
           type="password"
           placeholder="Mật khẩu (để trống nếu không đổi)"
@@ -61,20 +72,13 @@ function EditProfile({ user, onClose, onSave }) {
         <input
           type="text"
           placeholder="Số điện thoại"
-          value={userData.phone}
+          value={userData.phone || ""}
           onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
         />
         <input
           type="file"
           onChange={(e) => setUserData({ ...userData, avatar: e.target.files[0] })}
         />
-        <select
-          onChange={(e) => setUserData({ ...userData, accountType: e.target.value })}
-          value={userData.accountType}
-        >
-          <option value="client">Client</option>
-          <option value="singer">Singer</option>
-        </select>
         <div className="button-group">
           <button onClick={handleSave}>Lưu thay đổi</button>
           <button onClick={onClose}>Hủy</button>
@@ -84,4 +88,4 @@ function EditProfile({ user, onClose, onSave }) {
   );
 }
 
-export default EditProfile;
+export default EditProfileModal;
