@@ -1,14 +1,14 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from asgiref.sync import sync_to_async
 from models.role import Role
 
-
 @csrf_exempt
-def get_all_roles(request):
+async def get_all_roles(request):
     if request.method == "GET":
         try:
-            roles = Role.objects.filter(deleted=False) 
+            roles = await sync_to_async(lambda: list(Role.objects.filter(deleted=False)))()
             roles_list = [
                 {
                     "id": str(role.id),
@@ -25,9 +25,8 @@ def get_all_roles(request):
     return JsonResponse({"error": "Invalid request"}, status=405)
 
 
-
 @csrf_exempt
-def create_role(request):
+async def create_role(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -38,7 +37,8 @@ def create_role(request):
                 return JsonResponse({"error": "Tên nhóm quyền không được để trống!"}, status=400)
 
             # Kiểm tra title không được trùng
-            if Role.objects(title=title).first():
+            existing_role = await sync_to_async(lambda: Role.objects.filter(title=title).first())()
+            if existing_role:
                 return JsonResponse({"error": "Tên nhóm quyền đã tồn tại!"}, status=400)
 
             # Tạo role mới
@@ -47,7 +47,7 @@ def create_role(request):
                 desciption=data.get("desciption", ""),
                 permissions=data.get("permissions", []),
             )
-            new_role.save()
+            await sync_to_async(new_role.save)()
 
             return JsonResponse({"message": "Tạo nhóm quyền thành công!", "id": str(new_role.id)}, status=201)
 
@@ -60,15 +60,14 @@ def create_role(request):
 
 
 @csrf_exempt
-def patch_role(request, role_id):
+async def patch_role(request, role_id):
     if request.method == "PATCH":
         try:
             data = json.loads(request.body)
 
             # Kiểm tra role có tồn tại không
-            try:
-                role = Role.objects.get(id=role_id, deleted=False)  
-            except Role.DoesNotExist:
+            role = await sync_to_async(lambda: Role.objects.filter(id=role_id, deleted=False).first())()
+            if not role:
                 return JsonResponse({"error": "Vai trò không tồn tại!"}, status=404)
 
             # Kiểm tra title không được để trống
@@ -78,7 +77,8 @@ def patch_role(request, role_id):
                     return JsonResponse({"error": "Tên vai trò không được để trống!"}, status=400)
 
                 # Kiểm tra title không được trùng (trừ chính nó)
-                if Role.objects(title=new_title, id__ne=role_id).first():
+                existing_role = await sync_to_async(lambda: Role.objects.filter(title=new_title, id__ne=role_id).first())()
+                if existing_role:
                     return JsonResponse({"error": "Tên vai trò đã tồn tại!"}, status=400)
                 
                 role.title = new_title
@@ -91,7 +91,7 @@ def patch_role(request, role_id):
             if "deleted" in data:
                 role.deleted = data["deleted"]
 
-            role.save()
+            await sync_to_async(role.save)()
             return JsonResponse({"message": "Cập nhật vai trò thành công!", "id": role_id}, status=200)
 
         except json.JSONDecodeError:
@@ -103,11 +103,13 @@ def patch_role(request, role_id):
 
 
 @csrf_exempt
-def get_role_by_id(request, role_id):
+async def get_role_by_id(request, role_id):
     if request.method == "GET":
         try:
-            # Kiểm tra xem role có tồn tại không
-            role = Role.objects.get(id=role_id, deleted=False)
+            role = await sync_to_async(lambda: Role.objects.filter(id=role_id, deleted=False).first())()
+            if not role:
+                return JsonResponse({"error": "Tài khoản này thuộc nhóm quyền không tồn tại hoặc đã bị xóa!"}, status=404)
+
             role_data = {
                 "id": str(role.id),
                 "title": role.title,
@@ -116,12 +118,8 @@ def get_role_by_id(request, role_id):
                 "deleted": role.deleted
             }
             return JsonResponse({"role": role_data}, status=200)
-        
-        except Role.DoesNotExist:
-            return JsonResponse({"error": "Tài khoản này thuộc nhóm quyền không tồn tại hoặc đã bị xóa!"}, status=404)
 
         except Exception as e:
             return JsonResponse({"error": "Đã xảy ra lỗi trong quá trình xử lý dữ liệu!"}, status=400)
 
     return JsonResponse({"error": "Phương thức không hợp lệ! Vui lòng sử dụng phương thức GET."}, status=405)
-

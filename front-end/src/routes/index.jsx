@@ -27,6 +27,8 @@ import CreateTopic from "../pages/admin/Topic/createTopic";
 import EditTopic from "../pages/admin/Topic/editTopic";
 import MainContent from "../pages/admin/MainContent/MainContent";
 import AlbumDetail from "../pages/client/AlbumDetail/AlbumDetail";
+import PlayList from "../pages/client/PlayList";
+import PlayListDetail from "../pages/client/PlayList/PlayListDetail";
 
 export const allRoutes = [
   // Routes cho Client
@@ -56,6 +58,14 @@ export const allRoutes = [
           {
             path: "music-love",
             element: <MusicLove />,
+          },
+          {
+            path: "playlist",
+            element: <PlayList />,
+          },
+          {
+            path: "playlist/detail",
+            element: <PlayListDetail />,
           },
         ],
       },
