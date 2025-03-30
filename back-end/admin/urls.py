@@ -3,9 +3,10 @@ from django.urls import path
 from admin.views.singer import get_all_singers, get_singer_by_id, patch_singer, create_singer, delete_singer
 from admin.views.account import get_all_accounts, create_account, login, patch_account, get_account_by_id
 from admin.views.role import get_all_roles, create_role, patch_role, get_role_by_id
-from admin.views.song import list_all_song, get_song_by_id, create_new_song, update_song_data, get_latest_song, delete_song_data, delete_multiple_songs, restore_multiple_songs
+from admin.views.song import list_all_song, get_song_by_id, create_new_song, update_song_data, get_latest_song, delete_song_data, delete_multiple_songs, restore_multiple_songs, get_all_pending_songs
 from admin.views.topic import get_all_topics, create_topic, get_topic_by_id,update_topic,delete_topic
 from admin.views.user import get_all_users, get_user_by_id, create_user, delete_user, patch_user
+from admin.views.album import get_all_pending_albums, get_album_by_id
 
 urlpatterns = [
     path('account/', login, name='account'), 
@@ -27,7 +28,8 @@ urlpatterns = [
     path('songs/delete/<str:song_id>/', delete_song_data, name='delete_song_data'),
     path('songs/delete-multiple', delete_multiple_songs, name='delete_multiple_songs'),
     path('songs/restore-multiple', restore_multiple_songs, name='restore_multiple_songs'),
-    
+    path('songs/get-all-pending-songs', get_all_pending_songs, name='get_all_pending_songs'),
+
     path('singers/',get_all_singers, name='get_all_singers'),
     path('singers/<str:singer_id>/',get_singer_by_id, name='get_singer_by_id'),
     path('singers/edit/<str:singer_id>/', patch_singer, name='patch_singer'),
@@ -45,6 +47,9 @@ urlpatterns = [
     path('users/edit/<str:user_id>/', patch_user, name='patch_user'),
     path('users/create', create_user, name='create_user'),
     path('users/delete/<str:user_id>/', delete_user, name='ddelete_user'),
+
+    path('albums/get-all-pending-albums', get_all_pending_albums, name='get_all_pending_albums'),
+    path("albums/get-album-by-id/<str:album_id>/", get_album_by_id, name="get_album_by_id"),
 ]
 
 

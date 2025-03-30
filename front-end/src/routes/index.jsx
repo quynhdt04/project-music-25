@@ -25,8 +25,13 @@ import InfoUser from "../pages/admin/InfoUser";
 import EditAccount from "../pages/admin/Account/editAccount";
 import CreateTopic from "../pages/admin/Topic/createTopic";
 import EditTopic from "../pages/admin/Topic/editTopic";
+
 import CreateSinger from "../pages/admin/Singer/createSinger";
 import EditSinger from "../pages/admin/Singer/editSinger";
+
+import MainContent from "../pages/admin/MainContent/MainContent";
+import AlbumDetail from "../pages/client/AlbumDetail/AlbumDetail";
+
 import PlayList from "../pages/client/PlayList";
 import PlayListDetail from "../pages/client/PlayList/PlayListDetail";
 import CreateUser from "../pages/admin/User/createUser";
@@ -50,6 +55,10 @@ export const allRoutes = [
       {
         path: "songs",
         element: <ListSong />,
+      },
+      {
+        path: "album/:id",
+        element: <AlbumDetail />,
       },
       {
         element: <PrivateRouteClient />,
@@ -132,14 +141,6 @@ export const allRoutes = [
             element: <EditSinger />,
           },
           {
-            path: "songs",
-            element: <Song />,
-          },
-          {
-            path: "songs/:action/:id?",
-            element: <SongFormManagementPage />,
-          },
-          {
             path: "users",
             element: <User />,
           },
@@ -175,6 +176,18 @@ export const allRoutes = [
             path: "topics/edit/:id",
             element: <EditTopic />,
           },
+          // {
+          //   path: "songs",
+          //   element: <Song />,
+          // },
+          {
+            path: ":managementPage/:action?/:id?",
+            element: <MainContent />,
+          },
+          // {
+          //   path: "songs/:action?/:id?",
+          //   element: <SongFormManagementPage />,
+          // },
         ],
       },
     ],

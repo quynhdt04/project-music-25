@@ -14,6 +14,7 @@ import {
   FaRegUser,
   FaUserTie,
 } from "react-icons/fa";
+import { JournalAlbum } from "react-bootstrap-icons";
 
 function LayoutDefault() {
   const account = useSelector((state) => state.authenReducer.account);
@@ -104,6 +105,20 @@ function LayoutDefault() {
                   </Link>
                 </li>
               )}
+              <li>
+                <Link to="/admin/songs-approval">
+                  {" "}
+                  <FaMusic size={20} style={{ marginRight: "5px" }} />
+                  Duyệt bài hát
+                </Link>
+              </li>
+              <li>
+                <Link to="/admin/albums-approval">
+                  {" "}
+                  <JournalAlbum size={20} style={{ marginRight: "5px" }} />
+                  Duyệt album
+                </Link>
+              </li>
             </ul>
           </nav>
         </aside>

@@ -75,11 +75,11 @@ function CreateUser() {
                 </div>
                 <div className="from-user__group">
                     <label htmlFor="email">Email *</label>
-                    <input type="text" id="email" name="email" required />
+                    <input type="email" id="email" name="email" required />
                 </div>
                 <div className="from-user__group">
                     <label htmlFor="phone">Số điện thoại *</label>
-                    <input type="text" id="phone" name="phone" required />
+                    <input type="tel" id="phone" name="phone" required />
                 </div>
                 <div className="from-user__group">
                     <label htmlFor="password">Mật khẩu *</label>

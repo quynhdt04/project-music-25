@@ -1,5 +1,5 @@
 from database.connection import connect  # Đảm bảo kết nối được thiết lập
-from mongoengine import Document, StringField, BooleanField, DateTimeField, ListField, EmbeddedDocument, EmbeddedDocumentField
+from mongoengine import Document, StringField, IntField, BooleanField, DateTimeField, ListField, EmbeddedDocument, EmbeddedDocumentField
 import datetime
 import random
 import string
@@ -29,7 +29,11 @@ class Song(Document):
     topics = ListField(EmbeddedDocumentField(Topic))
     like = StringField()
     lyrics = ListField(EmbeddedDocumentField(Lyric))
-    status = StringField(default="active") 
+    status = StringField(default="pending")
+    isPremiumOnly = BooleanField(default=False)
+    createdBy = StringField()
+    approvedBy = StringField()
+    play_count = IntField(default=0)
     deleted = BooleanField(default=False)
     deletedAt = DateTimeField(default=None)
     slug = StringField()

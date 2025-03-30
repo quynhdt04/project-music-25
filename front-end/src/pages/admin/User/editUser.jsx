@@ -89,15 +89,26 @@ function EditUser() {
             <BoxHead title="Sửa người dùng" />
             <form ref={formRef} onSubmit={handleSubmit} method="POST" className="from-user">
                 <div className="from-user__group">
-                    <label htmlFor="fullName">Họ tên *</label>
-                    <input type="text" id="fullName" name="fullName" value={userData.fullName} readOnly />
-                </div>
-                <div className="from-user__group">
                     <label htmlFor="avatar">Ảnh đại diện</label>
                     <input type="file" id="avatar" name="avatar" accept="image/*" onChange={handleImageChange} />
                     {imagePreview && (
                         <img src={imagePreview} className="create-user-avatar-preview" alt="Avatar Preview" />
                     )}
+                </div>
+                <div className="from-user__group">
+                    <label htmlFor="fullName">Họ tên *</label>
+                    <input type="text" id="fullName" name="fullName" defaultValue={userData.fullName} required
+                        onChange={(e) => setUserData(prev => ({ ...prev, fullName: e.target.value }))} />
+                </div>
+                <div className="from-user__group">
+                    <label htmlFor="phone">Số điện thoại *</label>
+                    <input type="text" id="phone" name="phone" defaultValue={userData.phone} required
+                        onChange={(e) => setUserData(prev => ({ ...prev, phone: e.target.value }))} />
+                </div>
+                <div className="from-user__group">
+                    <label htmlFor="password">Mật khẩu *</label>
+                    <input type="password" id="password" name="password"
+                        onChange={(e) => setUserData(prev => ({ ...prev, password: e.target.value }))} />
                 </div>
                 <div className="from-user__box">
                     <label>Trạng thái</label>

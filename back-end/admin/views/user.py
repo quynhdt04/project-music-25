@@ -76,6 +76,8 @@ def patch_user(request, user_id):
                 user.avatar = body['avatar']
             if 'status' in body:
                 user.status = body['status']
+            if 'password' in body:
+                user.password = make_password(body['password'])
 
             user.save()
             
@@ -115,7 +117,7 @@ def create_user(request):
             # Kiểm tra email đã tồn tại chưa
             if User.objects.filter(email=email).first():
                 return JsonResponse({"error": "Email đã được sử dụng!"}, status=400)
-
+            
             # Tạo người dùng mới
             user = User(
                 fullName=full_name,

@@ -47,7 +47,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
       songId: "",
       title: "",
       description: "",
-      status: "active",
+      status: "pending",
       deleted: false,
     },
   });
@@ -171,16 +171,14 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
         typeof line.endAt
       );
       if (!line.content.trim()) {
-        errors.push(`Lyric content is required for line ${index + 1}`);
+        errors.push(`Dòng số ${index + 1} phải có lời bài hát`);
       }
       if (!line.beginAt || isNaN(line.beginAt) || +line.beginAt < 0) {
-        errors.push(`Start time must be a valid number for line ${index + 1}`);
+        errors.push(`Giây bắt đầu tại dòng số ${index + 1} phải là số dương`);
       }
       if (!line.endAt || isNaN(line.endAt) || +line.endAt <= +line.beginAt) {
         errors.push(
-          `End time must be a valid number and greater than start time for line ${
-            index + 1
-          }`
+          `Giây kết thúc phải lớn hơn giây bắt đầu tại dòng số ${index + 1}`
         );
       }
     });
@@ -189,7 +187,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
 
   const onSubmit = async (data) => {
     if (selectedSingers.length === 0) {
-      toast.error("A song must be performed by at least one singer.");
+      toast.error("Bài hát phải thuộc ít nhất 1 nghệ sĩ");
       return; // Stop submission if no singers are selected
     }
 
@@ -199,30 +197,16 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
       return;
     }
 
-    // const formData = {
-    //   ...data,
-    //   avatar: imageFile || "",
-    //   audio: audioFile || "",
-    //   video: videoFile || "",
-    //   singers: selectedSingers.map((singer) => ({
-    //     singerId: singer.value,
-    //     singerName: singer.label,
-    //   })),
-    //   topics: selectedTopics.map((topic) => ({
-    //     topicId: topic.value,
-    //     topicName: topic.label,
-    //   })),
-    //   lyrics: lyrics.map((line) => ({
-    //     lyricContent: line.content,
-    //     lyricStartTime: line.beginAt,
-    //     lyricEndTime: line.endAt,
-    //   })),
-    // };
-
     const formData = new FormData();
     formData.append("songId", data.songId);
     formData.append("title", data.title);
     formData.append("avatar", imageFile); // Replace `avatarFile` with the selected image file
+
+    if (!audioPreview) {
+      toast.error("Vui lòng chọn file audio");
+      return;
+    }
+
     formData.append("audio", audioFile); // Replace `audioFile` with the selected audio file
     formData.append("video", videoFile); // Replace `videoFile` with the selected video file
     formData.append("description", data.description);
@@ -261,30 +245,19 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
       setIsSubmitting(true);
       let response = null;
       if (type === "create") {
-        // Log the FormData contents
-        console.log("FormData contents:");
-        for (const [key, value] of formData.entries()) {
-          console.log(`${key}:`, value);
-        }
-
         response = await create_new_song(formData);
         setIsSubmitting(false);
-        toast.success("Song created successfully!", response);
+        toast.success("Thêm mới bài hát thành công!", response);
       } else {
         formData.set("avatar", imageFile || existingSong.avatar);
         formData.set("audio", audioFile || existingSong.audio);
         formData.set("video", videoFile || existingSong.video);
 
-        console.log("FormData contents:");
-        for (const [key, value] of formData.entries()) {
-          console.log(`${key}:`, value);
-        }
-
         response = await update_song_data(data.songId, formData);
         setIsSubmitting(false);
-        toast.success("Song updated successfully!", response);
+        toast.success("Cập nhật bài hát thành công!", response);
       }
-      navigate("/admin/songs", { replace: true });
+      // navigate("/admin/songs", { replace: true });
     } catch (error) {
       console.error("Error:", error);
       toast.error("An error occurred. Please try again later.");
@@ -304,7 +277,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
     <Container fluid className="management-container">
       <div className="management-form">
         <h2 className="management-header">
-          {type === "update" ? "Update Song" : "Create New Song"}
+          {type === "update" ? "Cập nhật bài hát" : "Thêm mới bài hát"}
         </h2>
 
         <Form onSubmit={handleSubmit(onSubmit)}>
@@ -312,7 +285,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
           <Row className="mb-3">
             <Col md={6}>
               <Form.Group controlId="songId">
-                <Form.Label className="required">Song ID</Form.Label>
+                <Form.Label className="required">Mã bài hát</Form.Label>
                 <Form.Control
                   plaintext
                   readOnly
@@ -324,7 +297,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
 
             <Col md={6}>
               <Form.Group controlId="title">
-                <Form.Label className="required">Title</Form.Label>
+                <Form.Label className="required">Tên bài hát</Form.Label>
                 <Form.Control
                   {...register("title", { required: "Title is required" })}
                   isInvalid={!!errors.title}
@@ -341,7 +314,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
             {/* Avatar Upload */}
             <Col md={6}>
               <Form.Group controlId="avatar">
-                <Form.Label>Song Avatar</Form.Label>
+                <Form.Label>Ảnh bài hát</Form.Label>
                 <div className="upload-button">
                   <Form.Control
                     ref={imageInputRef}
@@ -381,7 +354,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
             {/* Audio Upload */}
             <Col md={6}>
               <Form.Group controlId="audio">
-                <Form.Label>Song Audio</Form.Label>
+                <Form.Label>File âm thanh</Form.Label>
                 <div className="upload-button">
                   <Form.Control
                     ref={audioInputRef}
@@ -419,7 +392,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
           <Row className="mb-3">
             <Col md={6}>
               <Form.Group controlId="video">
-                <Form.Label>Music Video</Form.Label>
+                <Form.Label>File Video</Form.Label>
                 <div className="upload-button">
                   <Form.Control
                     ref={videoInputRef}
@@ -464,7 +437,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
           <Row className="mb-3">
             <Col md={12}>
               <Form.Group controlId="description">
-                <Form.Label>Description</Form.Label>
+                <Form.Label>Mô tả</Form.Label>
                 <Form.Control
                   as="textarea"
                   rows={3}
@@ -514,13 +487,13 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
             <Col md={12}>
               <div className="lyrics-section">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <Form.Label>Lyrics</Form.Label>
+                  <Form.Label>Lời bài hát</Form.Label>
                   <Button
                     variant="outline-primary"
                     size="sm"
                     onClick={addLyricLine}
                   >
-                    <Plus /> Add Line
+                    <Plus /> Thêm dòng
                   </Button>
                 </div>
                 {lyrics.map((line, index) => (
@@ -571,9 +544,9 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
             </Col>
           </Row>
 
-          {/* Status Section */}
-          <Row className="mb-3">
-            <Col md={6}>
+          {type === "update" && (
+            <Row className="mb-3">
+              {/* <Col md={6}>
               <Form.Group controlId="status">
                 <Form.Label>Display Status</Form.Label>
                 <Form.Select {...register("status")}>
@@ -581,23 +554,24 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
                   <option value="inactive">Inactive</option>
                 </Form.Select>
               </Form.Group>
-            </Col>
+            </Col> */}
 
-            <Col md={6}>
-              <Form.Group controlId="deleted">
-                <Form.Label>Deletion Status</Form.Label>
-                <Form.Select {...register("deleted")}>
-                  <option value={false}>Not Deleted</option>
-                  <option value={true}>Deleted</option>
-                </Form.Select>
-              </Form.Group>
-            </Col>
-          </Row>
+              <Col md={6}>
+                <Form.Group controlId="deleted">
+                  <Form.Label>Deletion Status</Form.Label>
+                  <Form.Select {...register("deleted")}>
+                    <option value={false}>Not Deleted</option>
+                    <option value={true}>Deleted</option>
+                  </Form.Select>
+                </Form.Group>
+              </Col>
+            </Row>
+          )}
 
           {/* Submit Button */}
           <div className="d-grid">
             <Button type="submit" variant="primary" size="lg">
-              {type === "update" ? "Update" : "Create"} Song
+              {type === "update" ? "Cập nhật" : "Thêm mới"} bài hát
             </Button>
           </div>
         </Form>
