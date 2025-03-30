@@ -29,6 +29,7 @@ import EditTopic from "../pages/admin/Topic/editTopic";
 import CreateSinger from "../pages/admin/Singer/createSinger";
 import EditSinger from "../pages/admin/Singer/editSinger";
 
+import Profile from "../pages/client/Profile";
 import MainContent from "../pages/admin/MainContent/MainContent";
 import AlbumDetail from "../pages/client/AlbumDetail/AlbumDetail";
 
@@ -76,6 +77,14 @@ export const allRoutes = [
             element: <PlayListDetail />,
           },
         ],
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
+      },
+      {
+        path: "/profile/:userId",
+        element: <Profile />,
       },
     ],
   },
