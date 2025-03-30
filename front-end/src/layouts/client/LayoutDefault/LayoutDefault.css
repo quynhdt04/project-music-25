@@ -186,7 +186,7 @@ main {
 
 /* Nội dung modal */
 .modal-content {
-    background: white;
+    /* background: white; */
     padding: 20px;
     width: 350px;
     border-radius: 10px;
@@ -194,6 +194,8 @@ main {
     text-align: center;
     position: relative;
     animation: fadeIn 0.3s ease-in-out;
+    border-radius: 20px;
+    background: linear-gradient(to bottom, rgba(149, 144, 144, 0) 0%, rgba(12, 12, 12, 0.801) 100%), #4a1f8a !important;
 }
 
 /* Hiệu ứng fade-in */
@@ -205,7 +207,7 @@ main {
 /* Tiêu đề */
 .modal-content h2 {
     margin-bottom: 15px;
-    color: #14274E  !important;
+    color: #f5f6f9  !important;
 }
 
 /* Input và select */
@@ -291,6 +293,7 @@ main {
     padding: 8px 0;
     display: none;
     top: 43px;
+    background: linear-gradient(to bottom, rgba(149, 144, 144, 0) 0%, rgba(12, 12, 12, 0.801) 100%), #392b4e;
 }
 .dropdown-menu {
     position: relative ; /* Nếu cần */
@@ -305,7 +308,15 @@ main {
     background-color: white;
     transform: none !important; /* Xóa transform nếu có */
     will-change: unset !important; /* Loại bỏ will-change */
-
+    /* background: linear-gradient(to bottom right, rgba(149, 144, 144, 0) 0%, rgba(23, 17, 137, 0.801) 100%), #bb8eff;; */
+    /* width: 100%; */
+    /* padding: 10px; */
+    /* margin: 10px 0; */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    /* outline: none; */
+    background: border-box;
+    color: #f0f0f0;
     
 }
 
@@ -316,10 +327,11 @@ main {
     border: none;
     background: none ;
     cursor: pointer;
+    color: #f0f0f0;
 }
 
 .dropdown-menu button:hover {
-    background: #f0f0f0;
+    background: #08376d;
 }
 
 .button-group{

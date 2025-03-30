@@ -17,6 +17,7 @@
     text-align: center;
     width: 350px;
     position: relative;
+    
   }
   
   
@@ -51,6 +52,7 @@
   .signup-text {
     margin-top: 10px;
     font-size: 14px;
+    color: aliceblue;
   }
   
   .signup-link {
@@ -60,6 +62,10 @@
     text-decoration: underline;
 
   }
+  .modal-content input, .modal-content select {
+    background: border-box;
+    color: aliceblue;
+}
   
   .close-btn {
     position: absolute;
