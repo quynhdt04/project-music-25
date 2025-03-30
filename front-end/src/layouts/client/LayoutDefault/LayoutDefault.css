@@ -171,3 +171,174 @@ main {
 .footer .controls button:hover {
     color: #f1c40f;
 }
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Nội dung modal */
+.modal-content {
+    background: white;
+    padding: 20px;
+    width: 350px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Hiệu ứng fade-in */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tiêu đề */
+.modal-content h2 {
+    margin-bottom: 15px;
+    color: #394867;
+}
+
+/* Input và select */
+.modal-content input,
+.modal-content select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+}
+
+/* Nút bấm */
+.modal-content button {
+    width: 100%;
+    padding: 10px;
+    background: #394867;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.modal-content button:hover {
+    background: #14274E;
+}
+
+/* Nút đóng modal */
+.modal-content .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #555;
+}
+
+/* Liên kết chuyển đổi giữa Đăng nhập & Đăng ký */
+.modal-content p {
+    margin-top: 10px;
+}
+
+.modal-content p button {
+    background: none;
+    color: #394867;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.modal-content p button:hover {
+    text-decoration: underline;
+}
+
+/* Avatar upload */
+.avatar-preview {
+
+    object-fit: cover;
+    margin: 10px auto;
+    display: flex;
+    border: 0px;
+    gap: 10px;
+}
+.modal-content h2{
+    color: #14274E  !important;
+}
+/* Dropdown user menu */
+.user-menu {
+    position: relative;
+    display: inline-block;
+}
+.menu-item{
+    /* background: #7497dc; */
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 10px;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 8px 0;
+    display: none;
+    top: 43px;
+}
+
+.dropdown-menu.open {
+    display: block;
+    width: max-content;
+}
+
+.dropdown-menu button {
+    width: 100%;
+    text-align: left;
+    padding: 10px;
+    border: none;
+    background: none ;
+    cursor: pointer;
+}
+
+.dropdown-menu button:hover {
+    background: #f0f0f0;
+}
+
+.button-group{
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    gap: 20px;
+    
+}
+.separator{
+
+    display: flex;
+    gap: 10px;
+
+}
+.dropdown-username{
+    cursor: pointer;
+    margin-bottom: 0px;
+}
+.dropdown-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 5px 0;
+}
+.dropdown-user-info{
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 10px;
+    padding-left: 10px;
+}

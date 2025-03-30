@@ -25,6 +25,7 @@ import InfoUser from "../pages/admin/InfoUser";
 import EditAccount from "../pages/admin/Account/editAccount";
 import CreateTopic from "../pages/admin/Topic/createTopic";
 import EditTopic from "../pages/admin/Topic/editTopic";
+import Profile from "../pages/client/Profile";
 import MainContent from "../pages/admin/MainContent/MainContent";
 import AlbumDetail from "../pages/client/AlbumDetail/AlbumDetail";
 import PlayList from "../pages/client/PlayList";
@@ -68,6 +69,14 @@ export const allRoutes = [
             element: <PlayListDetail />,
           },
         ],
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
+      },
+      {
+        path: "/profile/:userId",
+        element: <Profile />,
       },
     ],
   },
