@@ -205,7 +205,7 @@ main {
 /* Tiêu đề */
 .modal-content h2 {
     margin-bottom: 15px;
-    color: #394867;
+    color: #14274E  !important;
 }
 
 /* Input và select */
@@ -272,9 +272,7 @@ main {
     border: 0px;
     gap: 10px;
 }
-.modal-content h2{
-    color: #14274E  !important;
-}
+
 /* Dropdown user menu */
 .user-menu {
     position: relative;
@@ -294,10 +292,21 @@ main {
     display: none;
     top: 43px;
 }
-
+.dropdown-menu {
+    position: relative ; /* Nếu cần */
+    overflow: visible !important;
+    background: white     ;
+  }
 .dropdown-menu.open {
     display: block;
     width: max-content;
+    z-index: 9999; /* Đảm bảo luôn ở trên */
+    position: absolute; /* Quan trọng để tách khỏi bố cục */
+    background-color: white;
+    transform: none !important; /* Xóa transform nếu có */
+    will-change: unset !important; /* Loại bỏ will-change */
+
+    
 }
 
 .dropdown-menu button {

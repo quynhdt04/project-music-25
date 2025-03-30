@@ -37,7 +37,7 @@ function LayoutDefault() {
     setIsLogin(false);
     setUser(null); // Reset user state khi đăng xuất
     setMenuOpen(false);
-    alert("Bạn đã đăng xuất!");
+    toast.success("Bạn đã đăng xuất")
     navigate("/");
   };
   const closeModal = () => {

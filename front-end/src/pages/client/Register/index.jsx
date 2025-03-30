@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import "./Register.css";
 import { registerUser } from "../../../services/UserService";
 import { toast } from "react-toastify";
 import { getUserById } from "../../../services/UserService"; 
@@ -14,6 +13,8 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
     phone: "",
     avatar: null,
     avatarPreview: null,
+    isPremium: false,
+    premiumExpiresAt: null,
   });
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
@@ -22,6 +23,7 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
     const { name, value } = e.target;
     setUserData((prev) => ({ ...prev, [name]: value }));
   };
+  
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -33,6 +35,8 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
       });
     }
   };
+  
+  
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -57,8 +61,8 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
     }
     if (!data.password) {
       errors.password = "Mật khẩu không được để trống.";
-    } else if (data.password.length < 6) {
-      errors.password = "Mật khẩu phải có ít nhất 6 ký tự.";
+    } else if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/.test(data.password)) {
+      errors.password = "Mật khẩu phải có ít nhất 6 ký tự, gồm chữ hoa, số và ký tự đặc biệt.";
     }
     if (data.password !== data.confirmPassword) {
       errors.confirmPassword = "Mật khẩu không khớp.";
@@ -72,14 +76,38 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
   };
 
   const handleRegister = async () => {
+    // ✅ Kiểm tra dữ liệu trước khi gửi
+    console.log("📌 Dữ liệu userData trước khi gửi:", userData);
+  
     const validationErrors = validate(userData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-
+  
+    // ✅ Chuyển userData thành FormData
+    const formData = new FormData();
+    formData.append("fullName", userData.fullName);
+    formData.append("email", userData.email);
+    formData.append("password", userData.password);
+    formData.append("phone", userData.phone);
+    formData.append("isPremium", userData.isPremium);
+    if (userData.premiumExpiresAt) {
+      formData.append("premiumExpiresAt", userData.premiumExpiresAt);
+    }
+    if (userData.avatar) {
+      formData.append("avatar", userData.avatar);
+    }
+  
+    // ✅ Kiểm tra dữ liệu FormData
+    console.log("📌 Dữ liệu FormData trước khi gửi:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ": " + pair[1]);
+    }
+  
     try {
-      const response = await registerUser(userData);
+      // ✅ Gửi FormData thay vì userData
+      const response = await registerUser(formData);
       toast.success("Đăng ký thành công!");
       onRegisterSuccess();
       onClose();
@@ -87,17 +115,13 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
     } catch (error) {
       console.error("Lỗi đăng ký:", error);
       let errorMessage = "Đã xảy ra lỗi khi đăng ký.";
-      if (error.message.includes("400")) {
-        try {
-          const errorData = JSON.parse(error.message.split("400 - ")[1]);
-          errorMessage = errorData.error;
-        } catch (parseError) {
-          errorMessage = "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.";
-        }
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
       }
       toast.error(errorMessage);
     }
   };
+  
 
   return (
     <div className="modal">

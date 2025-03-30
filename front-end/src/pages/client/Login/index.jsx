@@ -17,6 +17,7 @@ function LoginForm({ onClose, onRegisterClick,onLoginSuccess  }) {
       e.preventDefault();
       const formData = new FormData(formRef.current);
       const accountData = Object.fromEntries(formData.entries());
+      console.log("📌 Dữ liệu gửi lên:", accountData); // Kiểm tra dữ liệu
        // Kiểm tra email
        if (!accountData.email) {
         setEmailError("Email không được để trống.");

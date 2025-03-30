@@ -97,44 +97,37 @@ export const loginUser = async (email, password) => {
 //         return { success: false, error: error.message || "Lỗi đăng xuất không xác định." }; // Trả về thông báo lỗi nếu cần thiết
 //     }
 // };
-export async function registerUser(userData) {
+export async function registerUser(formData) {
   try {
-    const formData = new FormData();
-    formData.append("fullName", userData.fullName);
-    formData.append("email", userData.email);
-    formData.append("password", userData.password);
-    formData.append("phone", userData.phone);
-    console.log("Dữ liệu FormData:");
-for (let pair of formData.entries()) {
-  console.log(pair[0] + ": " + pair[1]);
-}
-    if (userData.avatar && userData.avatar instanceof File) {
-      formData.append("avatar", userData.avatar);
+    console.log("📌 Dữ liệu FormData trước khi gửi đến server:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0] + ": " + pair[1]);
     }
 
     const response = await fetch("http://127.0.0.1:8000/user/create/", {
       method: "POST",
-      body: formData,
+      body: formData, // ✅ Gửi trực tiếp formData
     });
 
     if (!response.ok) {
       let errorMessage = `Lỗi đăng ký: ${response.status}`;
       try {
-        const errorData = await response.json(); // Thử parse JSON lỗi
+        const errorData = await response.json();
         if (errorData.error) errorMessage += ` - ${errorData.error}`;
       } catch (parseError) {
-        const textError = await response.text(); // Nếu không phải JSON
+        const textError = await response.text();
         errorMessage += ` - ${textError}`;
       }
       throw new Error(errorMessage);
     }
 
-    return await response.json(); // Trả về dữ liệu từ server
+    return await response.json(); 
   } catch (error) {
     console.error("Lỗi đăng ký:", error);
     throw error;
   }
 }
+
 // export async function editProfile(_id, userData) {
 //   try {
 //     console.log("Dữ liệu JSON:", JSON.stringify(userData));
