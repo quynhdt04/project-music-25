@@ -6,8 +6,6 @@ import {
   editProfileWithAvatar
 } from "../../../services/UserService"; 
 
-
-
 const EditProfileModal = ({ user, onClose }) => {
   const storedUser = localStorage.getItem("user");
 if (storedUser) {
@@ -43,6 +41,7 @@ if (storedUser) {
       console.log("Dữ liệu user trong localStorage:", storedUser);
     }
   }, []);
+  
   useEffect(() => {
     if (user) {
       console.log("Avatar nhận được:", user.avatar);
@@ -56,6 +55,7 @@ if (storedUser) {
       });
     }
   }, [user]);
+  
   useEffect(() => {
     console.log("🎯 Dữ liệu user mới nhất:", userData);
   }, [userData]);
