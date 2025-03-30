@@ -206,7 +206,8 @@ function LayoutDefault() {
       {showEditForm && user && user.id && (
         <EditProfileForm onClose={() => setShowEditForm(false)} user={user} />
       )}
-      <footer className="footer"></footer>
+      <footer className="footer">
+      </footer>
     </>
   );
 }
