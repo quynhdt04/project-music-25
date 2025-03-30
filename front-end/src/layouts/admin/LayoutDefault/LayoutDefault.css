@@ -116,6 +116,7 @@
 
 .admin__header .user-menu {
     position: absolute;
+    top: 35px;
     right: 0;
     margin-top: 0;
     width: 120px;
