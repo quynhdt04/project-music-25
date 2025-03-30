@@ -8,6 +8,9 @@ import LoginForm from "../../../pages/client/Login";
 import RegisterForm from "../../../pages/client/Register";
 import EditProfileForm from "../../../pages/client/EditProfile";
 import Profile from "../../../pages/client/Profile";
+import { FaHome, FaMusic, FaHeart, FaList, FaChartBar } from "react-icons/fa";
+import { GiMusicalScore } from "react-icons/gi";
+import { Menu } from "antd";
 
 function LayoutDefault() {
   const [isLogin, setIsLogin] = useState(false);
@@ -20,6 +23,9 @@ function LayoutDefault() {
   const profileRef = useRef(null);
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const [selectedMenuKey, setSelectedMenuKey] = useState("home");
+
 
   const handleRegisterSuccess = () => {
     // toast.success("Đăng ký thành công!");
@@ -77,30 +83,31 @@ function LayoutDefault() {
     }
   }, []);
 
+
+  const menuItems = [
+    { key: "home", icon: <FaHome />, label: <Link to="/">Trang chủ</Link> },
+    { key: "songs", icon: <FaMusic />, label: <Link to="/songs">Danh sách bài hát</Link> },
+    { key: "music-love", icon: <FaHeart />, label: <Link to="/music-love">Bài hát yêu thích</Link> },
+    { key: "playlist", icon: <FaList />, label: <Link to="/playlist">Danh sách phát nhạc</Link> },
+    { key: "bxh", icon: <FaChartBar />, label: <Link to="/bxh">BXH</Link> },
+  ];
+
   return (
     <>
       <div className="app-container">
-        <aside className="sidebar">
-          <div className="logo">TenSeven Music</div>
-          <nav className="menu">
-            <ul>
-              <li>
-                <Link to="/">Trang chủ</Link>
-              </li>
-              <li>
-                <Link to="/songs">Danh sách bài hát</Link>
-              </li>
-              <li>
-                <Link to="/music-love">Bài hát yêu thích</Link>
-              </li>
-              <li>
-                <Link to="/playlist">Danh sách phát nhạc</Link>
-              </li>
-              <li>
-                <Link to="/bxh">BXH</Link>
-              </li>
-            </ul>
-          </nav>
+        <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
+          <div className="logo" onClick={() => setCollapsed(!collapsed)}>
+            {!collapsed ? "TenSeven Music" : <GiMusicalScore />}
+          </div>
+          <Menu
+            className="style-menu"
+            mode="inline"
+            theme="dark"
+            onClick={({ key }) => setSelectedMenuKey(key)}
+            selectedKeys={[selectedMenuKey]} 
+            inlineCollapsed={collapsed}
+            items={menuItems}
+          />
         </aside>
         <div className="main-content">
           <header className="header">
@@ -196,9 +203,9 @@ function LayoutDefault() {
         />
       )}
 
-{showEditForm && user && user.id && (
-  <EditProfileForm onClose={() => setShowEditForm(false)} user={user} />
-)}
+      {showEditForm && user && user.id && (
+        <EditProfileForm onClose={() => setShowEditForm(false)} user={user} />
+      )}
       <footer className="footer"></footer>
     </>
   );

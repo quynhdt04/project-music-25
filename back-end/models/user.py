@@ -28,6 +28,18 @@ class User(Document):
     # Tự động thêm timestamps 
     createdAt = DateTimeField(default=datetime.datetime.utcnow)
     updatedAt = DateTimeField(default=datetime.datetime.utcnow)
+    
+    def save(self, *args, **kwargs):
+        
+        # Cập nhật updatedAt mỗi khi lưu
+        self.updatedAt = datetime.datetime.utcnow()
+
+        # Cập nhật deletedAt nếu deleted = True
+        if self.deleted and not self.deletedAt:
+            self.deletedAt = datetime.datetime.utcnow()
+        
+        super(User, self).save(*args, **kwargs)
+
 
     meta = {
         "collection": "users",  # Tên collection trong MongoDB
