@@ -35,5 +35,5 @@ dist-ssr/
 *.sw?
 
 # Bỏ qua thư mục venv trong back-end
-back-end/venv/
+back-end/myvenv/
 
