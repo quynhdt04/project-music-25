@@ -73,8 +73,7 @@ const AlbumDetail = () => {
       togglePlay();
     } else {
       playSong(songs[0]);
-      console.log("Songs", songs.slice(1));
-      addToQueue([...songs.slice(1)]);
+      addToQueue([...songs]);
     }
   };
 

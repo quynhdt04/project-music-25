@@ -20,11 +20,6 @@ const MusicPlayerProvider = ({ children }) => {
 
   const playSong = (song) => {
     console.log("Queue when play first song", queue);
-    // console.log("Queue before", queue);
-    // // First remove the song from queue if it exists there
-    // const updatedQueue = queue.filter((item) => item.id !== song.id);
-    // setQueue(updatedQueue);
-    // console.log("Queue after", updatedQueue);
 
     // Then set it as current song and start playing
     setCurrentSong(song);
@@ -42,17 +37,14 @@ const MusicPlayerProvider = ({ children }) => {
       return;
     }
 
-    // Just play the first song in queue
-    const nextSongToPlay = queue[0];
-    console.log("Next song", nextSongToPlay);
-
-    // Remove it from queue first
-    const updatedQueue = queue.slice(1);
-    console.log("Updated queue", updatedQueue);
-    setQueue(updatedQueue);
-
-    // Then set it as current song
-    setCurrentSong(nextSongToPlay);
+    const currentIndex = queue.findIndex((song) => song.id === currentSong.id);
+    if (currentIndex === -1 || currentIndex === queue.length - 1) {
+      // If current song not in queue or is last song, play first song in queue
+      setCurrentSong(queue[0]);
+    } else {
+      // Play next song in queue
+      setCurrentSong(queue[currentIndex + 1]);
+    }
   };
 
   const previousSong = () => {
@@ -72,7 +64,11 @@ const MusicPlayerProvider = ({ children }) => {
   };
 
   const addToQueue = (song) => {
-    setQueue([...queue, song]);
+    if (Array.isArray(song)) {
+      setQueue([...queue, ...song]);
+    } else {
+      setQueue([...queue, song]);
+    }
   };
 
   const clearQueue = () => {
