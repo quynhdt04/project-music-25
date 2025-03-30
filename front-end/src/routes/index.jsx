@@ -25,11 +25,19 @@ import InfoUser from "../pages/admin/InfoUser";
 import EditAccount from "../pages/admin/Account/editAccount";
 import CreateTopic from "../pages/admin/Topic/createTopic";
 import EditTopic from "../pages/admin/Topic/editTopic";
+
+import CreateSinger from "../pages/admin/Singer/createSinger";
+import EditSinger from "../pages/admin/Singer/editSinger";
+
 import Profile from "../pages/client/Profile";
 import MainContent from "../pages/admin/MainContent/MainContent";
 import AlbumDetail from "../pages/client/AlbumDetail/AlbumDetail";
+
 import PlayList from "../pages/client/PlayList";
 import PlayListDetail from "../pages/client/PlayList/PlayListDetail";
+import CreateUser from "../pages/admin/User/createUser";
+import EditUser from "../pages/admin/User/editUser";
+import UserDetail from "../pages/admin/User/userDetail";
 
 export const allRoutes = [
   // Routes cho Client
@@ -135,11 +143,27 @@ export const allRoutes = [
           },
           {
             path: "singers/create",
-            element: <CreateRole />,
+            element: <CreateSinger />,
+          },
+          {
+            path: "singers/edit/:id",
+            element: <EditSinger />,
           },
           {
             path: "users",
             element: <User />,
+          },
+          {
+            path: "users/create",
+            element: <CreateUser />,
+          },
+          {
+            path: "users/edit/:id",
+            element: <EditUser />,
+          },
+          {
+            path: "users/view/:id",
+            element: <UserDetail />,
           },
           {
             path: "general",
