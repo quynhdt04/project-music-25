@@ -8,7 +8,7 @@ import { setAuthAccount, setAuthRole } from "../../../actions/authen";
 import { useDispatch } from "react-redux";
 import { toast, Bounce } from "react-toastify";
 
-function Login() {
+function Login({ onClose, onLoginSuccess }) {
 
     const formRef = useRef(null);
     const navigate = useNavigate();
@@ -18,14 +18,14 @@ function Login() {
         e.preventDefault();
         const formData = new FormData(formRef.current);
         const accountData = Object.fromEntries(formData.entries());
-
+    
         try {
             const checkLogin = await login(accountData.email, accountData.password);
             if (checkLogin.message) {
                 const time = 1;
                 const account = checkLogin.account;
                 const role = await get_role(account.role_id);
-                if(role.role) {
+                if (role.role) {
                     setCookie("account", JSON.stringify(account), time);
                     setCookie("role", JSON.stringify(role.role), time);
                     setCookie("token", account.token, time);
@@ -33,18 +33,35 @@ function Login() {
                     dispatch(setAuthRole(role.role));
                     navigate('/admin/dashboard');
                     toast.success('Đăng nhập thành công!', { transition: Bounce });
-                }else {
+    
+                    // Gọi onLoginSuccess với thông tin người dùng (nếu cần)
+                    if (onLoginSuccess) {
+                        onLoginSuccess(account); // Truyền thông tin người dùng lên LayoutDefault
+                        onClose();
+                    }
+    
+                } else {
                     toast.error(role.error, { transition: Bounce });
                 }
-                
             } else {
                 toast.error(checkLogin.error, { transition: Bounce });
+    
+                // Gọi onLoginSuccess với thông tin người dùng (nếu cần)
+                if (onLoginSuccess) {
+                    onLoginSuccess(null); // Truyền null hoặc thông báo lỗi nếu đăng nhập thất bại
+                    onClose();
+                }
             }
         } catch (error) {
             console.error("Lỗi:", error);
+    
+            // Gọi onLoginSuccess với thông tin người dùng (nếu cần)
+            if (onLoginSuccess) {
+                onLoginSuccess(null); // Truyền null hoặc thông báo lỗi nếu có lỗi
+                onClose();
+            }
         }
-    }
-
+    };
     return (
         <>
             <div className="login-container">
