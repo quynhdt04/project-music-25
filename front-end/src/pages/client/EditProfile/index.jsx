@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-// import "./EditProfileModal.css";
 import {
   editProfile,
   getUserById,
@@ -46,7 +45,6 @@ if (storedUser) {
   }, []);
   useEffect(() => {
     if (user) {
-      console.log("Dữ liệu user nhận đượccccccccccccccccccc:", user);
       console.log("Avatar nhận được:", user.avatar);
       
       setUserData({ 
