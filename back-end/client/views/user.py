@@ -123,7 +123,7 @@ def login_user(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            print("Dữ liệu nhận được:", data)
+            print("Dữ liệu nhận được từ frontend:", data)
 
             email = data.get("email")
             password = data.get("password", "")
@@ -136,8 +136,8 @@ def login_user(request):
                 user = User.objects.get(email=email)
                 print("User found:", user)
             except User.DoesNotExist:
-                print("📌 Lỗi: Email không tồn tại")
-                return JsonResponse({"error": "Email không tồn tại"}, status=400)
+                print(f"📌 Lỗi: Email không tồn tại, email nhận được: {email}")
+                return JsonResponse({"error": "user not found"}, status=400)
             print("📌 Mật khẩu nhập vào:", password)
             print("📌 Mật khẩu trong DB:", user.password)
             if user.deleted:
@@ -145,7 +145,7 @@ def login_user(request):
 
             if not check_password(password, user.password):
                 print("📌 Lỗi: Mật khẩu không đúng")
-                return JsonResponse({"error": "Mật khẩu không đúng"}, status=400)
+                return JsonResponse({"error": "incorrect password"}, status=400)
 
             if user.status == "inactive":
                 return JsonResponse({"error": "Tài khoản đã bị khóa"}, status=403)

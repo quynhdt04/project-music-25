@@ -22,7 +22,7 @@ function LayoutDefault() {
   const [user, setUser] = useState(null);
 
   const handleRegisterSuccess = () => {
-    toast.success("Đăng ký thành công!");
+    // toast.success("Đăng ký thành công!");
     navigate("/login"); // Chuyển hướng đến trang đăng nhập
   };
   const handleLoginSuccess = (userData) => {
