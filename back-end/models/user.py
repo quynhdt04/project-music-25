@@ -3,6 +3,9 @@ from mongoengine import Document, StringField, BooleanField, DateTimeField
 import datetime
 import random
 import string
+from django.db import models
+from datetime import timedelta
+
 
 # Hàm tạo chuỗi ngẫu nhiên 20 ký tự (giống generate.generateRandomString(20))
 def generate_random_string(length=20):
@@ -18,6 +21,9 @@ class User(Document):
     status = StringField(default="active") 
     deleted = BooleanField(default=False)
     deletedAt = DateTimeField(default=None)
+    isPremium = BooleanField(default=False)  # Mặc định là False
+    premiumExpiresAt = DateTimeField(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(days=365))  # Mặc định là 365 ngày  sau khi tạo tài khoản
+    # premiumExpiresAt = DateTimeField(default=None)  
 
     # Tự động thêm timestamps 
     createdAt = DateTimeField(default=datetime.datetime.utcnow)
