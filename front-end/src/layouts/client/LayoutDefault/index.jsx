@@ -11,9 +11,9 @@ import Profile from "../../../pages/client/Profile";
 import { FaHome, FaMusic, FaHeart, FaList, FaChartBar } from "react-icons/fa";
 import { GiMusicalScore } from "react-icons/gi";
 import { Menu } from "antd";
+import { useSelector, useDispatch } from "react-redux";
 
 function LayoutDefault() {
-  const [isLogin, setIsLogin] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
@@ -22,29 +22,28 @@ function LayoutDefault() {
   const menuRef = useRef(null);
   const profileRef = useRef(null);
   const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
+  const dispatch = useDispatch();
   const [selectedMenuKey, setSelectedMenuKey] = useState("home");
-
+  const user = useSelector((state) => state.authenReducer.user);
 
   const handleRegisterSuccess = () => {
     // toast.success("Đăng ký thành công!");
     navigate("/login"); // Chuyển hướng đến trang đăng nhập
   };
-  const handleLoginSuccess = (userData) => {
-    console.log("userData received:", userData);
-    setIsLogin(true);
-    setUser(userData);
-    console.log("user state updated:", userData);
-  };
+  const isLogin = Boolean(user);
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    setIsLogin(false);
-    setUser(null); // Reset user state khi đăng xuất
-    setMenuOpen(false);
-    toast.success("Bạn đã đăng xuất")
+    // 🔥 Gửi action LOGOUT để xóa user trong Redux
+    dispatch({ type: "LOGOUT" });
+
+    // 🔥 Hiển thị thông báo
+    toast.success("Bạn đã đăng xuất");
+
+    // 🔥 Chuyển hướng về trang chủ
     navigate("/");
+  };
+  const handleLoginSuccess = (user) => {
+    dispatch({ type: "USER", value: user }); // ✅ Cập nhật Redux ngay
   };
   const closeModal = () => {
     setShowRegisterForm(false);
@@ -63,32 +62,27 @@ function LayoutDefault() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setIsLogin(true);
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (typeof parsedUser === "object" && parsedUser !== null) {
-          console.log("User from localStorage:", parsedUser);
-          setUser(parsedUser);
-        } else {
-          console.error("Invalid user data in localStorage");
-          // Xử lý trường hợp dữ liệu bị hỏng (ví dụ: chuyển hướng người dùng đến trang đăng nhập)
-        }
-      } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
-        // Xử lý trường hợp lỗi parse JSON (ví dụ: chuyển hướng người dùng đến trang đăng nhập)
-      }
-    }
-  }, []);
-
-
   const menuItems = [
     { key: "home", icon: <FaHome />, label: <Link to="/">Trang chủ</Link> },
-    { key: "songs", icon: <FaMusic />, label: <Link to="/songs">Danh sách bài hát</Link> },
-    { key: "music-love", icon: <FaHeart />, label: <Link to="/music-love">Bài hát yêu thích</Link> },
-    { key: "playlist", icon: <FaList />, label: <Link to="/playlist">Danh sách phát nhạc</Link> },
+    {
+      key: "songs",
+      icon: <FaMusic />,
+      label: <Link to="/songs">Danh sách bài hát</Link>,
+    },
+    ...(isLogin
+      ? [
+          {
+            key: "music-love",
+            icon: <FaHeart />,
+            label: <Link to="/music-love">Bài hát yêu thích</Link>,
+          },
+          {
+            key: "playlist",
+            icon: <FaList />,
+            label: <Link to="/playlist">Danh sách phát nhạc</Link>,
+          },
+        ]
+      : []),
     { key: "bxh", icon: <FaChartBar />, label: <Link to="/bxh">BXH</Link> },
   ];
 
@@ -104,7 +98,7 @@ function LayoutDefault() {
             mode="inline"
             theme="dark"
             onClick={({ key }) => setSelectedMenuKey(key)}
-            selectedKeys={[selectedMenuKey]} 
+            selectedKeys={[selectedMenuKey]}
             inlineCollapsed={collapsed}
             items={menuItems}
           />
@@ -186,7 +180,7 @@ function LayoutDefault() {
             setShowLoginForm(false);
             setShowRegisterForm(true);
           }}
-          onLoginSuccess={handleLoginSuccess}
+          onLoginSuccess={handleLoginSuccess} // ✅ Cập nhật user ngay khi đăng nhập
         />
       )}
 
