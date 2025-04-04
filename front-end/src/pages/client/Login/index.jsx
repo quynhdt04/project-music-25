@@ -14,15 +14,15 @@ function LoginForm({ onClose, onRegisterClick, onLoginSuccess }) {
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
 
-  useEffect(() => {
-    // Kiểm tra localStorage khi load lại trang
-    const authData = localStorage.getItem("authData");
-    if (authData) {
-      const { user, token } = JSON.parse(authData);
-      // Dispatch dữ liệu vào Redux nếu có
-      dispatch(loginSuccess({ user, token }));
-    }
-  }, [dispatch]); // Chạy một lần khi component được mount
+  // useEffect(() => {
+  //   // Kiểm tra localStorage khi load lại trang
+  //   const authData = localStorage.getItem("authData");
+  //   if (authData) {
+  //     const { user, token } = JSON.parse(authData);
+  //     // Dispatch dữ liệu vào Redux nếu có
+  //     dispatch(loginSuccess({ user, token }));
+  //   }
+  // }, [dispatch]); // Chạy một lần khi component được mount
   useEffect(() => {
     const userData = sessionStorage.getItem("user");
     const tokenData = sessionStorage.getItem("token");

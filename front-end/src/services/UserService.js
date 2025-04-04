@@ -1,8 +1,8 @@
 // src/services/UserService.js
 import { loginSuccess } from "../reducers/index";
-
 import { setCookie } from "../helpers/cookie";
-import { useDispatch } from "react-redux";
+import axios from "axios";
+import Cookies from "js-cookie";
 
 export const loginUser = async (email, password, dispatch) => {
   
@@ -121,41 +121,36 @@ export async function editProfile(userId, updatedData) {
   }
 }
 
-export async function editProfileWithAvatar(_id, userData, avatarFile) {
+export const editProfileWithAvatar = async (userId, avatarFile) => {
+  const formData = new FormData();
+
+  if (avatarFile && avatarFile instanceof File) {
+    formData.append("avatar", avatarFile);
+  } else {
+    console.error("❌ Không phải là file hợp lệ:", avatarFile);
+    throw new Error("Avatar không phải là file hợp lệ.");
+  }
+
+  // ✅ Lấy CSRF token từ cookie (Django set cookie này)
+  const csrfToken = Cookies.get("csrftoken");
+
   try {
-    const formData = new FormData();
-    formData.append("fullName", userData.fullName);
-    formData.append("email", userData.email);
-    formData.append("phone", userData.phone);
+    const response = await axios.post(
+      `http://localhost:8000/users/${userId}/avatar`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          "X-CSRFToken": csrfToken, // 💡 Gửi CSRF token vào header
+        },
+        withCredentials: true, // 💡 Bắt buộc phải có để browser gửi cookie
+      }
+    );
 
-    // Nếu có mật khẩu mới thì thêm vào
-    if (userData.password) {
-      formData.append("password", userData.password);
-    }
-
-    // Nếu có ảnh đại diện mới thì thêm vào
-    if (avatarFile && avatarFile instanceof File) {
-      formData.append("avatar", avatarFile);
-    }
-
-    console.log("🚀 Đang gửi dữ liệu cập nhật:", Object.fromEntries(formData));
-
-    const response = await fetch(`http://127.0.0.1:8000/user/${_id}/update/`, {
-      method: "PUT",
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(`Lỗi cập nhật hồ sơ: ${response.status} - ${errorData}`);
-    }
-
-    const updatedUser = await response.json();
-    console.log("✅ Cập nhật thành công:", updatedUser);
-
-    return updatedUser;
+    console.log("✅ Avatar updated:", response.data);
+    return response.data;
   } catch (error) {
-    console.error("❌ Lỗi cập nhật hồ sơ:", error);
+    console.error("❌ Lỗi cập nhật avatar:", error.response?.data || error);
     throw error;
   }
-}
+};
