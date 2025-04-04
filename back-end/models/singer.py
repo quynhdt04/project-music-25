@@ -14,6 +14,7 @@ class Singer(Document):
     createdAt = DateTimeField(default=datetime.datetime.utcnow)
     updatedAt = DateTimeField(default=datetime.datetime.utcnow)
 
+
     def generate_slug(self):
         base_slug = unidecode(self.fullName).lower().strip()
         base_slug = re.sub(r'[^a-z0-9]+', '-', base_slug).strip('-')

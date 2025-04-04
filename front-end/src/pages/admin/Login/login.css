@@ -27,8 +27,11 @@
     width: 100%;
 }
 
-.login-box h2 {
-    color: #14274F;
+.login-container .login-box h2 {
+    color: #14274F !important;
+    margin-bottom: 20px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #355c86 !important;
 }
 
 .login-box .input-group {
