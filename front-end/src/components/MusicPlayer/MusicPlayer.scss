@@ -25,6 +25,7 @@
   .song-info {
     display: flex;
     align-items: center;
+    gap: 8px;
     min-width: 180px;
     max-width: 30%;
 
@@ -163,43 +164,97 @@
     .volume-slider {
       -webkit-appearance: none;
       appearance: none;
-      width: 80px;
+      width: 100px;
       height: 4px;
-      background: #535353;
       border-radius: 2px;
       outline: none;
+      --volume-percentage: 50%;
+      --slider-color: #fff;
+      background: linear-gradient(
+        to right,
+        var(--slider-color) var(--volume-percentage),
+        rgba(255, 255, 255, 0.3) var(--volume-percentage)
+      );
+      transition: --slider-color 0.2s ease;
+
+      &.dragging {
+        --slider-color: #1db954;
+      }
 
       &::-webkit-slider-thumb {
         -webkit-appearance: none;
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background: #fff;
+        background: var(--slider-color);
         cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      &::-webkit-slider-runnable-track {
+        -webkit-appearance: none;
+        border-radius: 2px;
       }
 
       &::-moz-range-thumb {
         width: 12px;
         height: 12px;
         border-radius: 50%;
-        background: #fff;
+        background: var(--slider-color);
         cursor: pointer;
         border: none;
+        transition: background-color 0.2s ease;
+      }
+
+      &::-moz-range-track {
+        border-radius: 2px;
+      }
+
+      &::-moz-range-progress {
+        background-color: var(--slider-color);
+        border-radius: 2px;
+        transition: background-color 0.2s ease;
       }
 
       &:hover {
-        &::-webkit-slider-thumb {
-          background: #1db954;
-        }
-
-        &::-moz-range-thumb {
-          background: #1db954;
-        }
+        --slider-color: #1db954;
       }
     }
 
     @media (max-width: 768px) {
       margin-top: 12px;
+    }
+  }
+
+  .action-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      color: #fff;
+      transform: scale(1.1);
+    }
+
+    &.liked {
+      color: #c273ed;
+    }
+
+    &.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
     }
   }
 }

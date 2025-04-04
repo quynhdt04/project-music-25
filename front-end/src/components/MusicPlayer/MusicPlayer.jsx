@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import useMusicPlayer from "../../hooks/useMusicPlayer";
 import {
   FaPlay,
@@ -9,9 +9,19 @@ import {
   FaVolumeDown,
   FaVolumeMute,
 } from "react-icons/fa";
+import {
+  Heart,
+  Camera,
+  ChatSquareText,
+  MusicNoteList,
+} from "react-bootstrap-icons";
 import "./MusicPlayer.scss";
 
 const MusicPlayer = () => {
+  const [isLiked, setIsLiked] = useState(false);
+  const [showLyrics, setShowLyrics] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
+  const [isDraggingVolume, setIsDraggingVolume] = useState(false);
   const audioRef = useRef(null);
   const progressBarRef = useRef(null);
 
@@ -52,6 +62,13 @@ const MusicPlayer = () => {
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
+      const volumeSlider = document.querySelector(".volume-slider");
+      if (volumeSlider) {
+        volumeSlider.style.setProperty(
+          "--volume-percentage",
+          `${volume * 100}%`
+        );
+      }
     }
   }, [volume]);
 
@@ -109,6 +126,37 @@ const MusicPlayer = () => {
     return null;
   }
 
+  const handleLikeClick = () => {
+    setIsLiked(!isLiked);
+  };
+
+  const handleMVClick = () => {
+    // Handle MV click
+    console.log("Open MV");
+  };
+
+  const handleLyricsClick = () => {
+    setShowLyrics(!showLyrics);
+  };
+
+  const handleQueueClick = () => {
+    setShowQueue(!showQueue);
+  };
+
+  const handleVolumeChange = (e) => {
+    const value = e.target.value;
+    setVolume(parseFloat(value));
+    e.target.style.setProperty("--volume-percentage", `${value * 100}%`);
+  };
+
+  const handleVolumeDragStart = () => {
+    setIsDraggingVolume(true);
+  };
+
+  const handleVolumeDragEnd = () => {
+    setIsDraggingVolume(false);
+  };
+
   return (
     <div className="music-player">
       <audio
@@ -130,6 +178,12 @@ const MusicPlayer = () => {
             <h3 className="song-title">{currentSong.title}</h3>
             <p className="song-artist">{currentSong.artist}</p>
           </div>
+          <button
+            className={`action-btn ${isLiked ? "liked" : ""}`}
+            onClick={handleLikeClick}
+          >
+            <Heart />
+          </button>
         </div>
 
         <div className="player-controls">
@@ -160,8 +214,30 @@ const MusicPlayer = () => {
             <span className="time">{formatTime(duration)}</span>
           </div>
         </div>
-
         <div className="volume-control">
+          <div className="song-actions d-flex align-items-center me-2 gap-2">
+            {currentSong.hasVideo && (
+              <button className="action-btn" onClick={handleMVClick}>
+                <Camera />
+              </button>
+            )}
+            <button
+              className={`action-btn ${showLyrics ? "active" : ""}`}
+              onClick={handleLyricsClick}
+            >
+              <ChatSquareText />
+            </button>
+            <button
+              className={`action-btn ${showQueue ? "active" : ""}`}
+              onClick={handleQueueClick}
+            >
+              <MusicNoteList />
+            </button>
+          </div>
+          <div
+            class="vr"
+            style={{ backgroundColor: "#FFFFFF1A", opacity: 1 }}
+          ></div>
           <button className="volume-icon">{renderVolumeIcon()}</button>
           <input
             type="range"
@@ -169,8 +245,12 @@ const MusicPlayer = () => {
             max="1"
             step="0.01"
             value={volume}
-            onChange={(e) => setVolume(parseFloat(e.target.value))}
-            className="volume-slider"
+            onChange={handleVolumeChange}
+            onMouseDown={handleVolumeDragStart}
+            onMouseUp={handleVolumeDragEnd}
+            onTouchStart={handleVolumeDragStart}
+            onTouchEnd={handleVolumeDragEnd}
+            className={`volume-slider ${isDraggingVolume ? "dragging" : ""}`}
           />
         </div>
       </div>
