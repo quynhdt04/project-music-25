@@ -253,3 +253,27 @@ def update_user(request, _id):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
+@csrf_exempt
+def update_avatar(request, _id):
+    if request.method == "POST":
+        if 'avatar' in request.FILES:
+            avatar_file = request.FILES['avatar']
+            upload_result = cloudinary.uploader.upload(avatar_file)
+            avatar_url = upload_result['secure_url']
+            print("📦 FILES:", request.FILES)
+            user = User.objects.get(id=ObjectId(_id))
+            user.avatar = avatar_url
+            user.save()
+
+            return JsonResponse({
+                "message": "Cập nhật avatar thành công",
+                "avatar": avatar_url,
+                "fullName": user.fullName,
+                "email": user.email,
+                "phone": user.phone,
+            })
+        else:
+            return JsonResponse({"error": "Avatar file is missing in the request."}, status=400)
+    else:
+        return JsonResponse({"error": "Invalid request method."}, status=400)

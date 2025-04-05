@@ -22,8 +22,10 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUserData((prev) => ({ ...prev, [name]: value }));
+
+    // Ẩn lỗi ngay khi nhập đúng
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
   };
-  
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];

@@ -1,5 +1,5 @@
 from django.urls import path
-from client.views.user import register_user, login_user, update_user, get_user_by_id  # Thêm import get_all_users
+from client.views.user import register_user, login_user, update_user, get_user_by_id, update_avatar  # Thêm import get_all_users
 
 
 urlpatterns = [
@@ -9,5 +9,6 @@ urlpatterns = [
     path("user/login/", login_user, name="login_user"),
     path("update/<str:_id>/", update_user, name="update_user"),
     path("user/<str:_id>/", get_user_by_id, name="get_user_by_id"),
+    path('users/<str:_id>/avatar', update_avatar, name='update_avatar'),
     
 ]
