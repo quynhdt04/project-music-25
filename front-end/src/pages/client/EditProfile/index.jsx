@@ -120,6 +120,8 @@ const EditProfileModal = ({ onClose }) => {
     }
   };
 
+  
+
   return (
     <div className="modal">
       <div className="modal-content">
