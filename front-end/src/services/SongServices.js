@@ -84,8 +84,8 @@ export const get_song_by_slug = async (slug) => {
   return result;
 };
 
-export const like_song = async (slug) => {
-  const result = await post(`api/songs/like/${slug}/`);
+export const like_song = async (slug, userId) => {
+  const result = await post(`api/songs/like/${slug}/`, { userId });
   return result;
 };
 

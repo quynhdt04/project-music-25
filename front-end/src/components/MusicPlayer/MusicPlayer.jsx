@@ -146,13 +146,13 @@ const MusicPlayer = () => {
   };
 
   const handleLikeClick = async () => {
-    // try {
-    //   const result = await like_song(currentSong.slug);
-    //   console.log(result);
-    // } catch (error) {
-    //   console.log(error);
-    // }
-    // setIsLiked(!isLiked);
+    try {
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      const result = await like_song(currentSong.slug, user.id);
+    } catch (error) {
+      console.log(error);
+    }
+    setIsLiked(!isLiked);
   };
 
   const handleMVClick = () => {

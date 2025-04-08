@@ -11,6 +11,7 @@ import json
 from slugify import slugify
 from models.song import Song, Singer, Topic, Lyric
 from models.topic import Topic as TopicModel
+from models.favorite_songs import FavoriteSong
 import logging
 import traceback
 from mongoengine.queryset.visitor import Q
@@ -598,42 +599,50 @@ async def get_song_by_slug(request, song_slug):
 async def like_song(request, song_slug):
     if request.method == "POST":
         try:
-            song = await sync_to_async(Song.objects.get)(slug=song_slug)
-
-            # Check if the user is authenticated
-            user = request.user
-
-            # Debug request information
-            print("Request Headers:", dict(request.headers))
-            print("Request Cookies:", request.COOKIES)
-            print("Request User:", user)
-            print("Request Session:", request.session)
+            # Get userId from request body
+            try:
+                data = json.loads(request.body)
+                user_id = data.get('userId')
+            except json.JSONDecodeError:
+                # If it's not JSON, try to get it directly from the body
+                user_id = request.body.decode('utf-8')
             
-            # Debug specific cookie-related headers
-            print("Cookie Header:", request.META.get('HTTP_COOKIE'))
-            
-            # Check if session is working
-            print("Session ID:", request.session.session_key)
-            print("Session Data:", dict(request.session))
+            if not user_id:
+                return JsonResponse({"error": "User ID is required"}, status=400)
 
-            if not user.is_authenticated:
-                return JsonResponse({"error": "Bạn cần đăng nhập để thực hiện hành động này!"}, status=401)
+            # Get the song
+            try:
+                song = await sync_to_async(Song.objects.get)(slug=song_slug)
+            except Song.DoesNotExist:
+                return JsonResponse({"error": "Song not found"}, status=404)
 
-            # Check if the user has already liked the song
-            if user.id in song.userLiked:
-                song.userLiked.remove(user.id)
-                song.like = int(song.like) - 1
-                await sync_to_async(song.save)()
-                return JsonResponse({"message": "Bạn đã bỏ thích bài hát này!", "status": 200}, status=200)
+            try:
+                favorite_song = await sync_to_async(FavoriteSong.objects.get)(userId=user_id)
+            except FavoriteSong.DoesNotExist:
+                # Create a new FavoriteSong with ObjectId
+                favorite_song = FavoriteSong(
+                    userId=user_id,
+                    songId=[]
+                )
+                await sync_to_async(favorite_song.save)()
 
-            # Add the user's ID to the userLiked list
-            song.userLiked.append(user.id)
-            song.like = int(song.like) + 1
+            message = ""
+            if song._id in favorite_song.songId:
+                favorite_song.songId.remove(song._id)
+                song.like = str(int(song.like) - 1)
+                message = "Bạn đã bỏ thích bài hát này!"
+            else:
+                favorite_song.songId.append(song._id)
+                song.like = str(int(song.like) + 1)
+                message = "Bạn đã thích bài hát này!"
+
+            await sync_to_async(favorite_song.save)()
             await sync_to_async(song.save)()
 
-            return JsonResponse({"message": "Bạn đã thích bài hát này!", "status": 200}, status=200)
+            return JsonResponse({"message": message, "status": 200}, status=200)
         
         except Exception as e:
+            logger.error(traceback.format_exc())
             return JsonResponse({"error": str(e)}, status=400)
     return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
 
