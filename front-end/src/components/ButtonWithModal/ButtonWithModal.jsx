@@ -53,7 +53,7 @@ const ButtonWithModal = ({
             Close
           </Button>
           <Button variant="primary" onClick={handleSaveChanges}>
-            Save Changes
+            Lưu thay đổi
           </Button>
         </Modal.Footer>
       </Modal>

@@ -103,3 +103,13 @@ export const reject_multiple_albums = async (data) => {
   });
   return result;
 };
+
+export const approve_album = async (albumId, userId) => {
+  const result = await patch(`api/albums/approve-album`, albumId, { userId });
+  return result;
+};
+
+export const reject_album = async (albumId, userId) => {
+  const result = await patch(`api/albums/reject-album`, albumId, { userId });
+  return result;
+};

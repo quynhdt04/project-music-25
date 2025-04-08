@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 import cloudinary
 from cloudinary.uploader import destroy
 from django.http import QueryDict
@@ -549,6 +549,8 @@ async def update_album(request, album_id):
             else:
                 return JsonResponse({"message": "Vui lòng cung cấp bài hát", "status": 400}, status=400)
 
+            album.updatedAt = datetime.now(UTC)
+
             # Save changes
             await sync_to_async(album.save)()
 
@@ -576,7 +578,8 @@ async def delete_album(request, album_id):
 
             # Update deleted field
             album.deleted = True
-            album.deletedAt = datetime.now()
+            album.deletedAt = datetime.now(UTC)
+            album.updatedAt = datetime.now(UTC)
             await sync_to_async(album.save)()
 
             return JsonResponse({"message": "Xóa album thành công", "status": 200}, status=200)
@@ -598,7 +601,8 @@ async def delete_multiple_albums(request):
                 try:
                     album = await sync_to_async(Album.objects.get)(_id=album_id)
                     album.deleted = True
-                    album.deletedAt = datetime.now()
+                    album.deletedAt = datetime.now(UTC)
+                    album.updatedAt = datetime.now(UTC)
                     await sync_to_async(album.save)()
                 except Exception as e:
                     logger.error(traceback.format_exc())
@@ -624,6 +628,7 @@ async def restore_multiple_albums(request):
                     album = await sync_to_async(Album.objects.get)(_id=album_id)
                     album.deleted = False
                     album.deletedAt = None
+                    album.updatedAt = datetime.now(UTC)
                     await sync_to_async(album.save)()
                 except Exception as e:
                     logger.error(traceback.format_exc())
@@ -954,6 +959,7 @@ async def approve_multiple_albums(request):
                     album = await sync_to_async(Album.objects.get)(_id=album_id)
                     album.status = "approved"
                     album.approvedBy = approved_by
+                    album.updatedAt = datetime.now(UTC)
                     await sync_to_async(album.save)()
                 except Exception as e:
                     return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt album!"}, status=400)
@@ -976,6 +982,7 @@ async def reject_multiple_albums(request):
                     album = await sync_to_async(Album.objects.get)(_id=album_id)
                     album.status = "rejected"
                     album.approvedBy = approved_by
+                    album.updatedAt = datetime.now(UTC)
                     await sync_to_async(album.save)()
                 except Exception as e:
                     return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
@@ -985,3 +992,36 @@ async def reject_multiple_albums(request):
             return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
     return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
 
+@csrf_exempt
+async def approve_album(request, album_id):
+    if request.method == "PATCH":
+        try:
+            data = json.loads(request.body)
+            userId = data.get("userId", None)
+
+            album = await sync_to_async(Album.objects.get)(_id=album_id)
+            album.status = "approved"
+            album.approvedBy = userId
+            album.updatedAt = datetime.now(UTC)
+            await sync_to_async(album.save)()
+            return JsonResponse({"message": "Album đã được phê duyệt!", "status": 200}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt album!", "status": 400}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def reject_album(request, album_id):
+    if request.method == "PATCH":
+        try:
+            data = json.loads(request.body)
+            userId = data.get("userId", None)
+
+            album = await sync_to_async(Album.objects.get)(_id=album_id)
+            album.status = "rejected"   
+            album.approvedBy = userId
+            album.updatedAt = datetime.now(UTC)
+            await sync_to_async(album.save)()
+            return JsonResponse({"message": "Album đã được từ chối!", "status": 200}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)

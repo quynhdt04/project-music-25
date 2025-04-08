@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Select from "react-select";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import {
   Container,
@@ -12,8 +12,15 @@ import {
   Button,
 } from "react-bootstrap";
 import { Calendar, Clock, Person, PersonCheck } from "react-bootstrap-icons";
+import { toast } from "react-toastify";
 import "./SongDetailPage.scss";
-import { get_song_by_id } from "../../../../services/SongServices";
+import {
+  get_song_by_id,
+  approve_song,
+  reject_song,
+} from "../../../../services/SongServices";
+import { getCookie } from "../../../../helpers/cookie";
+import ButtonWithModal from "../../../../components/ButtonWithModal/ButtonWithModal";
 
 const getStatusClass = (status) => {
   const statusMap = {
@@ -100,7 +107,6 @@ const customStyles = {
   }),
   option: (styles, state) => {
     const color = state.data.color;
-    console.log("state: ", state);
     return {
       ...styles,
       backgroundColor: state.isFocused ? color : "transparent",
@@ -113,12 +119,14 @@ const customStyles = {
 };
 
 const SongDetailPage = ({ managementPage = "songs" }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [song, setSong] = useState({});
+  const [status, setStatus] = useState("pending");
   const [fetchingStatus, setFetchingStatus] = useState({
     isLoading: true,
     isError: false,
   });
-  const { id } = useParams();
 
   const fetchData = useCallback(async () => {
     try {
@@ -174,6 +182,34 @@ const SongDetailPage = ({ managementPage = "songs" }) => {
     fetchData();
   }, [fetchData]);
 
+  const handleStatusChange = (selectedOption) => {
+    setStatus(selectedOption.value);
+  };
+
+  const handleStatusConfirm = async () => {
+    try {
+      const account = JSON.parse(getCookie("account"));
+      let response = null;
+      switch (status) {
+        case "rejected":
+          response = await reject_song(song.songId, account.id);
+          break;
+
+        default:
+          response = await approve_song(song.songId, account.id);
+      }
+
+      if (response.status === 200) {
+        toast.success("Cập nhật trạng thái thành công");
+      } else {
+        toast.error("Cập nhật trạng thái thất bại");
+      }
+      navigate(`/admin/${managementPage}`, { replace: true });
+    } catch (err) {
+      console.error("Check err: ", err);
+    }
+  };
+
   if (fetchingStatus.isLoading) {
     return (
       <div className="text-center my-5">
@@ -198,7 +234,7 @@ const SongDetailPage = ({ managementPage = "songs" }) => {
               <div className="song-id">ID: {song.songId}</div>
             </div>
             <div
-              className="d-flex flex-column align-items-end"
+              className="d-flex flex-column align-items-end action-section"
               style={{ flexBasis: "50%" }}
             >
               {managementPage === "songs" ? (
@@ -246,19 +282,32 @@ const SongDetailPage = ({ managementPage = "songs" }) => {
                       </div>
                     )}
                     value={statusOptions.find(
-                      (option) => option.value === song.status
+                      (option) => option.value === status
                     )}
+                    onChange={handleStatusChange}
                     getOptionValue={(e) => e.value}
                   />
-                  <Button
-                    className="ms-3"
-                    style={{
-                      backgroundColor: "#6f42c1",
-                      padding: "0.5rem 1rem",
-                    }}
-                  >
-                    Lưu thay đổi
-                  </Button>
+                  <ButtonWithModal
+                    type="button"
+                    buttonLabel="Xác nhận"
+                    buttonClassName="btn confirm-btn"
+                    modalTitle="Xác nhận"
+                    modalContent={
+                      status === "rejected" ? (
+                        <p>
+                          Bạn có chắc chắn muốn từ chối bản ghi: {song.title} -{" "}
+                          {song.songId}?
+                        </p>
+                      ) : (
+                        <p>
+                          Bạn có chắc chắn muốn duyệt bản ghi: {song.title} -{" "}
+                          {song.songId}?
+                        </p>
+                      )
+                    }
+                    onSubmit={() => handleStatusConfirm()}
+                    isDisabled={status === "pending"}
+                  />
                 </div>
               )}
             </div>

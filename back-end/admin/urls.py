@@ -8,14 +8,15 @@ from admin.views.song import (
     delete_multiple_songs, restore_multiple_songs, get_all_pending_songs, get_number_of_top_liked_songs, 
     get_number_of_top_play_count_songs, get_songs_by_topic, get_song_by_slug, like_song, increment_play_count,
     filter_song, search_song, get_all_songs_by_singer, get_all_available_songs, filter_pending_songs,
-    approve_multiple_songs, reject_multiple_songs
+    approve_multiple_songs, reject_multiple_songs, approve_song, reject_song
 )
 from admin.views.topic import get_all_topics, create_topic, get_topic_by_id,update_topic,delete_topic, get_number_of_topics, get_topic_by_slug
 from admin.views.user import get_all_users, get_user_by_id, create_user, delete_user, patch_user
 from admin.views.album import (
     get_all_pending_albums, get_album_by_id, get_latest_album, get_all_albums, 
     update_album, create_new_album, delete_album, delete_multiple_albums, 
-    restore_multiple_albums, search_album, filter_album, approve_multiple_albums, reject_multiple_albums
+    restore_multiple_albums, search_album, filter_album, approve_multiple_albums, reject_multiple_albums,
+    approve_album, reject_album
 )
 
 urlpatterns = [
@@ -52,6 +53,8 @@ urlpatterns = [
     path("songs/filter-pending-songs", filter_pending_songs, name="filter_pending_songs"),
     path("songs/approve-multiple-songs", approve_multiple_songs, name="approve_multiple_songs"),
     path("songs/reject-multiple-songs", reject_multiple_songs, name="reject_multiple_songs"),
+    path("songs/approve-song/<str:song_id>/", approve_song, name="approve_song"),
+    path("songs/reject-song/<str:song_id>/", reject_song, name="reject_song"),
 
     path('singers/',get_all_singers, name='get_all_singers'),
     path('singers/<str:singer_id>/',get_singer_by_id, name='get_singer_by_id'),
@@ -86,4 +89,6 @@ urlpatterns = [
     path("albums/filter", filter_album, name="filter_album"),
     path("albums/approve-multiple-albums", approve_multiple_albums, name="approve_multiple_albums"),
     path("albums/reject-multiple-albums", reject_multiple_albums, name="reject_multiple_albums"),
+    path("albums/approve-album/<str:album_id>/", approve_album, name="approve_album"),
+    path("albums/reject-album/<str:album_id>/", reject_album, name="reject_album"),
 ]

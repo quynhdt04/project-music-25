@@ -146,3 +146,13 @@ export const reject_multiple_songs = async (data) => {
   });
   return result;
 };
+
+export const approve_song = async (songId, userId) => {
+  const response = await patch(`api/songs/approve-song`, songId, { userId });
+  return response;
+};
+
+export const reject_song = async (songId, userId) => {
+  const response = await patch(`api/songs/reject-song`, songId, { userId });
+  return response;
+};

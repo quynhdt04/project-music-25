@@ -11,8 +11,8 @@ const ViewDetailPage = () => {
       case "songs-approval":
         return <SongDetailPage managementPage="songs-approval" />;
 
-      // case "albums-approval":
-      //   return <CreatePage />;
+      case "albums-approval":
+        return <AlbumDetailPage managementPage="albums-approval" />;
 
       case "albums":
         return <AlbumDetailPage />;

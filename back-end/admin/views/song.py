@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 import cloudinary
 from cloudinary.uploader import destroy
 from django.http import QueryDict
@@ -329,6 +329,8 @@ async def update_song_data(request, song_id):
             if "deletedAt" in data:
                 song.deletedAt = data.get("deletedAt", None)
 
+            song.updatedAt = datetime.now(UTC)
+
             await sync_to_async(song.save)()
             return JsonResponse({"message": "Cập nhật bài hát thành công!", "id": song_id}, status=200)
 
@@ -372,7 +374,8 @@ async def delete_song_data(request, song_id):
 
             # Perform a shallow delete
             song.deleted = True
-            song.deletedAt = datetime.utcnow()  # Set the deletion timestamp
+            song.deletedAt = datetime.now(UTC)  # Set the deletion timestamp
+            song.updatedAt = datetime.now(UTC)
             await sync_to_async(song.save)()
 
             return JsonResponse({"message": "Xóa bài hát thành công!", "status": 200}, status=200)
@@ -396,7 +399,8 @@ async def delete_multiple_songs(request):
                 try:
                     song = await sync_to_async(Song.objects.get)(_id=song_id)
                     song.deleted = True
-                    song.deletedAt = datetime.utcnow()  # Set the deletion timestamp
+                    song.deletedAt = datetime.now(UTC)  # Set the deletion timestamp
+                    song.updatedAt = datetime.now(UTC)
                     await sync_to_async(song.save)()
                 except Song.DoesNotExist:
                     logger.warning(f"Song with ID {song_id} not found. Skipping.")
@@ -424,6 +428,7 @@ async def restore_multiple_songs(request):
                     song = await sync_to_async(Song.objects.get)(_id=song_id)
                     song.deleted = False
                     song.deletedAt = None  # Reset the deletion timestamp
+                    song.updatedAt = datetime.now(UTC)
                     await sync_to_async(song.save)()
                 except Song.DoesNotExist:
                     logger.warning(f"Song with ID {song_id} not found. Skipping.")
@@ -635,6 +640,9 @@ async def like_song(request, song_slug):
                 favorite_song.songId.append(song._id)
                 song.like = str(int(song.like) + 1)
                 message = "Bạn đã thích bài hát này!"
+            
+            favorite_song.updatedAt = datetime.now(UTC)
+            song.updatedAt = datetime.now(UTC)
 
             await sync_to_async(favorite_song.save)()
             await sync_to_async(song.save)()
@@ -653,6 +661,7 @@ async def increment_play_count(request, song_id):
             song = await sync_to_async(Song.objects.get)(_id=song_id)
             play_count = int(song.play_count)
             song.play_count = play_count + 1
+            song.updatedAt = datetime.now(UTC)
             await sync_to_async(song.save)()
             return JsonResponse({"message": "Số lượt nghe tăng lên!", "status": 200}, status=200)
         except Exception as e:
@@ -877,6 +886,7 @@ async def approve_multiple_songs(request):
                     song = await sync_to_async(Song.objects.get)(_id=song_id)
                     song.status = "approved"
                     song.approvedBy = approved_by
+                    song.updatedAt = datetime.now(UTC)
                     await sync_to_async(song.save)()
                 except Exception as e:
                     return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt bài hát!"}, status=400) 
@@ -900,11 +910,56 @@ async def reject_multiple_songs(request):
                     song = await sync_to_async(Song.objects.get)(_id=song_id)
                     song.status = "rejected"
                     song.approvedBy = approved_by
+                    song.updatedAt = datetime.now(UTC)
                     await sync_to_async(song.save)()
                 except Exception as e:
                     return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối bài hát!"}, status=400)
             return JsonResponse({"message": "Bài hát đã được từ chối!", "status": 200}, status=200)
         
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def approve_song(request, song_id):
+    if request.method == "PATCH":
+        try:
+            # Get userId from request body if it exists
+            try:
+                data = json.loads(request.body) if request.body else {}
+                userId = data.get("userId")
+            except json.JSONDecodeError:
+                userId = None
+
+            song = await sync_to_async(Song.objects.get)(_id=song_id)
+            song.status = "approved"
+            if userId:
+                song.approvedBy = userId
+            song.updatedAt = datetime.now(UTC)
+            await sync_to_async(song.save)()
+            return JsonResponse({"message": "Bài hát đã được phê duyệt!", "status": 200}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def reject_song(request, song_id):
+    if request.method == "PATCH":
+        try:
+            # Get userId from request body if it exists
+            try:
+                data = json.loads(request.body) if request.body else {}
+                userId = data.get("userId")
+            except json.JSONDecodeError:
+                userId = None
+
+            song = await sync_to_async(Song.objects.get)(_id=song_id)
+            song.status = "rejected"
+            if userId:
+                song.approvedBy = userId
+            song.updatedAt = datetime.now(UTC)
+            await sync_to_async(song.save)()
+            return JsonResponse({"message": "Bài hát đã được từ chối!", "status": 200}, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
     return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
