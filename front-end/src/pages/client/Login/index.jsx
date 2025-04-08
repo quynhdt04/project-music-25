@@ -1,10 +1,10 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import "./login.css";
 import { setCookie } from "../../../helpers/cookie";
 import { useNavigate } from "react-router-dom";
-import { setAuthAccount, setAuthRole } from "../../../actions/authen";
 import { useDispatch } from "react-redux";
 import { toast, Bounce } from "react-toastify";
+import { loginSuccess } from "../../../reducers/index";
 import { loginUser } from "../../../services/UserService"; // Đường dẫn đến file UserService.js
 
 function LoginForm({ onClose, onRegisterClick, onLoginSuccess }) {
@@ -13,12 +13,22 @@ function LoginForm({ onClose, onRegisterClick, onLoginSuccess }) {
   const dispatch = useDispatch();
   const [emailError, setEmailError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+
+  useEffect(() => {
+    const userData = sessionStorage.getItem("user");
+    const tokenData = sessionStorage.getItem("token");
+
+    if (userData && tokenData) {
+      dispatch(loginSuccess(JSON.parse(userData), tokenData));
+    }
+  }, [dispatch]);
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(formRef.current);
     const accountData = Object.fromEntries(formData.entries());
-    console.log("📌 Dữ liệu gửi lên:", accountData); // Kiểm tra dữ liệu
-    // Kiểm tra email
+    console.log("📌 Dữ liệu gửi lên:", accountData);
+
+    // Kiểm tra email và mật khẩu
     if (!accountData.email) {
       setEmailError("Email không được để trống.");
       return;
@@ -26,7 +36,6 @@ function LoginForm({ onClose, onRegisterClick, onLoginSuccess }) {
       setEmailError("");
     }
 
-    // Kiểm tra mật khẩu
     if (!accountData.password) {
       setPasswordError("Mật khẩu không được để trống.");
       return;
@@ -38,34 +47,32 @@ function LoginForm({ onClose, onRegisterClick, onLoginSuccess }) {
       console.log("📡 Gửi yêu cầu đăng nhập...");
       const loginResponse = await loginUser(
         accountData.email,
-        accountData.password
+        accountData.password,
+        dispatch
       );
       console.log("📡 Phản hồi từ API:", loginResponse);
-      if (loginResponse.message) {
-        const time = 1;
-        const user = loginResponse.user;
-        console.log("User data from API:", user);
-        setCookie("user", JSON.stringify(user), time);
-        setCookie("token", loginResponse.token, time);
-        dispatch(setAuthAccount(user));
-        localStorage.setItem("user", JSON.stringify(user));
-        onLoginSuccess(user);
+
+      if (loginResponse && loginResponse.token) {
+        const { user, token } = loginResponse;
+        // ✅ Lưu vào Redux
+        dispatch(loginSuccess({ user, token }));
+
+        // ✅ Lưu vào sessionStorage
+        sessionStorage.setItem("user", JSON.stringify(user));
+        sessionStorage.setItem("token", token);
+
+        console.log("🔥 Redux State sau khi đăng nhập:", user);
+        if (onLoginSuccess) {
+            onLoginSuccess(user);
+          } else {
+            console.warn("⚠️ onLoginSuccess không được truyền vào LoginForm!");
+          }
         navigate("/");
         onClose();
         toast.success("Đăng nhập thành công!", { transition: Bounce });
-      } else if (loginResponse.error) {
-        // Kiểm tra lỗi từ API
-        if (loginResponse.error === "user not found") {
-          toast.error("Email không tồn tại. Vui lòng kiểm tra lại.", {
-            transition: Bounce,
-          });
-        } else if (loginResponse.error === "incorrect password") {
-          toast.error("Mật khẩu không chính xác. Vui lòng thử lại.", {
-            transition: Bounce,
-          });
-        } else {
-          toast.error(loginResponse.error, { transition: Bounce });
-        }
+      } else {
+        console.error("Lỗi khi nhận token từ API");
+        toast.error("Có lỗi xảy ra, vui lòng thử lại!", { transition: Bounce });
       }
     } catch (error) {
       console.error("Lỗi:", error);
