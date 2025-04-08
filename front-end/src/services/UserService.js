@@ -6,14 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { clearAuthAccount } from "../actions/authen";
 
-
 const BASE_URL = "http://localhost:8000";
-
-
-
-
-
-
 
 export const loginUser = async (email, password) => {
   try {
@@ -121,7 +114,7 @@ export async function registerUser(formData) {
       throw new Error(errorMessage);
     }
 
-    return await response.json(); 
+    return await response.json();
   } catch (error) {
     console.error("Lỗi đăng ký:", error);
     throw error;
@@ -132,9 +125,9 @@ export async function registerUser(formData) {
 //   try {
 //     console.log("Dữ liệu JSON:", JSON.stringify(userData));
 //     const response = await fetch(`http://127.0.0.1:8000/update/${_id}/`, {
-      
+
 //       // Kiểm tra URL, đảm bảo có ID người dùng
-//       method: "PATCH", 
+//       method: "PATCH",
 //       headers: {
 //         "Content-Type": "application/json",
 //         // Thêm token xác thực nếu cần
@@ -200,11 +193,13 @@ export async function registerUser(formData) {
 export async function getUserById(_id) {
   try {
     const response = await fetch(`http://127.0.0.1:8000/user/${_id}/`);
-     // Kiểm tra URL
-     console.log("bgvvu",_id);
+    // Kiểm tra URL
+    console.log("bgvvu", _id);
     if (!response.ok) {
       const errorData = await response.text();
-      throw new Error(`Lỗi lấy thông tin người dùng: ${response.status} - ${errorData}`);
+      throw new Error(
+        `Lỗi lấy thông tin người dùng: ${response.status} - ${errorData}`
+      );
     }
     const data = await response.json();
     return data;
@@ -214,26 +209,29 @@ export async function getUserById(_id) {
   }
 }
 export async function editProfile(userId, updatedData) {
-  console.log("📤 Dữ liệu gửi lên backend:", JSON.stringify(updatedData, null, 2));
+  console.log(
+    "📤 Dữ liệu gửi lên backend:",
+    JSON.stringify(updatedData, null, 2)
+  );
 
   try {
-      const response = await fetch(`http://127.0.0.1:8000/update/${userId}/`, {
-          method: "PUT",
-          headers: {
-              "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedData),  // Chuyển object thành JSON
-      });
+    const response = await fetch(`http://127.0.0.1:8000/update/${userId}/`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedData), // Chuyển object thành JSON
+    });
 
-      if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Lỗi cập nhật hồ sơ: ${response.status} - ${errorText}`);
-      }
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Lỗi cập nhật hồ sơ: ${response.status} - ${errorText}`);
+    }
 
-      return await response.json();
+    return await response.json();
   } catch (error) {
-      console.error(error);
-      throw error;
+    console.error(error);
+    throw error;
   }
 }
 

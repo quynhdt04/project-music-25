@@ -132,3 +132,34 @@ def delete_topic(request, topic_id):
         except Topic.DoesNotExist:
             return JsonResponse({"error": "Chủ đề không tồn tại!"}, status=404)
     return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)  
+
+@csrf_exempt
+async def get_number_of_topics(request):
+    if request.method == "GET":
+        try:
+            # Get the number from query parameters, default to 10 if not provided
+            number = int(request.GET.get('limit', 10))
+            
+            topics = await sync_to_async(list)(Topic.objects.all().limit(number))
+            data = [topic.to_dict() for topic in topics]
+            return JsonResponse({"data": data, "status": 200, "message": "Lấy chủ đề thành công theo số lượng thành công!"}, status=200)
+        except ValueError:
+            return JsonResponse({"error": "Invalid limit parameter. Must be a number."}, status=400)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def get_topic_by_slug(request, topic_slug):
+    if request.method == "GET":
+        try:
+            # Get the topic by slug
+            topic = await sync_to_async(Topic.objects.get)(slug=topic_slug)
+            # Convert to dict to access fields safely
+            topic_dict = await sync_to_async(topic.to_dict)()
+            return JsonResponse({"topic": topic_dict}, status=200)
+        except Topic.DoesNotExist:
+            return JsonResponse({"error": "Chủ đề không tồn tại!"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)

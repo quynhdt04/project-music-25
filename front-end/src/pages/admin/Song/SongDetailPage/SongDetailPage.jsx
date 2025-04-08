@@ -14,7 +14,6 @@ import {
 import { Calendar, Clock, Person, PersonCheck } from "react-bootstrap-icons";
 import "./SongDetailPage.scss";
 import { get_song_by_id } from "../../../../services/SongServices";
-import { color } from "@cloudinary/url-gen/qualifiers/background";
 
 const getStatusClass = (status) => {
   const statusMap = {
@@ -245,6 +244,9 @@ const SongDetailPage = ({ managementPage = "songs" }) => {
                       <div className={`status-badge ${e.className}`}>
                         {e.label}
                       </div>
+                    )}
+                    value={statusOptions.find(
+                      (option) => option.value === song.status
                     )}
                     getOptionValue={(e) => e.value}
                   />

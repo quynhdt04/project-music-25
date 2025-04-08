@@ -140,11 +140,6 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
   // Handle lyrics
   const addLyricLine = () => {
     const lastLine = lyrics[lyrics.length - 1];
-    // if (lastLine.endAt < lastLine.beginAt) {
-    //   toast.error("End time must be greater than start time.");
-    //   return;
-    // }
-
     setLyrics([
       ...lyrics,
       { content: "", beginAt: (+lastLine.endAt + 1).toString(), endAt: "" },
@@ -257,7 +252,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
         setIsSubmitting(false);
         toast.success("Cập nhật bài hát thành công!", response);
       }
-      // navigate("/admin/songs", { replace: true });
+      navigate("/admin/songs", { replace: true });
     } catch (error) {
       console.error("Error:", error);
       toast.error("An error occurred. Please try again later.");

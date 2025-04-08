@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { registerUser } from "../../../services/UserService";
 import { toast } from "react-toastify";
-import { getUserById } from "../../../services/UserService"; 
+import { getUserById } from "../../../services/UserService";
 import { useNavigate } from "react-router-dom";
 
 function RegisterForm({ onClose, onRegisterSuccess }) {
@@ -23,7 +23,6 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
     const { name, value } = e.target;
     setUserData((prev) => ({ ...prev, [name]: value }));
   };
-  
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -35,8 +34,7 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
       });
     }
   };
-  
-  
+
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -61,8 +59,11 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
     }
     if (!data.password) {
       errors.password = "Mật khẩu không được để trống.";
-    } else if (!/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/.test(data.password)) {
-      errors.password = "Mật khẩu phải có ít nhất 6 ký tự, gồm chữ hoa, số và ký tự đặc biệt.";
+    } else if (
+      !/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/.test(data.password)
+    ) {
+      errors.password =
+        "Mật khẩu phải có ít nhất 6 ký tự, gồm chữ hoa, số và ký tự đặc biệt.";
     }
     if (data.password !== data.confirmPassword) {
       errors.confirmPassword = "Mật khẩu không khớp.";
@@ -78,13 +79,13 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
   const handleRegister = async () => {
     // ✅ Kiểm tra dữ liệu trước khi gửi
     console.log("📌 Dữ liệu userData trước khi gửi:", userData);
-  
+
     const validationErrors = validate(userData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-  
+
     // ✅ Chuyển userData thành FormData
     const formData = new FormData();
     formData.append("fullName", userData.fullName);
@@ -98,13 +99,13 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
     if (userData.avatar) {
       formData.append("avatar", userData.avatar);
     }
-  
+
     // ✅ Kiểm tra dữ liệu FormData
     console.log("📌 Dữ liệu FormData trước khi gửi:");
     for (let pair of formData.entries()) {
       console.log(pair[0] + ": " + pair[1]);
     }
-  
+
     try {
       // ✅ Gửi FormData thay vì userData
       const response = await registerUser(formData);
@@ -121,10 +122,9 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
       toast.error(errorMessage);
     }
   };
-  
 
   return (
-    <div className="modal">
+    <div className="modal modal-thuytrang" style={{ zIndex: 5050 }}>
       <div className="modal-content">
         <h2>Đăng ký tài khoản</h2>
         <input
@@ -174,14 +174,14 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
         />
         {errors.phone && <p className="error-message">{errors.phone}</p>}
         <div className="avatar-preview">
-        {userData.avatarPreview && (
-          <img
-            src={userData.avatarPreview}
-            alt="Ảnh đại diện"
-            style={{ width: 150, height: 100, objectFit: "cover" }}
-          />
-        )}
-        <input type="file" name="avatar" onChange={handleFileChange} />
+          {userData.avatarPreview && (
+            <img
+              src={userData.avatarPreview}
+              alt="Ảnh đại diện"
+              style={{ width: 150, height: 100, objectFit: "cover" }}
+            />
+          )}
+          <input type="file" name="avatar" onChange={handleFileChange} />
         </div>
         <div className="button-group">
           <button onClick={handleRegister}>Đăng ký</button>

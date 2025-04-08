@@ -58,7 +58,7 @@ export const allRoutes = [
         element: <ListSong />,
       },
       {
-        path: "album/:id",
+        path: ":type/:id",
         element: <AlbumDetail />,
       },
       {
@@ -185,18 +185,10 @@ export const allRoutes = [
             path: "topics/edit/:id",
             element: <EditTopic />,
           },
-          // {
-          //   path: "songs",
-          //   element: <Song />,
-          // },
           {
             path: ":managementPage/:action?/:id?",
             element: <MainContent />,
           },
-          // {
-          //   path: "songs/:action?/:id?",
-          //   element: <SongFormManagementPage />,
-          // },
         ],
       },
     ],

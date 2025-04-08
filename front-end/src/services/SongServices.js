@@ -45,7 +45,7 @@ export const restore_multiple_songs = async (data) => {
 
 export const delete_multiple_songs = async (data) => {
   const result = await fetch(`${API_DOMAIN}api/songs/delete-multiple`, {
-    method: "DELETE",
+    method: "PATCH",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json;charset=UTF-8",
@@ -57,5 +57,92 @@ export const delete_multiple_songs = async (data) => {
 
 export const get_all_pending_songs = async () => {
   const result = await get(`api/songs/get-all-pending-songs`);
+  return result;
+};
+
+export const get_number_of_top_liked_songs = async (limit) => {
+  const result = await get(
+    `api/songs/get-number-of-top-liked-songs?limit=${limit}`
+  );
+  return result;
+};
+
+export const get_number_of_top_listened_songs = async (limit) => {
+  const result = await get(
+    `api/songs/get-number-of-top-play-count-songs?limit=${limit}`
+  );
+  return result;
+};
+
+export const get_songs_by_topic_slug = async (id) => {
+  const result = await get(`api/songs/get-songs-by-topic/${id}`);
+  return result;
+};
+
+export const get_song_by_slug = async (slug) => {
+  const result = await get(`api/songs/get-song-by-slug/${slug}`);
+  return result;
+};
+
+export const like_song = async (slug) => {
+  const result = await post(`api/songs/like/${slug}/`);
+  return result;
+};
+
+export const increment_song_playCount = async (id) => {
+  const result = await post(`api/songs/increment-play-count/${id}/`);
+  return result;
+};
+
+export const filter_songs = async (data) => {
+  let text = "";
+  for (let [key, value] of Object.entries(data)) {
+    text += key + "=" + value + "&";
+  }
+  const result = await get(`api/songs/filter?${text}`);
+  return result;
+};
+
+export const search_songs = async (data) => {
+  const result = await get(`api/songs/search?keyword=${data}`);
+  return result;
+};
+
+export const get_all_available_songs = async () => {
+  const result = await get(`api/songs/get-all-available-songs`);
+  return result;
+};
+
+export const filter_pending_songs = async (data) => {
+  let text = "";
+  for (let [key, value] of Object.entries(data)) {
+    text += key + "=" + value + "&";
+  }
+  text += "status=pending&";
+  const result = await get(`api/songs/filter-pending-songs?${text}`);
+  return result;
+};
+
+export const approve_multiple_songs = async (data) => {
+  const result = await fetch(`${API_DOMAIN}api/songs/approve-multiple-songs`, {
+    method: "PATCH",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json;charset=UTF-8",
+    },
+    body: JSON.stringify(data),
+  });
+  return result;
+};
+
+export const reject_multiple_songs = async (data) => {
+  const result = await fetch(`${API_DOMAIN}api/songs/reject-multiple-songs`, {
+    method: "PATCH",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json;charset=UTF-8",
+    },
+    body: JSON.stringify(data),
+  });
   return result;
 };

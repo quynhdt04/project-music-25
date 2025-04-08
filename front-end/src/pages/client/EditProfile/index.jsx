@@ -3,14 +3,14 @@ import { toast } from "react-toastify";
 import {
   editProfile,
   getUserById,
-  editProfileWithAvatar
-} from "../../../services/UserService"; 
+  editProfileWithAvatar,
+} from "../../../services/UserService";
 
 const EditProfileModal = ({ user, onClose }) => {
   const storedUser = localStorage.getItem("user");
-if (storedUser) {
-  console.log("📂 Dữ liệu user trong localStorage:", storedUser);
-}
+  if (storedUser) {
+    console.log("📂 Dữ liệu user trong localStorage:", storedUser);
+  }
   console.log("🚀 User nhận từ props:", user);
   const [userData, setUserData] = useState({
     fullName: "",
@@ -24,7 +24,7 @@ if (storedUser) {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     console.log("Dữ liệu user trong localStorage:", storedUser);
-    
+
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
@@ -34,19 +34,19 @@ if (storedUser) {
       }
     }
   }, []);
-  
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       console.log("Dữ liệu user trong localStorage:", storedUser);
     }
   }, []);
-  
+
   useEffect(() => {
     if (user) {
       console.log("Avatar nhận được:", user.avatar);
-      
-      setUserData({ 
+
+      setUserData({
         fullName: user.fullName || "",
         email: user.email || "",
         phone: user.phone || "",
@@ -55,25 +55,29 @@ if (storedUser) {
       });
     }
   }, [user]);
-  
+
   useEffect(() => {
     console.log("🎯 Dữ liệu user mới nhất:", userData);
   }, [userData]);
-  
+
   const validate = (data) => {
     const errors = {};
     if (!data.fullName) errors.fullName = "Họ tên không được để trống.";
-    
+
     if (!data.phone) {
       errors.phone = "Số điện thoại không được để trống.";
     } else if (!/^0\d{9}$/.test(data.phone)) {
       errors.phone = "Số điện thoại không hợp lệ.";
     }
 
-    if (data.password && !/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/.test(data.password)) {
-      errors.password = "Mật khẩu phải có ít nhất 6 ký tự, gồm chữ hoa, số và ký tự đặc biệt.";
+    if (
+      data.password &&
+      !/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/.test(data.password)
+    ) {
+      errors.password =
+        "Mật khẩu phải có ít nhất 6 ký tự, gồm chữ hoa, số và ký tự đặc biệt.";
     }
-    
+
     return errors;
   };
 
@@ -84,7 +88,7 @@ if (storedUser) {
     // Ẩn lỗi ngay khi nhập đúng
     setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
   };
-  
+
   const handleSave = async () => {
     const validationErrors = validate(userData);
     if (Object.keys(validationErrors).length > 0) {
@@ -93,7 +97,7 @@ if (storedUser) {
     }
 
     try {
-      console.log("🔍 Dữ liệu trước khi gửi API:", userData); 
+      console.log("🔍 Dữ liệu trước khi gửi API:", userData);
       const formData = new FormData();
       formData.append("fullName", userData.fullName);
       formData.append("phone", userData.phone);
@@ -123,7 +127,7 @@ if (storedUser) {
         });
       }
 
-      toast.success("Cập nhật thành công")
+      toast.success("Cập nhật thành công");
       onClose();
     } catch (error) {
       console.error("❌ Lỗi khi cập nhật:", error);
@@ -131,9 +135,8 @@ if (storedUser) {
     }
   };
 
-  
   return (
-    <div className="modal">
+    <div className="modal modal-thuytrang">
       <div className="modal-content">
         <h2>Chỉnh sửa tài khoản</h2>
         <input
@@ -141,7 +144,9 @@ if (storedUser) {
           name="fullName"
           placeholder="Họ tên"
           value={userData.fullName}
-          onChange={(e) => setUserData({ ...userData, fullName: e.target.value })}
+          onChange={(e) =>
+            setUserData({ ...userData, fullName: e.target.value })
+          }
         />
         {errors.fullName && <p className="error-message">{errors.fullName}</p>}
         <input type="email" value={userData.email} disabled />
@@ -160,35 +165,34 @@ if (storedUser) {
           onChange={(e) => setUserData({ ...userData, phone: e.target.value })}
         />
         {errors.phone && <p className="error-message">{errors.phone}</p>}
-        <div className="avatar-preview"> 
-        {userData.avatar ? (
-          <img
-            src={
-              userData.avatar instanceof File
-                ? URL.createObjectURL(userData.avatar)
-                : userData.avatar
-            }
-            alt="Avatar"
-            style={{
-              width: 150,
-              height: 120,
-              objectFit: "cover",
-              
+        <div className="avatar-preview">
+          {userData.avatar ? (
+            <img
+              src={
+                userData.avatar instanceof File
+                  ? URL.createObjectURL(userData.avatar)
+                  : userData.avatar
+              }
+              alt="Avatar"
+              style={{
+                width: 150,
+                height: 120,
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <p>Chưa có ảnh đại diện</p>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files.length > 0) {
+                console.log("File ảnh được chọn:", e.target.files[0]);
+                setUserData({ ...userData, avatar: e.target.files[0] });
+              }
             }}
           />
-        ) : (
-          <p>Chưa có ảnh đại diện</p>
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            if (e.target.files.length > 0) {
-              console.log("File ảnh được chọn:", e.target.files[0]);
-              setUserData({ ...userData, avatar: e.target.files[0] });
-            }
-          }}
-        />
         </div>
 
         <div className="button-group">

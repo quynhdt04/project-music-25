@@ -35,41 +35,45 @@ function LoginForm({ onClose, onRegisterClick, onLoginSuccess }) {
     }
 
     try {
-        console.log("📡 Gửi yêu cầu đăng nhập...");
+      console.log("📡 Gửi yêu cầu đăng nhập...");
       const loginResponse = await loginUser(
         accountData.email,
         accountData.password
       );
-      console.log("📡 Phản hồi từ API:", loginResponse); 
+      console.log("📡 Phản hồi từ API:", loginResponse);
       if (loginResponse.message) {
         const time = 1;
         const user = loginResponse.user;
         console.log("User data from API:", user);
         setCookie("user", JSON.stringify(user), time);
-        setCookie("token", user.token, time);
+        setCookie("token", loginResponse.token, time);
         dispatch(setAuthAccount(user));
         localStorage.setItem("user", JSON.stringify(user));
         onLoginSuccess(user);
         navigate("/");
         onClose();
         toast.success("Đăng nhập thành công!", { transition: Bounce });
-    } else if (loginResponse.error) {
-      // Kiểm tra lỗi từ API
-      if (loginResponse.error === "user not found") {
-        toast.error("Email không tồn tại. Vui lòng kiểm tra lại.", { transition: Bounce });
-      } else if (loginResponse.error === "incorrect password") {
-        toast.error("Mật khẩu không chính xác. Vui lòng thử lại.", { transition: Bounce });
-      } else {
-        toast.error(loginResponse.error, { transition: Bounce });
+      } else if (loginResponse.error) {
+        // Kiểm tra lỗi từ API
+        if (loginResponse.error === "user not found") {
+          toast.error("Email không tồn tại. Vui lòng kiểm tra lại.", {
+            transition: Bounce,
+          });
+        } else if (loginResponse.error === "incorrect password") {
+          toast.error("Mật khẩu không chính xác. Vui lòng thử lại.", {
+            transition: Bounce,
+          });
+        } else {
+          toast.error(loginResponse.error, { transition: Bounce });
+        }
       }
+    } catch (error) {
+      console.error("Lỗi:", error);
+      toast.error("Sai email hoặc mật khẩu", { transition: Bounce });
     }
-  } catch (error) {
-    console.error("Lỗi:", error);
-    toast.error("Sai email hoặc mật khẩu", { transition: Bounce });
-  }
-};
+  };
   return (
-    <div className="modal">
+    <div className="modal modal-thuytrang">
       <div className="modal-content">
         <h2>Đăng nhập</h2>
         <form ref={formRef} onSubmit={handleSubmit}>
