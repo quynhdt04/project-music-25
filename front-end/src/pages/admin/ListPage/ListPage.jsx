@@ -98,7 +98,7 @@ function ListPage() {
             id: item._id,
             title: item.title,
             singer: item.singers.map((singer) => singer.singerName),
-            like: item.like,
+            like: item.like || 0,
             status: item.status,
             isDeleted: item.deleted.toString(),
             createdAt: format(new Date(item.createdAt), "dd/MM/yyyy HH:mm:ss"),

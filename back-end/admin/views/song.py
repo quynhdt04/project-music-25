@@ -138,6 +138,7 @@ async def create_new_song(request):
             status = request.POST.get("status", "pending")
             deleted = request.POST.get("deleted", "false").lower() == "true"
             deletedAt = request.POST.get("deletedAt", None)
+            isPremiumOnly = request.POST.get("isPremiumOnly", "false").lower() == "true"
 
             # Validate required fields
             if not title:
@@ -164,6 +165,7 @@ async def create_new_song(request):
                 status=status,
                 deleted=deleted,
                 deletedAt=deletedAt,
+                isPremiumOnly=isPremiumOnly,
                 slug=slugify(title),
             )
             await sync_to_async(new_song.save)()
@@ -328,6 +330,9 @@ async def update_song_data(request, song_id):
 
             if "deletedAt" in data:
                 song.deletedAt = data.get("deletedAt", None)
+
+            if "isPremiumOnly" in data:
+                song.isPremiumOnly = data.get("isPremiumOnly", "false").lower() == "true"
 
             song.updatedAt = datetime.now(UTC)
 
