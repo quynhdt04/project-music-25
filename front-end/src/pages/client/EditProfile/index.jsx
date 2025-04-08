@@ -23,7 +23,9 @@ const EditProfileModal = ({ onClose }) => {
   useEffect(() => {
     // Nếu có thông tin người dùng trong store, cập nhật lại dữ liệu ban đầu
     if (user) {
-      setUserData({
+      console.log("Avatar nhận được:", user.avatar);
+      
+      setUserData({ 
         fullName: user.fullName || "",
         email: user.email || "",
         phone: user.phone || "",
@@ -32,6 +34,10 @@ const EditProfileModal = ({ onClose }) => {
       });
     }
   }, [user]);
+
+  useEffect(() => {
+    console.log("🎯 Dữ liệu user mới nhất:", userData);
+  }, [userData]);
 
   const validate = (data) => {
     const errors = {};
@@ -114,6 +120,9 @@ const EditProfileModal = ({ onClose }) => {
         toast.success("Cập nhật thành công!");
         onClose();
       }
+
+      toast.success("Cập nhật thành công");
+      onClose();
     } catch (error) {
       console.error("❌ Lỗi khi cập nhật:", error);
       toast.error("Có lỗi xảy ra khi cập nhật!");
@@ -123,7 +132,7 @@ const EditProfileModal = ({ onClose }) => {
   
 
   return (
-    <div className="modal">
+    <div className="modal modal-thuytrang">
       <div className="modal-content">
         <h2>Chỉnh sửa tài khoản</h2>
         <input

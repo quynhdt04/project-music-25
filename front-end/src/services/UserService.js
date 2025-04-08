@@ -5,7 +5,6 @@ import axios from "axios";
 import Cookies from "js-cookie";
 
 export const loginUser = async (email, password, dispatch) => {
-  
   try {
     const response = await fetch("http://127.0.0.1:8000/user/login/", {
       method: "POST",
@@ -13,8 +12,7 @@ export const loginUser = async (email, password, dispatch) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
-      
-    })
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -35,7 +33,10 @@ export const loginUser = async (email, password, dispatch) => {
       sessionStorage.setItem("token", responseToken);
 
       // Dispatch action để lưu dữ liệu vào Redux
-      dispatch({ type: "LOGIN_SUCCESS", payload: { user: user, token: responseToken } });
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: { user: user, token: responseToken },
+      });
     }
 
     return loginResponse; // Trả về dữ liệu người dùng từ API

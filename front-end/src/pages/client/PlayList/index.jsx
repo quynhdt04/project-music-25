@@ -7,7 +7,7 @@ function PlayList() {
         <>
             <div className="play-list">
                 <div className="play-list__item">
-                    <div class="play-list__create">+</div>
+                    <div className="play-list__create">+</div>
                     <p>Tạo playlist mới</p>
                 </div>
 

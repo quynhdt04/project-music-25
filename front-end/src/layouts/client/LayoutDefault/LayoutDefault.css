@@ -77,6 +77,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    z-index: 2000;
 }
 
 .header .search-bar input {
@@ -189,7 +191,8 @@ main {
 .footer .controls button:hover {
   color: #f1c40f;
 }
-.modal {
+
+.modal-thuytrang {
   position: fixed;
   top: 0;
   left: 0;
@@ -203,7 +206,7 @@ main {
 }
 
 /* Nội dung modal */
-.modal-content {
+.modal-thuytrang .modal-content {
   /* background: white; */
   padding: 20px;
   width: 350px;
@@ -234,14 +237,14 @@ main {
 }
 
 /* Tiêu đề */
-.modal-content h2 {
+.modal-thuytrang .modal-content h2 {
   margin-bottom: 15px;
   color: #f5f6f9 !important;
 }
 
 /* Input và select */
-.modal-content input,
-.modal-content select {
+.modal-thuytrang .modal-content input,
+.modal-thuytrang .modal-content select {
   width: 100%;
   padding: 10px;
   margin: 10px 0;
@@ -251,7 +254,7 @@ main {
 }
 
 /* Nút bấm */
-.modal-content button {
+.modal-thuytrang .modal-content button {
   width: 100%;
   padding: 10px;
   background: #394867;
@@ -263,12 +266,12 @@ main {
   transition: background 0.3s ease;
 }
 
-.modal-content button:hover {
+.modal-thuytrang .modal-content button:hover {
   background: #14274e;
 }
 
 /* Nút đóng modal */
-.modal-content .close-btn {
+.modal-thuytrang .modal-content .close-btn {
   position: absolute;
   top: 10px;
   right: 15px;
@@ -278,11 +281,11 @@ main {
 }
 
 /* Liên kết chuyển đổi giữa Đăng nhập & Đăng ký */
-.modal-content p {
+.modal-thuytrang .modal-content p {
   margin-top: 10px;
 }
 
-.modal-content p button {
+.modal-thuytrang .modal-content p button {
   background: none;
   color: #394867;
   border: none;
@@ -290,7 +293,7 @@ main {
   font-weight: bold;
 }
 
-.modal-content p button:hover {
+.modal-thuytrang .modal-content p button:hover {
   text-decoration: underline;
 }
 
@@ -321,6 +324,7 @@ main {
   padding: 8px 0;
   display: none;
   top: 43px;
+  z-index: 2000;
   background: linear-gradient(
       to bottom,
       rgba(149, 144, 144, 0) 0%,
@@ -328,17 +332,12 @@ main {
     ),
     #392b4e;
 }
-.dropdown-menu {
-  position: relative; /* Nếu cần */
-  overflow: visible !important;
-  background: white;
-}
+
 .dropdown-menu.open {
   display: block;
   width: max-content;
-  z-index: 9999;
+  z-index: 2000;
   position: absolute;
-  /* background-color: white; */
   transform: none !important;
   will-change: unset !important;
   border: 1px solid #ccc;
@@ -346,7 +345,6 @@ main {
   background: rgba(255, 255, 255, 0.235);
   color: #f0f0f0;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  /* background: border-box; */
 }
 .dropdown-user-info :hover {
   text-decoration: underline !important;
