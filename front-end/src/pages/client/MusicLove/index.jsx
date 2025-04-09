@@ -21,7 +21,7 @@ const data = [
     },
 ];
 
-const FavoriteSongs = () => {
+const MusicLove = () => {
     const [hoveredRow, setHoveredRow] = useState(null);
     const [favorite, setFavorite] = useState({});
 
@@ -88,4 +88,4 @@ const FavoriteSongs = () => {
     );
 };
 
-export default FavoriteSongs;
+export default MusicLove;
