@@ -17,7 +17,7 @@ function Home() {
     isLoading: false,
     isError: false,
   });
-  const { playSong } = useMusicPlayer();
+  const { playSong, setCurrentSong } = useMusicPlayer();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,7 +67,6 @@ function Home() {
           artist: song.singers.map((item) => item.singerName).join(", "),
         }));
 
-        playSong(formattedTopListenedSongs[0]);
         setTopics(formattedTopics);
         setTopLikedSongs(formattedTopLikedSongs);
         setTopListenedSongs(formattedTopListenedSongs);

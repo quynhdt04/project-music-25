@@ -186,7 +186,7 @@ async def get_song_by_id(request, song_id):
             song = await sync_to_async(Song.objects.get)(_id=song_id)
 
             serialized_song = {
-                "_id": str(song._id),
+                "_id": song._id,
                 "title": song.title,
                 "avatar": song.avatar,
                 "audio": song.audio,
@@ -581,7 +581,7 @@ async def get_song_by_slug(request, song_slug):
         try:
             song = await sync_to_async(Song.objects.get)(slug=song_slug)
             song_serialized = {
-                "id": song.id,
+                "id": song._id,
                 "title": song.title,
                 "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
                 "topics": [{"topicId": topic.topicId, "topicName": topic.topicName} for topic in song.topics],
