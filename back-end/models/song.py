@@ -28,6 +28,7 @@ class Song(Document):
     singers = ListField(EmbeddedDocumentField(Singer))
     topics = ListField(EmbeddedDocumentField(Topic))
     like = StringField()
+    userLiked = ListField(StringField())
     lyrics = ListField(EmbeddedDocumentField(Lyric))
     status = StringField(default="pending")
     isPremiumOnly = BooleanField(default=False)

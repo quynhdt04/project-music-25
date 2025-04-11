@@ -14,13 +14,11 @@ import Login from "../pages/admin/Login";
 import Logout from "../pages/admin/Logout";
 import Topic from "../pages/admin/Topic";
 import Singer from "../pages/admin/Singer";
-import Song from "../pages/admin/Song";
 import User from "../pages/admin/User";
 import General from "../pages/admin/General";
 import PrivateRouteClient from "../components/PrivateRouteClient";
 import ListSong from "../pages/client/ListSong";
 import MusicLove from "../pages/client/MusicLove";
-import SongFormManagementPage from "../pages/admin/Song/SongFormManagementPage/SongFormManagementPage";
 import InfoUser from "../pages/admin/InfoUser";
 import EditAccount from "../pages/admin/Account/editAccount";
 import CreateTopic from "../pages/admin/Topic/createTopic";
@@ -59,7 +57,7 @@ export const allRoutes = [
         element: <ListSong />,
       },
       {
-        path: "album/:id",
+        path: ":type/:id",
         element: <AlbumDetail />,
       },
       {
@@ -186,10 +184,6 @@ export const allRoutes = [
             path: "topics/edit/:id",
             element: <EditTopic />,
           },
-          // {
-          //   path: "songs",
-          //   element: <Song />,
-          // },
           {
             path: ":managementPage/:action?/:id?",
             element: <MainContent />,

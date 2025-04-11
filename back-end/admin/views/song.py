@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 import cloudinary
 from cloudinary.uploader import destroy
 from django.http import QueryDict
@@ -10,8 +10,11 @@ from asgiref.sync import sync_to_async
 import json
 from slugify import slugify
 from models.song import Song, Singer, Topic, Lyric
+from models.topic import Topic as TopicModel
+from models.favorite_songs import FavoriteSong
 import logging
 import traceback
+from mongoengine.queryset.visitor import Q
 logger = logging.getLogger(__name__)
 
 @csrf_exempt
@@ -67,13 +70,13 @@ async def upload_files_to_cloudinary(files):
 
         # Upload files to Cloudinary only once
         if image_file:
-            image_url = upload_file_to_cloudinary(image_file, "Spotify/images", "image")
+            image_url = await upload_file_to_cloudinary(image_file, "Spotify/images", "image")
         
         if audio_file:
-            audio_url = upload_file_to_cloudinary(audio_file, "Spotify/audios", "video")
+            audio_url = await upload_file_to_cloudinary(audio_file, "Spotify/audios", "video")
         
         if video_file:
-            video_url = upload_file_to_cloudinary(video_file, "Spotify/videos", "video")
+            video_url = await upload_file_to_cloudinary(video_file, "Spotify/videos", "video")
         
         
         # Return the URLs of the uploaded files
@@ -89,7 +92,7 @@ async def upload_files_to_cloudinary(files):
         logger.error("Error in upload_files_to_cloudinary: %s", traceback.format_exc())
         return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)    
 
-def upload_file_to_cloudinary(file, folder, type):
+async def upload_file_to_cloudinary(file, folder, type):
     try:
         # Upload the file to Cloudinary
         public_id = generate_public_id(file)
@@ -132,9 +135,10 @@ async def create_new_song(request):
             topics = json.loads(request.POST.get("topics", "[]"))
             like = request.POST.get("like", "")
             lyrics = json.loads(request.POST.get("lyrics", "[]"))
-            status = request.POST.get("status", "active")
+            status = request.POST.get("status", "pending")
             deleted = request.POST.get("deleted", "false").lower() == "true"
             deletedAt = request.POST.get("deletedAt", None)
+            isPremiumOnly = request.POST.get("isPremiumOnly", "false").lower() == "true"
 
             # Validate required fields
             if not title:
@@ -161,6 +165,7 @@ async def create_new_song(request):
                 status=status,
                 deleted=deleted,
                 deletedAt=deletedAt,
+                isPremiumOnly=isPremiumOnly,
                 slug=slugify(title),
             )
             await sync_to_async(new_song.save)()
@@ -237,9 +242,6 @@ async def update_song_data(request, song_id):
                 data = QueryDict(request.body.decode("utf-8"))
                 files = {}
 
-            print("Check data", data)
-            print("Check files", files)
-
             # Check if the song exists
             try:
                 song = await sync_to_async(Song.objects.get)(_id=song_id)
@@ -292,11 +294,8 @@ async def update_song_data(request, song_id):
             if new_video_file:
                 # Delete the old video from Cloudinary
                 if song.video:
-                    print("Check song.video", song.video)
                     old_video_public_id = song.video.split("/")[-1].split(".")[0]
-                    print("Check old_video_public_id", old_video_public_id)
-                    resultMsg = destroy(f"Spotify/videos/{old_video_public_id}", resource_type="video")
-                    print("Check resultMsg", resultMsg)
+                    destroy(f"Spotify/videos/{old_video_public_id}", resource_type="video")
 
                 # Upload the new video to Cloudinary
                 video_url = await upload_file_to_cloudinary(new_video_file, "Spotify/videos", "video")
@@ -331,6 +330,11 @@ async def update_song_data(request, song_id):
 
             if "deletedAt" in data:
                 song.deletedAt = data.get("deletedAt", None)
+
+            if "isPremiumOnly" in data:
+                song.isPremiumOnly = data.get("isPremiumOnly", "false").lower() == "true"
+
+            song.updatedAt = datetime.now(UTC)
 
             await sync_to_async(song.save)()
             return JsonResponse({"message": "Cập nhật bài hát thành công!", "id": song_id}, status=200)
@@ -375,7 +379,8 @@ async def delete_song_data(request, song_id):
 
             # Perform a shallow delete
             song.deleted = True
-            song.deletedAt = datetime.utcnow()  # Set the deletion timestamp
+            song.deletedAt = datetime.now(UTC)  # Set the deletion timestamp
+            song.updatedAt = datetime.now(UTC)
             await sync_to_async(song.save)()
 
             return JsonResponse({"message": "Xóa bài hát thành công!", "status": 200}, status=200)
@@ -389,7 +394,7 @@ async def delete_song_data(request, song_id):
 
 @csrf_exempt
 async def delete_multiple_songs(request):
-    if request.method == "DELETE":
+    if request.method == "PATCH":
         try:
             data = json.loads(request.body)
             song_ids = data.get("songIds", [])
@@ -399,10 +404,12 @@ async def delete_multiple_songs(request):
                 try:
                     song = await sync_to_async(Song.objects.get)(_id=song_id)
                     song.deleted = True
-                    song.deletedAt = datetime.utcnow()  # Set the deletion timestamp
+                    song.deletedAt = datetime.now(UTC)  # Set the deletion timestamp
+                    song.updatedAt = datetime.now(UTC)
                     await sync_to_async(song.save)()
                 except Song.DoesNotExist:
                     logger.warning(f"Song with ID {song_id} not found. Skipping.")
+                    return JsonResponse({"error": f"Không tìm thấy bài hát với ID {song_id}!"}, status=404)
 
             return JsonResponse({"message": "Xóa bài hát thành công!"}, status=200)
         
@@ -426,9 +433,11 @@ async def restore_multiple_songs(request):
                     song = await sync_to_async(Song.objects.get)(_id=song_id)
                     song.deleted = False
                     song.deletedAt = None  # Reset the deletion timestamp
+                    song.updatedAt = datetime.now(UTC)
                     await sync_to_async(song.save)()
                 except Song.DoesNotExist:
                     logger.warning(f"Song with ID {song_id} not found. Skipping.")
+                    return JsonResponse({"error": f"Không tìm thấy bài hát với ID {song_id}!"}, status=404)
 
             return JsonResponse({"message": "Khôi phục bài hát thành công!", "status": 200}, status=200)
         
@@ -468,3 +477,494 @@ async def get_all_pending_songs(request):
             logger.error("Error in get_all_pending_song: %s", traceback.format_exc())
             return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
     return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+
+@csrf_exempt
+async def get_number_of_top_liked_songs(request):
+    if request.method == "GET":
+        try:
+            # Get the number from query parameters, default to 10 if not provided
+            number = int(request.GET.get('limit', 10))
+
+            number_of_top_liked_songs = await sync_to_async(list)(Song.objects.filter(deleted=False).order_by("-like").limit(number))
+            data = [{
+                "_id": str(song._id),
+                "title": song.title,
+                "avatar": song.avatar,
+                "audio": song.audio,
+                "video": song.video,
+                "description": song.description,
+                "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                "topics": [{"topicId": topic.topicId, "topicName": topic.topicName} for topic in song.topics],
+                "like": song.like,
+                "lyrics": [{"lyricContent": lyric.lyricContent, "lyricStartTime": lyric.lyricStartTime, "lyricEndTime": lyric.lyricEndTime} for lyric in song.lyrics],
+                "status": song.status,
+                "isPremiumOnly": song.isPremiumOnly,
+                "play_count": song.play_count,
+                "slug": song.slug,
+                "createdAt": song.createdAt,
+                "updatedAt": song.updatedAt
+            } for song in number_of_top_liked_songs]
+            return JsonResponse({"data": data, "status": 200, "message": "Lấy bài hát thành công theo số lượng thành công!"}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def get_number_of_top_play_count_songs(request):
+    if request.method == "GET":
+        try:
+            # Get the number from query parameters, default to 10 if not provided
+            number = int(request.GET.get('limit', 10))
+
+            number_of_top_played_songs = await sync_to_async(list)(Song.objects.filter(deleted=False).order_by("-play_count").limit(number))
+            data = [{
+                "_id": str(song._id),
+                "title": song.title,
+                "avatar": song.avatar,
+                "audio": song.audio,
+                "video": song.video,
+                "description": song.description,
+                "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                "topics": [{"topicId": topic.topicId, "topicName": topic.topicName} for topic in song.topics],
+                "like": song.like,
+                "lyrics": [{"lyricContent": lyric.lyricContent, "lyricStartTime": lyric.lyricStartTime, "lyricEndTime": lyric.lyricEndTime} for lyric in song.lyrics],
+                "status": song.status,
+                "isPremiumOnly": song.isPremiumOnly,
+                "play_count": song.play_count,
+                "slug": song.slug,
+                "createdAt": song.createdAt,
+                "updatedAt": song.updatedAt
+            } for song in number_of_top_played_songs]
+            return JsonResponse({"data": data, "status": 200, "message": "Lấy bài hát thành công theo số lượng thành công!"}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def get_songs_by_topic(request, topic_slug):
+    if request.method == "GET":
+        try:
+            topic = await sync_to_async(TopicModel.objects.get)(slug=topic_slug)
+            # Log the topic details using to_dict() method
+            topic_dict = await sync_to_async(topic.to_dict)()
+
+            # Fix the filter syntax - use a dictionary for the filter criteria
+            songs = await sync_to_async(list)(Song.objects.filter(topics__topicId=topic_dict['id'], deleted=False))
+            serialized_songs = [
+                {
+                    "_id": str(song._id),
+                    "title": song.title,
+                    "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                    "topics": [{"topicId": topic.topicId, "topicName": topic.topicName} for topic in song.topics],
+                    "like": song.like,
+                    "lyrics": [{"lyricContent": lyric.lyricContent, "lyricStartTime": lyric.lyricStartTime, "lyricEndTime": lyric.lyricEndTime} for lyric in song.lyrics],
+                    "status": song.status,
+                    "avatar": song.avatar,
+                    "audio": song.audio,
+                    "video": song.video,
+                    "description": song.description,
+                    "isPremiumOnly": song.isPremiumOnly,
+                    "play_count": song.play_count,
+                    "slug": song.slug,
+                    "createdAt": song.createdAt,
+                    "updatedAt": song.updatedAt
+                } for song in songs
+            ]
+            return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405) 
+
+@csrf_exempt
+async def get_song_by_slug(request, song_slug):
+    if request.method == "GET":
+        try:
+            song = await sync_to_async(Song.objects.get)(slug=song_slug)
+            song_serialized = {
+                "id": song.id,
+                "title": song.title,
+                "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                "topics": [{"topicId": topic.topicId, "topicName": topic.topicName} for topic in song.topics],
+                "like": song.like,
+                "lyrics": [{"lyricContent": lyric.lyricContent, "lyricStartTime": lyric.lyricStartTime, "lyricEndTime": lyric.lyricEndTime} for lyric in song.lyrics],
+                "status": song.status,
+                "avatar": song.avatar,
+                "audio": song.audio,
+                "video": song.video,
+                "description": song.description,
+                "isPremiumOnly": song.isPremiumOnly,
+                "play_count": song.play_count,
+                "slug": song.slug,
+                "createdAt": song.createdAt,
+                "updatedAt": song.updatedAt
+            }
+            return JsonResponse({"data": song_serialized, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
+        except Song.DoesNotExist:
+            return JsonResponse({"error": "Bài hát không tồn tại!"}, status=404)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def like_song(request, song_slug):
+    if request.method == "POST":
+        try:
+            # Get userId from request body
+            try:
+                data = json.loads(request.body)
+                user_id = data.get('userId')
+            except json.JSONDecodeError:
+                # If it's not JSON, try to get it directly from the body
+                user_id = request.body.decode('utf-8')
+            
+            if not user_id:
+                return JsonResponse({"error": "User ID is required"}, status=400)
+
+            # Get the song
+            try:
+                song = await sync_to_async(Song.objects.get)(slug=song_slug)
+            except Song.DoesNotExist:
+                return JsonResponse({"error": "Song not found"}, status=404)
+
+            try:
+                favorite_song = await sync_to_async(FavoriteSong.objects.get)(userId=user_id)
+            except FavoriteSong.DoesNotExist:
+                # Create a new FavoriteSong with ObjectId
+                favorite_song = FavoriteSong(
+                    userId=user_id,
+                    songId=[]
+                )
+                await sync_to_async(favorite_song.save)()
+
+            message = ""
+            if song._id in favorite_song.songId:
+                favorite_song.songId.remove(song._id)
+                song.like = str(int(song.like) - 1)
+                message = "Bạn đã bỏ thích bài hát này!"
+            else:
+                favorite_song.songId.append(song._id)
+                song.like = str(int(song.like) + 1)
+                message = "Bạn đã thích bài hát này!"
+            
+            favorite_song.updatedAt = datetime.now(UTC)
+            song.updatedAt = datetime.now(UTC)
+
+            await sync_to_async(favorite_song.save)()
+            await sync_to_async(song.save)()
+
+            return JsonResponse({"message": message, "status": 200}, status=200)
+        
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def increment_play_count(request, song_id):
+    if request.method == "POST":
+        try:
+            song = await sync_to_async(Song.objects.get)(_id=song_id)
+            play_count = int(song.play_count)
+            song.play_count = play_count + 1
+            song.updatedAt = datetime.now(UTC)
+            await sync_to_async(song.save)()
+            return JsonResponse({"message": "Số lượt nghe tăng lên!", "status": 200}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def filter_song(request):
+    if request.method == "GET":
+        try:
+            # Try to get filters from query parameters first
+            filter_object = {
+                'status': request.GET.get('status', 'all'),
+                'deleted': request.GET.get('isDeleted', 'all'),
+                'isPremiumOnly': request.GET.get('isPremiumOnly', 'all'),
+            }
+            
+            # Create a base query
+            query = {}
+            
+            # Define default values for each filter type
+            default_values = {
+                'status': 'all',
+                'deleted': 'all',
+                'isPremiumOnly': 'all',
+            }
+            
+            # Only add filters that are different from their default values
+            for key, value in filter_object.items():
+                if value != default_values[key]:
+                    # Convert string values to appropriate types
+                    if key == 'deleted':
+                        query[key] = value.lower() == 'true'
+                    else:
+                        query[key] = value
+            
+            # Apply the filter
+            songs = await sync_to_async(Song.objects.filter)(**query)
+            songs = await sync_to_async(list)(songs)
+            
+            # Serialize the songs
+            serialized_songs = [{
+                "_id": str(song._id),
+                "title": song.title,
+                "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                "like": song.like,
+                "status": song.status,
+                "deleted": song.deleted,
+                "createdAt": song.createdAt,
+                "updatedAt": song.updatedAt,
+                "slug": song.slug,
+            } for song in songs]
+            
+            return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
+        except Exception as e:
+            print("Error in filter_song:", str(e))  # Add error logging
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def search_song(request):
+    if request.method == "GET":
+        try:
+            query = request.GET.get('keyword', '')
+
+            search_query = Q(title__icontains=query) | Q(_id__icontains=query)
+            
+            # Apply the search query and other filters
+            songs = await sync_to_async(Song.objects.filter)(search_query)
+            songs = await sync_to_async(list)(songs)
+            
+            serialized_songs = [{
+                "_id": str(song._id),
+                "title": song.title,
+                "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                "like": song.like,
+                "status": song.status,
+                "deleted": song.deleted,
+                "createdAt": song.createdAt,
+                "updatedAt": song.updatedAt,
+                "slug": song.slug,
+            } for song in songs]
+            
+            return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def get_all_songs_by_singer(request):
+    if request.method == "GET":
+        try:
+            # Get singer IDs from query parameters as comma-separated string
+            singer_ids_str = request.GET.get('singer_ids', '')
+            
+            if not singer_ids_str:
+                return JsonResponse({"error": "Vui lòng cung cấp ít nhất một ca sĩ"}, status=400)
+            
+            # Split the comma-separated string into a list
+            singer_ids = [id.strip() for id in singer_ids_str.split(',') if id.strip()]
+            
+            if not singer_ids:
+                return JsonResponse({"error": "Vui lòng cung cấp ít nhất một ca sĩ"}, status=400)
+            
+            # Use MongoDB's $in operator to find songs by multiple singers
+            songs = await sync_to_async(list)(Song.objects.filter(
+                singers__singerId__in=singer_ids,
+                deleted=False
+            ))
+            
+            # Format the response
+            serialized_songs = [{
+                "_id": str(song._id),
+                "title": song.title,
+                "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                "like": song.like,
+                "status": song.status,
+                "deleted": song.deleted,
+                "createdAt": song.createdAt,
+                "updatedAt": song.updatedAt,
+                "slug": song.slug,
+                "avatar": song.avatar,
+                "audio": song.audio,
+                "isPremiumOnly": song.isPremiumOnly
+            } for song in songs]
+            
+            return JsonResponse({
+                "data": serialized_songs,
+                "status": 200,
+                "message": "Lấy bài hát thành công!"
+            }, status=200)
+        except Exception as e:
+            logger.error("Error in get_all_songs_by_singer: %s", traceback.format_exc())
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def get_all_available_songs(request):
+    if request.method == "GET":
+        try:
+            songs = await sync_to_async(list)(Song.objects.filter(deleted=False))
+            serialized_songs = [{
+                "_id": str(song._id),
+                "title": song.title,
+                "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                "like": song.like,
+                "status": song.status,
+                "slug": song.slug,
+                "avatar": song.avatar,
+                "audio": song.audio,
+                "isPremiumOnly": song.isPremiumOnly
+            } for song in songs]
+            return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def filter_pending_songs(request):
+    if request.method == "GET":
+        try:
+            # Try to get filters from query parameters first
+            filter_object = {
+                'status': request.GET.get('status', 'pending'),
+                'isPremiumOnly': request.GET.get('isPremiumOnly', 'all'),
+            }
+
+            # Create a base query
+            query = {}
+
+            # Define default values for each filter type
+            default_values = {
+                'status': 'all',
+                'isPremiumOnly': 'all',
+            }
+
+            # Only add filters that are different from their default values
+            for key, value in filter_object.items():
+                if value != default_values[key]:
+                    if key == 'isPremiumOnly':
+                        print(value)
+                        query[key] = value.lower() == 'true'
+                    else:
+                        query[key] = value
+
+            print(query)
+
+            # Apply the filter
+            songs = await sync_to_async(Song.objects.filter)(**query)
+            songs = await sync_to_async(list)(songs)
+            
+            # Serialize the songs
+            serialized_songs = [{
+                "_id": str(song._id),
+                "title": song.title,
+                "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                "status": song.status,
+                "deleted": song.deleted,
+                "createdAt": song.createdAt,
+                "updatedAt": song.updatedAt,
+                "isPremiumOnly": song.isPremiumOnly,
+                "createdBy": song.createdBy,
+                "slug": song.slug,
+            } for song in songs]
+
+            return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def approve_multiple_songs(request):
+    if request.method == "PATCH":
+        try:
+            data = json.loads(request.body)
+            song_ids = data.get("songIds", [])
+            approved_by = data.get("approvedBy", None)
+
+            for song_id in song_ids:
+                try:
+                    print("Checking song_id: ", song_id)
+                    song = await sync_to_async(Song.objects.get)(_id=song_id)
+                    song.status = "approved"
+                    song.approvedBy = approved_by
+                    song.updatedAt = datetime.now(UTC)
+                    await sync_to_async(song.save)()
+                except Exception as e:
+                    return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt bài hát!"}, status=400) 
+            return JsonResponse({"message": "Bài hát đã được phê duyệt!", "status": 200}, status=200)
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def reject_multiple_songs(request):
+    if request.method == "PATCH":
+        try:
+            data = json.loads(request.body)
+            song_ids = data.get("songIds", [])
+            approved_by = data.get("approvedBy", None)
+
+            for song_id in song_ids:
+                try:
+                    print("Checking song_id: ", song_id)
+                    song = await sync_to_async(Song.objects.get)(_id=song_id)
+                    song.status = "rejected"
+                    song.approvedBy = approved_by
+                    song.updatedAt = datetime.now(UTC)
+                    await sync_to_async(song.save)()
+                except Exception as e:
+                    return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối bài hát!"}, status=400)
+            return JsonResponse({"message": "Bài hát đã được từ chối!", "status": 200}, status=200)
+        
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def approve_song(request, song_id):
+    if request.method == "PATCH":
+        try:
+            # Get userId from request body if it exists
+            try:
+                data = json.loads(request.body) if request.body else {}
+                userId = data.get("userId")
+            except json.JSONDecodeError:
+                userId = None
+
+            song = await sync_to_async(Song.objects.get)(_id=song_id)
+            song.status = "approved"
+            if userId:
+                song.approvedBy = userId
+            song.updatedAt = datetime.now(UTC)
+            await sync_to_async(song.save)()
+            return JsonResponse({"message": "Bài hát đã được phê duyệt!", "status": 200}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def reject_song(request, song_id):
+    if request.method == "PATCH":
+        try:
+            # Get userId from request body if it exists
+            try:
+                data = json.loads(request.body) if request.body else {}
+                userId = data.get("userId")
+            except json.JSONDecodeError:
+                userId = None
+
+            song = await sync_to_async(Song.objects.get)(_id=song_id)
+            song.status = "rejected"
+            if userId:
+                song.approvedBy = userId
+            song.updatedAt = datetime.now(UTC)
+            await sync_to_async(song.save)()
+            return JsonResponse({"message": "Bài hát đã được từ chối!", "status": 200}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)

@@ -39,17 +39,21 @@ const ButtonWithModal = ({
           {buttonLabel}
         </Button>
       )}
-      <Modal show={showModal} onHide={handleClose}>
+      <Modal show={showModal} onHide={handleClose} className="default-modal">
         <Modal.Header closeButton>
           <Modal.Title>{modalTitle}</Modal.Title>
         </Modal.Header>
         <Modal.Body>{modalContent}</Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button
+            variant="secondary"
+            style={{ padding: "10px 20px" }}
+            onClick={handleClose}
+          >
             Close
           </Button>
           <Button variant="primary" onClick={handleSaveChanges}>
-            Save Changes
+            Lưu thay đổi
           </Button>
         </Modal.Footer>
       </Modal>

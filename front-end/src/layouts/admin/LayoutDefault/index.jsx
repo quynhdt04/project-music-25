@@ -35,7 +35,6 @@ const menuItems = [
   { menuKey: "general_view", key: "general_view", icon: <FaCog />, label: <Link to="/admin/general">Cài đặt chung</Link> },
 ];
 
-
 function LayoutDefault() {
   const account = useSelector((state) => state.authenReducer.account);
   const role = useSelector((state) => state.authenReducer.role);
@@ -52,11 +51,14 @@ function LayoutDefault() {
           mode="inline"
           theme="dark"
           onClick={({ key }) => setSelectedMenuKey(key)}
-          selectedKeys={[selectedMenuKey]} 
+          selectedKeys={[selectedMenuKey]}
           inlineCollapsed={collapsed}
           items={menuItems
-            .filter((item) => role?.permissions?.includes(item.key) || item.key == "dashboard")
-            .map((item) => ({ ...item, key: item.menuKey }))}  
+            .filter(
+              (item) =>
+                role?.permissions?.includes(item.key) || item.key == "dashboard"
+            )
+            .map((item) => ({ ...item, key: item.menuKey }))}
         />
       </aside>
       <div className="admin__main-content">

@@ -11,7 +11,7 @@ function PlayListDetail() {
         <>
             <div className="playlist">
                 <div className="playlist__info">
-                    <div class="playlist__cover">
+                    <div className="playlist__cover">
                         <img src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/hinh-nen-de-thuong.jpg" alt="" />
                     </div>
                     <div className="playlist__details">
@@ -30,33 +30,33 @@ function PlayListDetail() {
                     </div>
                     {/* Có danh sách */}
                     <div className="playlist__list">
-                        <div class="playlist__header">
+                        <div className="playlist__header">
                             <span>BÀI HÁT</span>
                             <span>ALBUM</span>
                             <span>THỜI GIAN</span>
                         </div>
-                        <div class="playlist__song">
-                            <div class="playlist__song-info">
-                                <div class="playlist__thumbnail-wrapper">
+                        <div className="playlist__song">
+                            <div className="playlist__song-info">
+                                <div className="playlist__thumbnail-wrapper">
                                     <img src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/hinh-nen-de-thuong.jpg"
-                                        alt="Mặt Mộc" class="playlist__thumbnail" />
-                                    <div class="playlist__play-icon">
+                                        alt="Mặt Mộc" className="playlist__thumbnail" />
+                                    <div className="playlist__play-icon">
                                         <FaPlay />
                                     </div>
                                 </div>
-                                <div class="playlist__details">
-                                    <h4 class="playlist__title">Mặt Mộc (Acoustic Version)</h4>
-                                    <p class="playlist__artists">Phạm Nguyên Ngọc, VAnh, Ân Nhi, BMZ</p>
+                                <div className="playlist__details">
+                                    <h4 className="playlist__title">Mặt Mộc (Acoustic Version)</h4>
+                                    <p className="playlist__artists">Phạm Nguyên Ngọc, VAnh, Ân Nhi, BMZ</p>
                                 </div>
                             </div>
-                            <span class="playlist__album">Mặt Mộc (Single)</span>
-                            <span class="playlist__duration">03:24</span>
-                            <div class="playlist__actions">
+                            <span className="playlist__album">Mặt Mộc (Single)</span>
+                            <span className="playlist__duration">03:24</span>
+                            <div className="playlist__actions">
                                 <FaHeart />
                                 <RiDeleteBin6Line />
                             </div>
                         </div>
-                        <div class="playlist__footer">
+                        <div className="playlist__footer">
                             <span>1 bài hát • 3 phút</span>
                         </div>
                     </div>
@@ -68,23 +68,23 @@ function PlayListDetail() {
                             </button>
                         </div>
 
-                        <div class="playlist__song">
-                            <div class="playlist__song-info">
-                                <div class="playlist__thumbnail-wrapper">
+                        <div className="playlist__song">
+                            <div className="playlist__song-info">
+                                <div className="playlist__thumbnail-wrapper">
                                     <img src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/hinh-nen-de-thuong.jpg"
-                                        alt="Mặt Mộc" class="playlist__thumbnail" />
-                                    <div class="playlist__play-icon">
+                                        alt="Mặt Mộc" className="playlist__thumbnail" />
+                                    <div className="playlist__play-icon">
                                         <FaPlay />
                                     </div>
                                 </div>
-                                <div class="playlist__details">
-                                    <h4 class="playlist__title">Mặt Mộc (Acoustic Version)</h4>
-                                    <p class="playlist__artists">Phạm Nguyên Ngọc, VAnh, Ân Nhi, BMZ</p>
+                                <div className="playlist__details">
+                                    <h4 className="playlist__title">Mặt Mộc (Acoustic Version)</h4>
+                                    <p className="playlist__artists">Phạm Nguyên Ngọc, VAnh, Ân Nhi, BMZ</p>
                                 </div>
                             </div>
-                            <span class="playlist__album">Mặt Mộc (Single)</span>
-                            <span class="playlist__duration">03:24</span>
-                            <div class="playlist__actions">
+                            <span className="playlist__album">Mặt Mộc (Single)</span>
+                            <span className="playlist__duration">03:24</span>
+                            <div className="playlist__actions">
                                 <FaHeart />
                                 <IoAddOutline />
                             </div>
