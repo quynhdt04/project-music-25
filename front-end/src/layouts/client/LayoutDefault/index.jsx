@@ -13,7 +13,6 @@ import { GiMusicalScore } from "react-icons/gi";
 import { Menu } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 
-
 function LayoutDefault() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
@@ -30,27 +29,33 @@ function LayoutDefault() {
 
   const handleRegisterSuccess = () => {
     setShowRegisterForm(false);
-    setShowLoginForm(false)
+    setShowLoginForm(false);
   };
   const isLogin = Boolean(user);
   console.log("isLogin", isLogin);
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
     sessionStorage.removeItem("user");
-  sessionStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     toast.success("Bạn đã đăng xuất");
     setShowLoginForm(false);
     navigate("/");
     setMenuOpen(false);
   };
   const handleLoginSuccess = (user) => {
-    if (user && user.id) {
-      dispatch({ type: "USER", value: user }); // Đảm bảo chỉ dispatch khi có user hợp lệ
+    const token = sessionStorage.getItem("token");
+    if (user && user.id && token) {
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: {
+          user,
+          token,
+        },
+      });
     }
     setShowLoginForm(false);
   };
-  
-  
+
   const closeModal = () => {
     setShowRegisterForm(false);
     setShowLoginForm(true);
