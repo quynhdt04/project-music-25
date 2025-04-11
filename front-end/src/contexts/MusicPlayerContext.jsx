@@ -25,6 +25,14 @@ const MusicPlayerProvider = ({ children }) => {
   const playCountTimerRef = useRef(null);
   const hasIncrementedPlayCount = useRef(false);
 
+  // Show the last song that the user played
+  useEffect(() => {
+    const currentSong = JSON.parse(localStorage.getItem("currentSong"));
+    if (currentSong) {
+      setCurrentSong(currentSong);
+    }
+  }, []);
+
   // Show player when a song is set
   useEffect(() => {
     if (currentSong) {
@@ -136,6 +144,7 @@ const MusicPlayerProvider = ({ children }) => {
   }, []);
 
   const playSong = (song) => {
+    localStorage.setItem("currentSong", JSON.stringify(song));
     // Then set it as current song and start playing
     setCurrentSong(song);
     setIsPlaying(true);
@@ -211,6 +220,7 @@ const MusicPlayerProvider = ({ children }) => {
     queue,
     showLyrics,
     showPremiumMessage,
+    setCurrentSong,
     playSong,
     togglePlay,
     setVolume,
