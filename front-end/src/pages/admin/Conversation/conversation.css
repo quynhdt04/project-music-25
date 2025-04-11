@@ -1,0 +1,319 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", sans-serif;
+    background-color: #f5f5f5;
+    height: 100vh;
+}
+
+/* CSS Group (bên phải) */
+.add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    /* Đẩy sang phải */
+    cursor: pointer;
+    padding: 8px;
+    border: none;
+    background: none;
+    font-size: 16px;
+}
+
+.add-btn:hover {
+    background: #f0f0f0;
+    border-radius: 5px;
+}
+
+
+/* Định dạng từng item trong group */
+.item_group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+    position: relative;
+}
+
+/* Khi hover vào item, đổi màu nền */
+.item_group:hover {
+    background: #e9ecef;
+    cursor: pointer;
+}
+
+/* Định dạng ảnh nhóm */
+.img_group {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: 3px solid #007bff;
+    object-fit: cover;
+}
+
+.name_group {
+    flex-grow: 1;
+    /* Đảm bảo tên nhóm chiếm hết phần còn lại */
+    line-height: 1.2;
+    white-space: nowrap;
+    /* Tránh bị xuống dòng */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 10px;
+}
+
+/* Định dạng actions (chứa menu) */
+.actions {
+    position: relative;
+}
+
+/* Nút 3 chấm */
+.menu-btn {
+    position: absolute;
+    right: 10px;
+    /* Căn lề phải */
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    transition: visibility 0.3s ease, background 0.3s ease, border 0.3s ease;
+    visibility: hidden;
+    /* Dài quá sẽ ẩn đi*/
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Khi hover vào item_group, hiển thị nút 3 chấm */
+.item_group:hover .menu-btn {
+    visibility: visible;
+    background: white;
+}
+
+/* Khi hover vào nút 3 chấm */
+.menu-btn:hover {
+    background: grey;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    min-width: 100px;
+    z-index: 10;
+}
+
+/* Định dạng nút Sửa & Xóa */
+.dropdown-menu .edit,
+.dropdown-menu .del {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+/* Hiệu ứng hover cho các nút sửa & xóa */
+.dropdown-menu .edit:hover,
+.dropdown-menu .del:hover {
+    background: #f0f0f0;
+}
+
+/* Form sửa xoá */
+.modal-header {
+    padding-top: 0 !important;
+    /* Giảm padding trên */
+    padding-bottom: 0.5em !important;
+}
+
+.modal-content {
+    padding: 15px;
+}
+
+/* CSS để điều chỉnh z-index */
+.modal {
+    z-index: 1050 !important;
+    /* Đảm bảo modal không bị chồng lên các phần tử khác */
+}
+
+.notification {
+    z-index: 1060 !important;
+    /* Điều chỉnh để phần thông báo hiện lên trên modal */
+}
+
+.item_group.active {
+    background-color: #e6f0ff;
+    border-radius: 5px;
+}
+
+/* Kết thúc Css group */
+
+/* Bắt đầu css message */
+.message {
+    width: 400px;
+    height: 85vh;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+.header_mess {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background-color: #fff;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Content */
+.content_mes {
+    flex-grow: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: #fff;
+}
+
+.message-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    position: relative;
+}
+
+.message-row.right {
+    justify-content: flex-end;
+}
+
+
+.message-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-width: 70%;
+}
+
+.avatarUser {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.username {
+    font-size: 12px;
+    color: #555;
+    margin-bottom: 3px;
+    margin-left: 10px;
+}
+
+/* Bong bóng */
+.message-left,
+.message-right {
+    padding: 10px 15px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.4;
+    position: relative;
+    word-wrap: break-word;
+    transition: background 0.3s ease;
+}
+
+.message-left {
+    background-color: #f0f2f5;
+    border: 1px solid #ccc;
+}
+
+.message-right {
+    max-width: 70%;
+    background-color: #0084ff;
+    color: white;
+}
+
+/* Đuôi bong bóng */
+.message-left::after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: -8px;
+    border-width: 8px;
+    border-style: solid;
+    border-color: transparent #f0f2f5 transparent transparent;
+}
+
+.message-right::after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    right: -8px;
+    border-width: 8px;
+    border-style: solid;
+    border-color: transparent transparent transparent #0084ff;
+}
+
+/* Hover */
+.message-left:hover,
+.message-right:hover {
+    filter: brightness(0.95);
+}
+
+/* Divider ngày */
+.day-divider {
+    text-align: center;
+    font-size: 12px;
+    color: #888;
+    margin: 10px 0;
+    position: relative;
+}
+
+
+
+/* Footer */
+.footer_mess {
+    border-top: 1px solid #ccc;
+    padding: 10px;
+    background-color: white;
+}
+
+.footer_mess input[type="text"] {
+    width: 100%;
+    padding: 10px 15px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+.footer_mess input[type="text"]::placeholder {
+    color: #888;
+}
+
+/* kết thúc css message */
