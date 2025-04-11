@@ -38,6 +38,7 @@ import PlayListDetail from "../pages/client/PlayList/PlayListDetail";
 import CreateUser from "../pages/admin/User/createUser";
 import EditUser from "../pages/admin/User/editUser";
 import UserDetail from "../pages/admin/User/userDetail";
+import Conversation from "../pages/admin/Conversation/";
 
 export const allRoutes = [
   // Routes cho Client
@@ -197,6 +198,10 @@ export const allRoutes = [
           //   path: "songs/:action?/:id?",
           //   element: <SongFormManagementPage />,
           // },
+          {
+            path: "conversations",
+            element: <Conversation />,
+          },
         ],
       },
     ],

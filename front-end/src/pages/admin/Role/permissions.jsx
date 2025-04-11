@@ -236,6 +236,87 @@ function Permissions() {
                             ))}
                         </tr>
                         <tr>
+                            <td colSpan="3"><b>Duyệt bài hát</b></td>
+                        </tr>
+                        <tr data-name="songs-approval_view">
+                            <td>Xem</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="songs-approval_create">
+                            <td>Thêm mới</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="songs-approval_edit">
+                            <td>Chỉnh sửa</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="songs-approval_del">
+                            <td>Xóa</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr>
+                            <td colSpan="3"><b>Duyệt Album</b></td>
+                        </tr>
+                        <tr data-name="albums-approval_view">
+                            <td>Xem</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="albums-approval_create">
+                            <td>Thêm mới</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="albums-approval_edit">
+                            <td>Chỉnh sửa</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="albums-approval_del">
+                            <td>Xóa</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr>
+                            <td colSpan="3"><b>Trò chuyện</b></td>
+                        </tr>
+                        <tr data-name="conversation_view">
+                            <td>Xem</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="conversation_create">
+                            <td>Thêm mới</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="conversation_edit">
+                            <td>Chỉnh sửa</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="conversation_del">
+                            <td>Xóa</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr>
                             <td colSpan="3"><b>Cài đặt chung</b></td>
                         </tr>
                         <tr data-name="general_view">
