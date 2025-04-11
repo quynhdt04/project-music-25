@@ -73,7 +73,7 @@ const SongFormManagementPage = () => {
             value: topic.topicId,
             label: topic.topicName,
           })),
-          like: songByIdResponse.data.like,
+          isPremiumOnly: songByIdResponse.data.isPremiumOnly,
           lyrics: songByIdResponse.data.lyrics.map((sentence) => ({
             content: sentence.lyricContent,
             beginAt: sentence.lyricStartTime,

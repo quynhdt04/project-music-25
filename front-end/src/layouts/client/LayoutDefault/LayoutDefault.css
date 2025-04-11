@@ -1,10 +1,9 @@
-
 :root {
-    --base-color: #394867;
-   --sider-color: #14274E;
-    --text-color: #333;
-    --zm-sidebar-color: #231B2E;
-    --zm-main-content-color: #170F23;
+  --base-color: #394867;
+  --sider-color: #14274e;
+  --text-color: #333;
+  --zm-sidebar-color: #231b2e;
+  --zm-main-content-color: #170f23;
 }
 
 .sidebar {
@@ -78,72 +77,74 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    z-index: 2000;
 }
 
 .header .search-bar input {
-    padding: 8px;
-    width: 300px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
+  padding: 8px;
+  width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
 }
 
 .header .user-menu {
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
 }
 
 .header .user-menu img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
 }
 
 .user-menu__sub {
-    position: absolute;
-    right: 0;
-    margin-top: 0;
-    width: 120px;
-    background: white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    padding: 8px 0;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    transform: translateY(-10px);
+  position: absolute;
+  right: 0;
+  margin-top: 0;
+  width: 120px;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 8px 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateY(-10px);
 }
 
-.user-menu__sub a{
-    text-decoration: none;
+.user-menu__sub a {
+  text-decoration: none;
 }
 
 .user-menu:hover .user-menu__sub,
 .user-menu__sub:hover {
-    opacity: 1;
-    visibility: visible;
-    transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
 }
 
 .menu-item {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    text-align: left;
-    background: none;
-    border: none;
-    cursor: pointer;
+  display: block;
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
 }
 
 .menu-item:hover {
-    background: #f0f0f0;
+  background: #f0f0f0;
 }
 
 main {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
 }
 
 /* Footer - Music Player */
@@ -162,124 +163,138 @@ main {
 }
 
 .footer .song-info {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .footer .song-info img {
-    width: 50px;
-    height: 50px;
-    border-radius: 5px;
-    margin-right: 10px;
+  width: 50px;
+  height: 50px;
+  border-radius: 5px;
+  margin-right: 10px;
 }
 
 .footer .controls {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .footer .controls button {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 18px;
-    margin: 0 10px;
-    cursor: pointer;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 18px;
+  margin: 0 10px;
+  cursor: pointer;
 }
 
 .footer .controls button:hover {
-    color: #f1c40f;
+  color: #f1c40f;
 }
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+
+.modal-thuytrang {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
 /* Nội dung modal */
-.modal-content {
-    background: white;
-    padding: 20px;
-    width: 350px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    position: relative;
-    animation: fadeIn 0.3s ease-in-out;
+.modal-thuytrang .modal-content {
+  /* background: white; */
+  padding: 20px;
+  width: 350px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  position: relative;
+  animation: fadeIn 0.3s ease-in-out;
+  border-radius: 20px;
+  background: linear-gradient(
+      to bottom,
+      rgba(149, 144, 144, 0) 0%,
+      rgba(12, 12, 12, 0.801) 100%
+    ),
+    #4a1f8a !important;
 }
 
 /* Hiệu ứng fade-in */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Tiêu đề */
-.modal-content h2 {
-    margin-bottom: 15px;
-    color: #394867;
+.modal-thuytrang .modal-content h2 {
+  margin-bottom: 15px;
+  color: #f5f6f9 !important;
 }
 
 /* Input và select */
-.modal-content input,
-.modal-content select {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    outline: none;
+.modal-thuytrang .modal-content input,
+.modal-thuytrang .modal-content select {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  outline: none;
 }
 
 /* Nút bấm */
-.modal-content button {
-    width: 100%;
-    padding: 10px;
-    background: #394867;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    margin-top: 10px;
-    cursor: pointer;
-    transition: background 0.3s ease;
+.modal-thuytrang .modal-content button {
+  width: 100%;
+  padding: 10px;
+  background: #394867;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
 }
 
-.modal-content button:hover {
-    background: #14274E;
+.modal-thuytrang .modal-content button:hover {
+  background: #14274e;
 }
 
 /* Nút đóng modal */
-.modal-content .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 20px;
-    cursor: pointer;
-    color: #555;
+.modal-thuytrang .modal-content .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 20px;
+  cursor: pointer;
+  color: #555;
 }
 
 /* Liên kết chuyển đổi giữa Đăng nhập & Đăng ký */
-.modal-content p {
-    margin-top: 10px;
+.modal-thuytrang .modal-content p {
+  margin-top: 10px;
 }
 
-.modal-content p button {
-    background: none;
-    color: #394867;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
+.modal-thuytrang .modal-content p button {
+  background: none;
+  color: #394867;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
 }
 
-.modal-content p button:hover {
-    text-decoration: underline;
+.modal-thuytrang .modal-content p button:hover {
+  text-decoration: underline;
 }
 
 /* Avatar upload */
@@ -290,73 +305,92 @@ main {
     border: 0px;
     gap: 10px;
 }
-.modal-content h2{
-    color: #14274E  !important;
-}
+
 /* Dropdown user menu */
 .user-menu {
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
 }
-.menu-item{
-    /* background: #7497dc; */
+.menu-item {
+  /* background: #7497dc; */
 }
 
 .dropdown-menu {
-    position: absolute;
-    right: 10px;
-    background: white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    padding: 8px 0;
-    display: none;
-    top: 43px;
+  position: absolute;
+  right: 10px;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 8px 0;
+  display: none;
+  top: 43px;
+  z-index: 2000;
+  background: linear-gradient(
+      to bottom,
+      rgba(149, 144, 144, 0) 0%,
+      rgba(12, 12, 12, 0.801) 100%
+    ),
+    #392b4e;
 }
 
 .dropdown-menu.open {
-    display: block;
-    width: max-content;
+  display: block;
+  width: max-content;
+  z-index: 2000;
+  position: absolute;
+  transform: none !important;
+  will-change: unset !important;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.235);
+  color: #f0f0f0;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
-
+.dropdown-user-info :hover {
+  text-decoration: underline !important;
+}
 .dropdown-menu button {
-    width: 100%;
-    text-align: left;
-    padding: 10px;
-    border: none;
-    background: none ;
-    cursor: pointer;
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #f0f0f0;
 }
 
 .dropdown-menu button:hover {
-    background: #f0f0f0;
+  background: #08376d;
 }
 
-.button-group{
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    gap: 20px;
-    
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  gap: 20px;
 }
-.separator{
-
-    display: flex;
-    gap: 10px;
-
+.separator {
+  display: flex;
+  gap: 10px;
 }
-.dropdown-username{
-    cursor: pointer;
-    margin-bottom: 0px;
+.dropdown-username {
+  cursor: pointer;
+  margin-bottom: 0px;
 }
 .dropdown-divider {
-    height: 1px;
-    background: rgba(255, 255, 255, 0.2);
-    margin: 5px 0;
+  height: 1px;
+  background: rgba(46, 42, 42, 0.2);
+  margin: 5px 0;
 }
-.dropdown-user-info{
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    gap: 10px;
-    padding-left: 10px;
+.dropdown-user-info {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 10px;
+  padding-left: 10px;
+}
+.error-message {
+    font-size: 12px !important ; /* Bạn có thể thay đổi giá trị này tùy ý */
+    color: red; /* Đổi màu chữ để hiển thị thông báo lỗi rõ ràng */
+    margin: 2px !important; /* Khoảng cách giữa input và lỗi */
 }

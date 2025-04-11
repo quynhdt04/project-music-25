@@ -36,7 +36,7 @@ function PlayList() {
                     <IoIosAddCircleOutline />
                     <p>Tạo Playlist mới</p>
                 </Col>
-
+  
                 <Modal title="Tạo Playlist mới"
                     footer={null}
                     open={isModalOpen}

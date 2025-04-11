@@ -1,6 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import SongDetailPage from "../Song/SongDetailPage/SongDetailPage";
+import AlbumDetailPage from "../Album/AlbumDetailPage/AlbumDetailPage";
 
 const ViewDetailPage = () => {
   const { managementPage } = useParams(); // Get all parameters
@@ -10,11 +11,11 @@ const ViewDetailPage = () => {
       case "songs-approval":
         return <SongDetailPage managementPage="songs-approval" />;
 
-      //   case "albums-approval":
-      //     return <CreatePage />;
+      case "albums-approval":
+        return <AlbumDetailPage managementPage="albums-approval" />;
 
-      //   case "edit-info":
-      //     return <UpdatePage />;
+      case "albums":
+        return <AlbumDetailPage />;
 
       default:
         // Default to ListPage with the managementPage parameter

@@ -1,67 +1,76 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import "./Profile.css";
-import { size } from "lodash";
+import { editProfileWithAvatar } from "../../../services/UserService";
+import { updateUser } from "../../../reducers/index";
+import { toast } from "react-toastify";
 
 function Profile() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.href =
-      "https://fonts.googleapis.com/css2?family=Gravitas+One&family=Noto+Sans+KR:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;1,200;1,300;1,400&display=swap";
-    link.rel = "stylesheet";
-    document.head.appendChild(link);
-
-    return () => {
-      document.head.removeChild(link);
-    };
-  }, []);
+  const user = useSelector((state) => state.authenReducer.user);
+  const [userInfo, setUserInfo] = useState(user);
+  const dispatch = useDispatch();
+  const [avatarFile, setAvatarFile] = useState(null);
+  const avatarInputRef = useRef(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        if (typeof parsedUser === "object" && parsedUser !== null) {
-          console.log("User from localStorage:", parsedUser);
-          setUser(parsedUser);
-        } else {
-          console.error("Invalid user data in localStorage");
-          setUser(null);
-        }
-      } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
-        setUser(null);
+    if (!user) {
+      const storedUser = sessionStorage.getItem("user");
+      if (storedUser) {
+        setUserInfo(JSON.parse(storedUser));
       }
+    } else {
+      setUserInfo(user);
     }
-  }, []);
+  }, [user]);
 
-  if (!user) {
-    return (
-      <div className="profile-container">
-        <h2>Trang cá nhân</h2>
-        <p>Loading...</p>
-        <button className="back-button" onClick={() => navigate(-1)}>
-          Quay lại
-        </button>
-      </div>
-    );
-  }
+  const handleAvatarChange = (e) => {
+    if (e.target.files.length > 0) {
+      const newAvatar = e.target.files[0];
+      setAvatarFile(newAvatar);
 
+      // Gửi yêu cầu cập nhật avatar lên server
+      const formData = new FormData();
+      formData.append("avatar", newAvatar);
+
+      editProfileWithAvatar(user.id, newAvatar)
+        .then((response) => {
+          dispatch(updateUser(response)); // Cập nhật thông tin người dùng trong Redux
+          setUserInfo(response);
+          toast.success("Cập nhật ảnh đại diện thành công!");
+        })
+        .catch((error) => {
+          console.error("❌ Lỗi khi cập nhật avatar:", error);
+          toast.error("Cập nhật ảnh đại diện thất bại.");
+        });
+    }
+  };
+
+  if (!userInfo) return <p>Chưa đăng nhập</p>;
   return (
     <div className="profile-container">
-      {/* <h2>Trang cá nhân</h2> */}
       <div className="profile-info">
-        <img
-          src={user.avatar}
-          alt="Avatar"
-          className="profile-avatar"
-          onError={(e) => {
-            e.target.src =
-              "https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg";
-          }}
-        />
+        <div className="avatar-wrapper" onClick={() => avatarInputRef.current.click()}>
+          <img
+            src={avatarFile ? URL.createObjectURL(avatarFile) : user.avatar}
+            alt="Avatar"
+            className="profile-avatar"
+            onError={(e) => {
+              e.target.src =
+                "https://res.cloudinary.com/dtycrb54t/image/upload/v1742195186/jp0gvzzqtkewbh8ybtml.jpg"; // Ảnh mặc định khi không có avatar
+            }}
+            // onClick={() => avatarInputRef.current.click()} // Kích hoạt chọn ảnh khi click vào avatar
+          />
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }} // Ẩn input file
+            onChange={handleAvatarChange}
+          />
+          <div className="avatar-overlay">
+            <span>Choose Photo</span> {/* Gợi ý cho người dùng */}
+          </div>
+        </div>
         <div className="profile-details">
           <span style={{ fontSize: "15px" }}>Profile</span>
           <h1
@@ -81,7 +90,6 @@ function Profile() {
             <strong>Số điện thoại:</strong> {user.phone || "Không có thông tin"}
           </p>
         </div>
-        {/* <button className="back-button" onClick={() => navigate(-1)}>Quay lại</button> */}
       </div>
     </div>
   );

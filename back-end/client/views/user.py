@@ -1,6 +1,8 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import check_password
 from models.user import User  
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
@@ -17,9 +19,11 @@ import hmac
 import time
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+import datetime
 
 
 CLOUDINARY_API_SECRET = "your_api_secret"
+SECRET_KEY = settings.SECRET_KEY
 
 def generate_signature(params):
     sorted_params = "&".join(f"{k}={v}" for k, v in sorted(params.items()))
@@ -44,7 +48,7 @@ def register_user(request):
             avatar_url = None
 
             print("📥 Dữ liệu nhận từ client:", request.POST)
-            
+
             # Kiểm tra nếu thiếu dữ liệu
             if not full_name or not email or not password or not phone:
                 return JsonResponse({"error": "Vui lòng điền đầy đủ thông tin!"}, status=400)
@@ -53,9 +57,12 @@ def register_user(request):
             if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
                 return JsonResponse({"error": "Email không hợp lệ!"}, status=400)
 
-            # Kiểm tra mật khẩu
-            if len(password) < 6:
-                return JsonResponse({"error": "Mật khẩu phải có ít nhất 6 ký tự!"}, status=400)
+            # Kiểm tra mật khẩu có độ mạnh phù hợp (ít nhất 6 ký tự, có chữ hoa, chữ thường, số, ký tự đặc biệt)
+            password_regex = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$"
+            if not re.match(password_regex, password):
+                return JsonResponse({
+                    "error": "Mật khẩu phải có ít nhất 6 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt!"
+                }, status=400)
 
             # Kiểm tra số điện thoại
             if not re.match(r"^0\d{9}$", phone):
@@ -72,16 +79,24 @@ def register_user(request):
                 avatar_url = upload_result.get('secure_url', None)
                 print("📸 Avatar URL:", avatar_url)
 
+            # Mã hóa mật khẩu
+            hashed_password = make_password(password)
+             # Giá trị mặc định cho tài khoản Premium
+            is_premium = False
+            premium_expires_at = None
+
             # ⚠ Thêm log trước khi lưu User
-            print(f"🔍 Đang tạo user: {full_name} | {email} | {phone} | {avatar_url}")
+            print(f"🔍 Đang tạo user: {full_name} | {email} | {phone} | {avatar_url}| isPremium: {is_premium} | premiumExpiresAt: {premium_expires_at}")
 
             # Lưu User
             user = User(
                 fullName=full_name,
                 email=email,
-                password=password,  
+                password=hashed_password,  # Dùng mật khẩu đã hash
                 phone=phone,
-                avatar=avatar_url
+                avatar=avatar_url,
+                isPremium=is_premium,  # Mặc định là False
+                premiumExpiresAt=premium_expires_at  # Mặc định là None
             )
             user.save()
 
@@ -91,6 +106,8 @@ def register_user(request):
                 "email": user.email,
                 "phone": user.phone,
                 "avatar": user.avatar,
+                "isPremium": user.isPremium,
+                "premiumExpiresAt": user.premiumExpiresAt
             }, status=201)
 
         except Exception as e:
@@ -106,33 +123,49 @@ def login_user(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            print("Dữ liệu nhận được:", data)
+            print("Dữ liệu nhận được từ frontend:", data)
 
             email = data.get("email")
             password = data.get("password", "")
 
             if not email or not password:
+                print("📌 Lỗi: Thiếu email hoặc mật khẩu")
                 return JsonResponse({"error": "Thiếu thông tin đăng nhập (email hoặc mật khẩu không được để trống)"}, status=400)
 
             try:
                 user = User.objects.get(email=email)
                 print("User found:", user)
             except User.DoesNotExist:
-                return JsonResponse({"error": "Email không tồn tại"}, status=400)
-
+                print(f"📌 Lỗi: Email không tồn tại, email nhận được: {email}")
+                return JsonResponse({"error": "user not found"}, status=400)
+            print("📌 Mật khẩu nhập vào:", password)
+            print("📌 Mật khẩu trong DB:", user.password)
             if user.deleted:
                 return JsonResponse({"error": "Tài khoản không tồn tại"}, status=403)
 
-            if password != user.password:
-                return JsonResponse({"error": "Mật khẩu không đúng"}, status=400)
+            if not check_password(password, user.password):
+                print("📌 Lỗi: Mật khẩu không đúng")
+                return JsonResponse({"error": "incorrect password"}, status=400)
 
             if user.status == "inactive":
                 return JsonResponse({"error": "Tài khoản đã bị khóa"}, status=403)
+            
+            #  🔹 Tạo JWT Token
+            payload = {
+                "id": str(user.id),
+                "email": user.email,
+                "exp": datetime.datetime.utcnow() + datetime.timedelta(days=1),  # Token hết hạn sau 1 ngày
+                "iat": datetime.datetime.utcnow(),  # Thời gian tạo
+            }
+            token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+
+            print("Token:", token)
             
             print("User avatar:", user.avatar) # Kiểm tra user.avatar
             print("User object:", user) # Kiểm tra toàn bộ object user
             return JsonResponse({
                 "message": "Đăng nhập thành công",
+                "token": token,
                 "user": {
                     "id": str(user.id),
                     "fullName": user.fullName,
@@ -141,6 +174,8 @@ def login_user(request):
                     "avatar": user.avatar,
                     "status": user.status,
                     "deleted": user.deleted,
+                    "isPremium": user.isPremium,  # Thêm thông tin Premium
+                    "premiumExpiresAt": user.premiumExpiresAt.strftime("%Y-%m-%d") if user.premiumExpiresAt else None,
                 }
             }, status=200)
 
@@ -164,6 +199,8 @@ def get_user_by_id(request, _id):
             "avatar": user.avatar if user.avatar else "",
             "status": user.status,
             "deleted": user.deleted,
+            "isPremium": user.isPremium,  # Thêm thông tin Premium
+            "premiumExpiresAt": user.premiumExpiresAt.strftime("%Y-%m-%d") if user.premiumExpiresAt else None,
         }
         
         return JsonResponse({"user": user_data}, status=200)
@@ -190,12 +227,12 @@ def update_user(request, _id):
             return JsonResponse({"error": "Dữ liệu không hợp lệ"}, status=400)
 
         # Cập nhật thông tin
-        user.fullName = data.get("name", user.fullName)
+        user.fullName = data.get("fullName", user.fullName)
         user.email = data.get("email", user.email)  # ✅ Cập nhật email
         user.phone = data.get("phone", user.phone)
 
         if "password" in data and data["password"]:
-            user.set_password(data["password"])
+            user.password = make_password(data["password"])
 
         if "avatar" in data and data["avatar"]:
             user.avatar = data["avatar"]
@@ -217,3 +254,27 @@ def update_user(request, _id):
 
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
+@csrf_exempt
+def update_avatar(request, _id):
+    if request.method == "POST":
+        if 'avatar' in request.FILES:
+            avatar_file = request.FILES['avatar']
+            upload_result = cloudinary.uploader.upload(avatar_file)
+            avatar_url = upload_result['secure_url']
+            print("📦 FILES:", request.FILES)
+            user = User.objects.get(id=ObjectId(_id))
+            user.avatar = avatar_url
+            user.save()
+
+            return JsonResponse({
+                "message": "Cập nhật avatar thành công",
+                "avatar": avatar_url,
+                "fullName": user.fullName,
+                "email": user.email,
+                "phone": user.phone,
+            })
+        else:
+            return JsonResponse({"error": "Avatar file is missing in the request."}, status=400)
+    else:
+        return JsonResponse({"error": "Invalid request method."}, status=400)
