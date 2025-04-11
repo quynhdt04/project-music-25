@@ -167,6 +167,7 @@ function Conversation() {
     //Tham gia group
     const handleSelectGroup = (conversation_id) => {
         setSelectedConversationId(conversation_id);
+        
         socket.emit("join_conversation", {
             conversation_id: conversation_id,
             user: account.fullName
