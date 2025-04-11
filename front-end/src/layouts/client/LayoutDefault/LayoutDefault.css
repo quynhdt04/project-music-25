@@ -315,7 +315,7 @@ main {
   /* background: #7497dc; */
 }
 
-.dropdown-menu {
+.user-menu .dropdown-menu {
   position: absolute;
   right: 10px;
   background: white;

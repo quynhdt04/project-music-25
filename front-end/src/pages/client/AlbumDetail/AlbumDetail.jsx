@@ -88,8 +88,6 @@ const AlbumDetail = () => {
             description: topicInfo.topic.description,
           };
 
-          console.log("Songs data:", songsData);
-
           const songsWithDuration = await Promise.all(
             songsData.data.map(async (song) => {
               const duration = await getAudioDuration(song.audio);
@@ -124,8 +122,6 @@ const AlbumDetail = () => {
               .join(", "),
             like: songInfo.data.like,
           };
-
-          console.log("Song info data:", songInfoData);
 
           const duration = await getAudioDuration(songInfo.data.audio);
           const songsWithDuration = {
