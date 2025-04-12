@@ -92,12 +92,17 @@ export const allRoutes = [
         path: "/vip",
         element: <Vip />,
       },
-      {
-        path: "/payment",
-        element: <Payment />,
-      },
     ],
   },
+    // Route độc lập cho trang Payment
+    {
+      path: "/checkout", 
+      element: <Payment />,
+    },
+    {
+      path: "/pay/:plan", 
+      element: <Payment />,
+    },
 
   // Routes cho Admin
   {

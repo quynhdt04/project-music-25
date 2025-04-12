@@ -89,7 +89,7 @@
 
 .header .user-menu {
   position: relative;
-  display: inline-block;
+  display: flex;
 }
 
 .header .user-menu img {
@@ -304,13 +304,13 @@ main {
 }
 
 /* Dropdown user menu */
-.user-menu {
+/* .user-menu {
   position: relative;
-  display: inline-block;
-}
-.menu-item {
+  display: flex;
+} */
+/* .menu-item {
   /* background: #7497dc; */
-}
+/* }  */
 
 .dropdown-menu {
   position: absolute;
