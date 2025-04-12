@@ -38,6 +38,8 @@ import PlayListDetail from "../pages/client/PlayList/PlayListDetail";
 import CreateUser from "../pages/admin/User/createUser";
 import EditUser from "../pages/admin/User/editUser";
 import UserDetail from "../pages/admin/User/userDetail";
+import Vip from "../pages/client/Vip";
+import Payment from "../pages/client/Payment";
 
 export const allRoutes = [
   // Routes cho Client
@@ -85,6 +87,14 @@ export const allRoutes = [
       {
         path: "/profile/:userId",
         element: <Profile />,
+      },
+      {
+        path: "/vip",
+        element: <Vip />,
+      },
+      {
+        path: "/payment",
+        element: <Payment />,
       },
     ],
   },

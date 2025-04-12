@@ -121,6 +121,14 @@ function LayoutDefault() {
               <input type="text" placeholder="Tìm kiếm bài hát, nghệ sĩ..." />
             </div>
             <div className="user-menu" ref={menuRef}>
+              {isLogin && (
+                <button
+                  className="upgrade-button"
+                  onClick={() => (window.location.href = "/vip")}
+                >
+                  Nâng cấp tài khoản
+                </button>
+              )}
               <img
                 src={
                   user?.avatar ||

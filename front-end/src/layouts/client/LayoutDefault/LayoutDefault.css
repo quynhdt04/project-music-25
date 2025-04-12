@@ -396,3 +396,15 @@ main {
     color: red; /* Đổi màu chữ để hiển thị thông báo lỗi rõ ràng */
     margin: 2px !important; /* Khoảng cách giữa input và lỗi */
 }
+.upgrade-button {
+    background:
+    #6414dc ;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-right: 30px;
+   
+}
