@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import "./login.css";
+import "./Login.css";
 import { setCookie } from "../../../helpers/cookie";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";

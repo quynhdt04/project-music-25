@@ -8,7 +8,7 @@ import { Form, InputGroup } from "react-bootstrap";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import { FaSearch } from "react-icons/fa";
-import "./Conversation.css";
+import "./conversation.css";
 import { useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import { v4 as uuidv4 } from 'uuid'; //Tạo id message
