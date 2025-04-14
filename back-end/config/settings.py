@@ -115,3 +115,17 @@ cloudinary.config(
     api_secret=CLOUDINARY['api_secret']
 )
 
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'Asia/Saigon'
+USE_I18N = True
+USE_TZ = True
+
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# VNPAY Config
+VNPAY_RETURN_URL = 'http://localhost:5173/payment_return'
+VNPAY_PAYMENT_URL = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'
+VNPAY_API_URL = 'https://sandbox.vnpayment.vn/merchant_webapi/api/transaction'
+VNPAY_TMN_CODE = 'Y6MLF0RW'
+VNPAY_HASH_SECRET_KEY = '5VCL6VNSY2SS7SYFHV15LL5T9BLNG00A'

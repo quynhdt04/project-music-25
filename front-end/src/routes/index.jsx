@@ -40,7 +40,10 @@ import EditUser from "../pages/admin/User/editUser";
 import UserDetail from "../pages/admin/User/userDetail";
 import Vip from "../pages/client/Vip";
 import Payment from "../pages/client/Payment";
-
+import IndexPage from "../pages/client/VnpayPage/index";
+import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
+import QueryForm from "../pages/client/VnpayPage/QueryForm";
+import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
 export const allRoutes = [
   // Routes cho Client
   {
@@ -102,6 +105,22 @@ export const allRoutes = [
     {
       path: "/pay/:plan", 
       element: <Payment />,
+    },
+    {
+      path: "/index", // Đường dẫn tới IndexPage
+      element: <IndexPage title="Trang Chính" />, // Pass title as prop
+    },
+    {
+      path: "/payment", // Đường dẫn tới IndexPage
+      element: <PaymentForm />, // Pass title as prop
+    },
+    {
+      path: "/query", // Đường dẫn tới IndexPage
+      element: <QueryForm />, // Pass title as prop
+    },
+    {
+      path: "/payment_return", // Đường dẫn tới IndexPage
+      element: <PaymentReturn />, // Pass title as prop
     },
 
   // Routes cho Admin
