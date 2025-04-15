@@ -1,5 +1,6 @@
 // const API_DOMAIN = `http://127.0.0.1:8000/`;
-const API_DOMAIN = `http://18.214.161.189:8000/`;
+// const API_DOMAIN = `http://18.214.161.189:8000/`;
+const API_DOMAIN = import.meta.env.VITE_API_BASE_URL;
 
 export const get = async (path) => {
   const response = await fetch(API_DOMAIN + path, {

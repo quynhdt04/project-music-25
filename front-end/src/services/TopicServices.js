@@ -2,7 +2,7 @@ import { get, post, patch } from "../utils/request";
 import { toast } from "react-toastify";
 
 // const BASE_URL = "http://localhost:8000";
-const BASE_URL = `http://18.214.161.189:8000/`;
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Lấy danh sách tất cả các chủ đề
 export const get_all_topics = async () => {
