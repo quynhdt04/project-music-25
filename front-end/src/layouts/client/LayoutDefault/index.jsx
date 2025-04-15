@@ -37,6 +37,8 @@ function LayoutDefault() {
     dispatch({ type: "LOGOUT" });
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     toast.success("Bạn đã đăng xuất");
     setShowLoginForm(false);
     navigate("/");
@@ -117,7 +119,7 @@ function LayoutDefault() {
         </aside>
         <div className="main-content">
           <header className="header">
-            <div className="search-bar" >
+            <div className="search-bar">
               <input type="text" placeholder="Tìm kiếm bài hát, nghệ sĩ..." />
             </div>
             <div className="user-menu" ref={menuRef}>
