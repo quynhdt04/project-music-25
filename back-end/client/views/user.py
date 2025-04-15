@@ -4,6 +4,7 @@ import json
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
 from models.user import User  
+from models.pricingPlan import PricingPlan  # Import the PricingPlan model
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -20,7 +21,6 @@ import time
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 import datetime
-
 
 CLOUDINARY_API_SECRET = "your_api_secret"
 SECRET_KEY = settings.SECRET_KEY
@@ -140,6 +140,7 @@ def login_user(request):
                 return JsonResponse({"error": "user not found"}, status=400)
             print("📌 Mật khẩu nhập vào:", password)
             print("📌 Mật khẩu trong DB:", user.password)
+            
             if user.deleted:
                 return JsonResponse({"error": "Tài khoản không tồn tại"}, status=403)
 
@@ -149,7 +150,12 @@ def login_user(request):
 
             if user.status == "inactive":
                 return JsonResponse({"error": "Tài khoản đã bị khóa"}, status=403)
-            
+              # Lưu user_id vào session
+            request.session['user_id'] = str(user.id)
+            print(f"📌 Đã lưu user_id vào session: {user.id}")
+
+            # Cập nhật trạng thái Premium nếu có
+            check_and_update_user_premium(request)
             #  🔹 Tạo JWT Token
             payload = {
                 "id": str(user.id),
@@ -177,6 +183,7 @@ def login_user(request):
                     "premiumExpiresAt": user.premiumExpiresAt.strftime("%Y-%m-%d") if user.premiumExpiresAt else None,
                 }
             }, status=200)
+        
 
         except Exception as e:
             print("Lỗi:", e)
@@ -277,3 +284,19 @@ def update_avatar(request, _id):
             return JsonResponse({"error": "Avatar file is missing in the request."}, status=400)
     else:
         return JsonResponse({"error": "Invalid request method."}, status=400)
+@csrf_exempt
+def check_and_update_user_premium(request):
+    user_id = request.session.get('user_id')  # Lấy user_id từ session
+    if user_id:
+        # Kiểm tra nếu có một PricingPlan nào đó có user_id trùng với user_id này
+        pricing_plan = PricingPlan.objects.filter(user_id=user_id).first()
+
+        if pricing_plan:
+            user = User.objects.get(id=user_id)  # Lấy người dùng từ cơ sở dữ liệu
+            user.isPremium = True  # Cập nhật isPremium thành True
+            user.save()  # Lưu thay đổi
+            print(f"User {user_id} đã được cập nhật là Premium")
+        else:
+            print(f"User {user_id} không có thông tin Premium")
+    else:
+        print("Không tìm thấy user_id trong session")

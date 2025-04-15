@@ -33,6 +33,8 @@ export const loginUser = async (email, password, dispatch) => {
       setCookie("token", responseToken, 1);
       sessionStorage.setItem("user", JSON.stringify(user));
       sessionStorage.setItem("token", responseToken);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", responseToken);
 
       // Dispatch action để lưu dữ liệu vào Redux
       dispatch({ type: "LOGIN_SUCCESS", payload: { user: user, token: responseToken } });
