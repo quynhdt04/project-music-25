@@ -44,6 +44,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",  # Địa chỉ frontend của bạn
+    "http://18.214.161.189",
 ]
 
 CSRF_TRUSTED_ORIGINS = [

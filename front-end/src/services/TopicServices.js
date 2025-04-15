@@ -1,7 +1,9 @@
 import { get, post, patch } from "../utils/request";
 import { toast } from "react-toastify";
 
-const BASE_URL = "http://localhost:8000";
+// const BASE_URL = "http://localhost:8000";
+const BASE_URL = `http://18.214.161.189:8000/`;
+
 // Lấy danh sách tất cả các chủ đề
 export const get_all_topics = async () => {
   const result = await get(`api/topics/`);
@@ -16,7 +18,7 @@ export const get_number_of_topics = async (limit) => {
 // Tạo mới một chủ đề
 export const create_topic = async (topicData) => {
   try {
-    const response = await fetch("http://localhost:8000/api/topics/create/", {
+    const response = await fetch(`${BASE_URL}api/topics/create/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(topicData),
@@ -47,7 +49,7 @@ export const get_topic = async (id) => {
 };
 
 export const delete_topic_by_id = async (topicId) => {
-  const url = `http://localhost:8000/api/topics/${topicId}/delete/`; // URL của API xóa chủ đề
+  const url = `${BASE_URL}api/topics/${topicId}/delete/`; // URL của API xóa chủ đề
 
   const response = await fetch(url, {
     method: "DELETE", // Đảm bảo phương thức là DELETE
@@ -76,7 +78,7 @@ export async function get_topic_by_id(id) {
 
 // Cập nhật chủ đề
 export const patch_topic = async (id, data) => {
-  const url = `http://localhost:8000/api/topics/edit/${id}/`;
+  const url = `${BASE_URL}api/topics/edit/${id}/`;
 
   try {
     const response = await fetch(url, {
@@ -107,7 +109,7 @@ export const patch_topic = async (id, data) => {
 };
 
 export async function update_topic(id, data) {
-  const url = `http://localhost:8000/api/topics/edit/${id}/`;
+  const url = `${BASE_URL}api/topics/edit/${id}/`;
 
   console.log("URL gọi API cập nhật:", url);
 
@@ -143,7 +145,7 @@ export async function update_topic(id, data) {
 
 export async function get_topic_by_slug(slug) {
   const response = await fetch(
-    `${BASE_URL}/api/topics/get-topic-by-slug/${slug}/`
+    `${BASE_URL}api/topics/get-topic-by-slug/${slug}/`
   );
   if (!response.ok) {
     throw new Error("Không thể lấy chủ đề theo slug");

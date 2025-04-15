@@ -1,5 +1,6 @@
 import { get, patch, post, put, del } from "../utils/request";
-const API_DOMAIN = `http://127.0.0.1:8000/`;
+// const API_DOMAIN = `http://127.0.0.1:8000/`;
+const API_DOMAIN = `http://18.214.161.189:8000/`;
 
 export const get_all_songs = async () => {
   const result = await get(`api/songs`);

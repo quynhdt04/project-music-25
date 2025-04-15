@@ -4,9 +4,11 @@ import { setCookie } from "../helpers/cookie";
 import axios from "axios";
 import Cookies from "js-cookie";
 
+const API_BASE_URL = "http://18.214.161.189:8000";
+
 export const loginUser = async (email, password, dispatch) => {
   try {
-    const response = await fetch("http://127.0.0.1:8000/user/login/", {
+    const response = await fetch(`${API_BASE_URL}/user/login/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -53,7 +55,7 @@ export async function registerUser(formData) {
       console.log(pair[0] + ": " + pair[1]);
     }
 
-    const response = await fetch("http://127.0.0.1:8000/user/create/", {
+    const response = await fetch(`${API_BASE_URL}/user/create/`, {
       method: "POST",
       body: formData, // ✅ Gửi trực tiếp formData
     });
@@ -79,7 +81,7 @@ export async function registerUser(formData) {
 
 export async function getUserById(_id) {
   try {
-    const response = await fetch(`http://127.0.0.1:8000/user/${_id}/`);
+    const response = await fetch(`${API_BASE_URL}/user/${_id}/`);
     // Kiểm tra URL
     console.log("bgvvu", _id);
     if (!response.ok) {
@@ -102,7 +104,7 @@ export async function editProfile(userId, updatedData) {
   );
 
   try {
-    const response = await fetch(`http://127.0.0.1:8000/update/${userId}/`, {
+    const response = await fetch(`${API_BASE_URL}/update/${userId}/`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
