@@ -16,6 +16,7 @@ class PricingPlan(Document):
     bank_code = StringField(max_length=20)
     language = StringField(max_length=2, required=True)
     status = StringField(max_length=20, default='active')  # Mặc định là active
+    duration = IntField(required=True)  # Thời gian sử dụng gói cước (ngày)
     createdAt = DateTimeField(default=datetime.datetime.utcnow)
     updatedAt = DateTimeField(default=datetime.datetime.utcnow)
 

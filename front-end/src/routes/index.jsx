@@ -41,7 +41,6 @@ import UserDetail from "../pages/admin/User/userDetail";
 import Vip from "../pages/client/Vip";
 import IndexPage from "../pages/client/VnpayPage/index";
 import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
-import QueryForm from "../pages/client/VnpayPage/QueryForm";
 import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
 export const allRoutes = [
   // Routes cho Client
@@ -104,11 +103,7 @@ export const allRoutes = [
     {
       path: "/payment", 
       element: <PaymentForm />, 
-    },
-    {
-      path: "/query", 
-      element: <QueryForm />,
-    },
+    },  
     {
       path: "/payment_return", 
       element: <PaymentReturn />, 

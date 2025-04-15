@@ -4,7 +4,7 @@ import json
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
 from models.user import User  
-from models.pricingPlan import PricingPlan  # Import the PricingPlan model
+# from models.pricingPlan import PricingPlan  # Import the PricingPlan model
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -155,7 +155,7 @@ def login_user(request):
             print(f"📌 Đã lưu user_id vào session: {user.id}")
 
             # Cập nhật trạng thái Premium nếu có
-            check_and_update_user_premium(request)
+            # check_and_update_user_premium(request)
             #  🔹 Tạo JWT Token
             payload = {
                 "id": str(user.id),
@@ -284,19 +284,3 @@ def update_avatar(request, _id):
             return JsonResponse({"error": "Avatar file is missing in the request."}, status=400)
     else:
         return JsonResponse({"error": "Invalid request method."}, status=400)
-@csrf_exempt
-def check_and_update_user_premium(request):
-    user_id = request.session.get('user_id')  # Lấy user_id từ session
-    if user_id:
-        # Kiểm tra nếu có một PricingPlan nào đó có user_id trùng với user_id này
-        pricing_plan = PricingPlan.objects.filter(user_id=user_id).first()
-
-        if pricing_plan:
-            user = User.objects.get(id=user_id)  # Lấy người dùng từ cơ sở dữ liệu
-            user.isPremium = True  # Cập nhật isPremium thành True
-            user.save()  # Lưu thay đổi
-            print(f"User {user_id} đã được cập nhật là Premium")
-        else:
-            print(f"User {user_id} không có thông tin Premium")
-    else:
-        print("Không tìm thấy user_id trong session")
