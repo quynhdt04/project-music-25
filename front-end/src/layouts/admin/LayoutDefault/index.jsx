@@ -14,6 +14,7 @@ import {
   FaCog,
   FaRegUser,
   FaUserTie,
+  FaComments
 } from "react-icons/fa";
 import { JournalAlbum } from "react-bootstrap-icons";
 import { Menu } from "antd";
@@ -30,9 +31,9 @@ const menuItems = [
   { menuKey: "account_view", key: "account_view", icon: <FaUserTie />, label: <Link to="/admin/accounts">Tài khoản</Link> },
   { menuKey: "role_1", key: "role", icon: <FaUserShield />, label: <Link to="/admin/roles">Nhóm quyền</Link> },
   { menuKey: "role_2", key: "role", icon: <FaUnlockAlt />, label: <Link to="/admin/roles/permissions">Phân quyền</Link> },
+  { menuKey: "conversation_view", key: "conversation_view", icon: <FaComments />, label: <Link to="/admin/conversations">Trò chuyện</Link> },
   { menuKey: "general_view", key: "general_view", icon: <FaCog />, label: <Link to="/admin/general">Cài đặt chung</Link> },
 ];
-
 
 function LayoutDefault() {
   const account = useSelector((state) => state.authenReducer.account);
@@ -50,11 +51,14 @@ function LayoutDefault() {
           mode="inline"
           theme="dark"
           onClick={({ key }) => setSelectedMenuKey(key)}
-          selectedKeys={[selectedMenuKey]} 
+          selectedKeys={[selectedMenuKey]}
           inlineCollapsed={collapsed}
           items={menuItems
-            .filter((item) => role?.permissions?.includes(item.key) || item.key == "dashboard")
-            .map((item) => ({ ...item, key: item.menuKey }))}  
+            .filter(
+              (item) =>
+                role?.permissions?.includes(item.key) || item.key == "dashboard"
+            )
+            .map((item) => ({ ...item, key: item.menuKey }))}
         />
       </aside>
       <div className="admin__main-content">

@@ -79,9 +79,8 @@ function LoginForm({ onClose, onRegisterClick, onLoginSuccess }) {
       toast.error("Sai email hoặc mật khẩu", { transition: Bounce });
     }
   };
-
   return (
-    <div className="modal">
+    <div className="modal modal-thuytrang">
       <div className="modal-content">
         <h2>Đăng nhập</h2>
         <form ref={formRef} onSubmit={handleSubmit}>

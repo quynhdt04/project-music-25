@@ -165,6 +165,7 @@ def login_user(request):
             }
             token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
+            print("Token:", token)
             
             print("User avatar:", user.avatar) # Kiểm tra user.avatar
             print("User object:", user) # Kiểm tra toàn bộ object user

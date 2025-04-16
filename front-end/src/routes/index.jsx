@@ -14,13 +14,11 @@ import Login from "../pages/admin/Login";
 import Logout from "../pages/admin/Logout";
 import Topic from "../pages/admin/Topic";
 import Singer from "../pages/admin/Singer";
-import Song from "../pages/admin/Song";
 import User from "../pages/admin/User";
 import General from "../pages/admin/General";
 import PrivateRouteClient from "../components/PrivateRouteClient";
 import ListSong from "../pages/client/ListSong";
 import MusicLove from "../pages/client/MusicLove";
-import SongFormManagementPage from "../pages/admin/Song/SongFormManagementPage/SongFormManagementPage";
 import InfoUser from "../pages/admin/InfoUser";
 import EditAccount from "../pages/admin/Account/editAccount";
 import CreateTopic from "../pages/admin/Topic/createTopic";
@@ -38,6 +36,8 @@ import PlayListDetail from "../pages/client/PlayList/PlayListDetail";
 import CreateUser from "../pages/admin/User/createUser";
 import EditUser from "../pages/admin/User/editUser";
 import UserDetail from "../pages/admin/User/userDetail";
+import Conversation from "../pages/admin/Conversation/";
+
 import Vip from "../pages/client/Vip";
 import IndexPage from "../pages/client/VnpayPage/index";
 import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
@@ -61,7 +61,7 @@ export const allRoutes = [
         element: <ListSong />,
       },
       {
-        path: "album/:id",
+        path: ":type/:id",
         element: <AlbumDetail />,
       },
       {
@@ -205,10 +205,6 @@ export const allRoutes = [
             path: "topics/edit/:id",
             element: <EditTopic />,
           },
-          // {
-          //   path: "songs",
-          //   element: <Song />,
-          // },
           {
             path: ":managementPage/:action?/:id?",
             element: <MainContent />,
@@ -217,6 +213,10 @@ export const allRoutes = [
           //   path: "songs/:action?/:id?",
           //   element: <SongFormManagementPage />,
           // },
+          {
+            path: "conversations",
+            element: <Conversation />,
+          },
         ],
       },
     ],

@@ -100,7 +100,7 @@ export default function CreateTopic({ onClose, onAddTopic, onUpdateTopic }) {
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay topic-modal">
       <div className="modal-content">
         <h2>Thêm chủ đề mới</h2>
         <form

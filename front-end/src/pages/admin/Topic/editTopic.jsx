@@ -100,7 +100,7 @@ function EditTopic({ topicId, onClose, readOnly = false , onUpdateTopic}) {
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay .topic-modal">
       <div className="modal-content">
         <h2>{readOnly ? "Chi tiết chủ đề" : "Chỉnh sửa chủ đề"}</h2>
         <form onSubmit={handleSubmit} className="topic__form topic__form-flex">

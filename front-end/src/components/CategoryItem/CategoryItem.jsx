@@ -4,7 +4,7 @@ import { Card } from "react-bootstrap";
 import TestImage from "../../assets/2024-12-08.png";
 import { Link } from "react-router-dom";
 
-const CategoryItem = ({ data }) => {
+const CategoryItem = ({ data, type }) => {
   return (
     <Card
       className="category-item mb-4"
@@ -20,9 +20,10 @@ const CategoryItem = ({ data }) => {
           position: "relative",
           overflow: "hidden",
           borderRadius: "calc(0.375rem - (1px))",
+          zIndex: 1,
         }}
       >
-        <Link to={"/album/1"}>
+        <Link to={`/${type}/${data.slug}`}>
           <Card.Img
             variant="top"
             src={data.cover || TestImage}
@@ -32,8 +33,13 @@ const CategoryItem = ({ data }) => {
       </div>
       <Card.Body>
         {/* <Card.Title>{data.title}</Card.Title> */}
-        <Card.Text style={{ color: "white", fontSize: "14px" }}>
+        <Card.Text
+          style={{ color: "white", fontSize: "14px", marginBottom: "0.25rem" }}
+        >
           {data.title}
+        </Card.Text>
+        <Card.Text style={{ color: "#b3b3b3", fontSize: "12px" }}>
+          {type === "song" ? data.artist : data.description}
         </Card.Text>
       </Card.Body>
     </Card>

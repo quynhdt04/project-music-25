@@ -5,7 +5,7 @@ import React, {
   useRef,
   useEffect,
 } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Form, Button, Row, Col } from "react-bootstrap";
 import {
   Eye,
@@ -20,11 +20,21 @@ import {
 import "./BaseTable.scss";
 import ButtonWithModal from "../ButtonWithModal/ButtonWithModal";
 import {
+  approve_multiple_songs,
   delete_multiple_songs,
   delete_song_data,
+  reject_multiple_songs,
   restore_multiple_songs,
 } from "../../services/SongServices";
 import { toast } from "react-toastify";
+import {
+  approve_multiple_albums,
+  delete_album_data,
+  delete_multiple_albums,
+  reject_multiple_albums,
+  restore_multiple_albums,
+} from "../../services/AlbumServices";
+import { getCookie } from "../../helpers/cookie";
 
 const BaseTable = ({
   data,
@@ -35,23 +45,24 @@ const BaseTable = ({
   basePath,
   fetchListData,
   canCreateNewData = true,
+  handleFilterData,
+  filterValues,
+  setFilterValues,
+  handleSearchData,
+  searchValue,
+  setSearchValue,
 }) => {
   const [checkedItems, setCheckedItems] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = useRef(5);
   const [offset, setOffset] = useState(0);
   const totalPage = useRef(0);
-  const [visibleRows, setVisibleRows] = useState([]);
-  const [filterValues, setFilterValues] = useState(
-    filters.reduce((acc, filter) => {
-      acc[filter.id] = "";
-      return acc;
-    }, {})
-  );
   const numberOfSelectedItems = Object.values(checkedItems).filter(
     (isChecked) => isChecked
   ).length;
   const [actionForMultipleItems, setActionForMultipleItems] = useState("no");
+  const searchTimeoutRef = useRef(null);
+  const { managementPage } = useParams();
 
   useEffect(() => {
     totalPage.current = Math.ceil(data.length / rowsPerPage.current);
@@ -64,56 +75,54 @@ const BaseTable = ({
     setCheckedItems(initialCheckedItems);
   }, [data]);
 
-  const handleFilterChange = (filterId, value) => {
-    setFilterValues((prevValues) => ({
-      ...prevValues,
-      [filterId]: value,
-    }));
-  };
-
-  const applyFilters = useCallback(
-    (data) => {
-      return data.filter((item) => {
-        const check = Object.keys(filterValues).every((filterId) => {
-          if (!filterValues[filterId]) return true;
-          return item[filterId] == filterValues[filterId];
-        });
-        return check;
-      });
-    },
-    [filterValues]
+  const visibleRows = React.useMemo(
+    () => [...data].slice(offset, offset + rowsPerPage.current),
+    [data, offset, rowsPerPage]
   );
 
-  // Memoize filteredData to avoid recalculating on every render
-  const filteredData = useMemo(() => applyFilters(data), [applyFilters, data]);
+  // Handle filter changes
+  const handleFilterChange = (filterId, value) => {
+    const newValues = {
+      ...filterValues,
+      [filterId]: value,
+    };
 
-  useEffect(() => {
-    setVisibleRows(
-      [...filteredData].slice(offset, offset + rowsPerPage.current)
+    // Check if we have active filters
+    const hasActiveFilters = Object.values(newValues).some(
+      (value) => value && value !== "" && value !== -1
     );
-  }, [offset, rowsPerPage, filteredData]);
 
-  const handleSearch = (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const filteredData = data.filter((row) => {
-      const check = columns.some((col) => {
-        if (col.searchable) {
-          const cellValue = row[col.key];
-          if (typeof cellValue === "string") {
-            return cellValue.toLowerCase().includes(searchTerm);
-          }
-          if (Array.isArray(cellValue)) {
-            return cellValue.some((value) =>
-              value.toString().toLowerCase().includes(searchTerm)
-            );
-          }
-        }
-        return false;
-      });
-      return check;
-    });
-    setVisibleRows(filteredData);
+    if (hasActiveFilters) {
+      handleFilterData(newValues);
+    }
+
+    setFilterValues(newValues);
   };
+
+  // Debounced search handler
+  const handleSearch = (e) => {
+    const searchValue = e.target.value;
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Set new timeout
+    setSearchValue(searchValue);
+    searchTimeoutRef.current = setTimeout(() => {
+      handleSearchData(searchValue);
+    }, 500); // 500ms delay
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const onPageChange = (page) => {
     setCurrentPage(page);
@@ -122,8 +131,19 @@ const BaseTable = ({
 
   const handleDeleteSong = async (id) => {
     try {
-      const response = await delete_song_data(id);
-      console.log("Response:", response);
+      let response = null;
+      switch (managementPage) {
+        case "songs":
+          response = await delete_song_data(id);
+          break;
+
+        case "albums":
+          response = await delete_album_data(id);
+          break;
+
+        default:
+          break;
+      }
       if (response.status === 200) {
         toast.success("Xóa bài hát thành công");
       } else {
@@ -138,29 +158,86 @@ const BaseTable = ({
 
   const handleDeleteOrRestoreMultipleSong = async () => {
     try {
+      const account = JSON.parse(getCookie("account"));
+
       let response = null;
       let items = Object.keys(checkedItems).filter(
         (item) => checkedItems[item] === true
       );
-      if (actionForMultipleItems === "delete-multiple") {
-        response = await delete_multiple_songs({
-          songIds: items,
-        });
+      if (
+        actionForMultipleItems === "delete-multiple" ||
+        actionForMultipleItems === "reject-multiple"
+      ) {
+        switch (managementPage) {
+          case "songs":
+            response = await delete_multiple_songs({
+              songIds: items,
+            });
+            break;
+
+          case "albums":
+            response = await delete_multiple_albums({
+              albumIds: items,
+            });
+            break;
+
+          case "songs-approval":
+            response = await reject_multiple_songs({
+              songIds: items,
+              approvedBy: account.id,
+            });
+            break;
+
+          case "albums-approval":
+            response = await reject_multiple_albums({
+              albumIds: items,
+              approvedBy: account.id,
+            });
+            break;
+        }
 
         if (response.status === 200) {
-          toast.success("Xóa bài hát thành công");
+          toast.success(response.message);
         } else {
-          toast.error("Xóa bài hát thất bại");
+          toast.error(response.message);
         }
       } else {
-        response = await restore_multiple_songs({
-          songIds: items,
-        });
+        switch (managementPage) {
+          case "songs":
+            response = await restore_multiple_songs({
+              songIds: items,
+              restoredBy: account.id,
+            });
+            break;
+
+          case "albums":
+            response = await restore_multiple_albums({
+              albumIds: items,
+            });
+            break;
+
+          case "songs-approval":
+            response = await approve_multiple_songs({
+              songIds: items,
+              approvedBy: account.id,
+            });
+            break;
+
+          case "albums-approval":
+            response = await approve_multiple_albums({
+              albumIds: items,
+              approvedBy: account.id,
+            });
+            break;
+
+          default:
+            break;
+        }
 
         if (response.status === 200) {
-          toast.success("Phục hồi bài hát thành công");
+          toast.success(response.message);
         } else {
-          toast.error("Phục hồi bài hát thất bại");
+          toast.error(response.message);
         }
       }
       fetchListData();
@@ -180,17 +257,17 @@ const BaseTable = ({
                   <span>Bộ lọc</span>
                 </div>
                 <div className="filter-body">
-                  {filters.map((filter) => (
+                  {filters?.map((filter) => (
                     <div className="filter-container" key={filter.id}>
                       <Form.Group controlId={filter.id}>
                         <Form.Label>{filter.label}</Form.Label>
-                        {/* Use Form.Label */}
                         <Form.Select
                           className="form-select"
                           id={filter.id}
+                          value={filterValues[filter.id] || "all"}
                           onChange={(e) =>
                             handleFilterChange(filter.id, e.target.value)
-                          } // Add onChange handler if needed
+                          }
                         >
                           {filter.options.map((option) => (
                             <option key={option.value} value={option.value}>
@@ -198,7 +275,6 @@ const BaseTable = ({
                             </option>
                           ))}
                         </Form.Select>
-                        {/* Use Form.Select */}
                       </Form.Group>
                     </div>
                   ))}
@@ -218,6 +294,7 @@ const BaseTable = ({
                   type="text"
                   placeholder="Search"
                   onChange={handleSearch}
+                  value={searchValue}
                 />
               </div>
             </div>
@@ -251,9 +328,25 @@ const BaseTable = ({
                         .join(", ")}{" "}
                       ?
                     </p>
-                  ) : (
+                  ) : actionForMultipleItems === "reject-multiple" ? (
+                    <p>
+                      Bạn có chắc chắn muốn từ chối bản ghi:{" "}
+                      {Object.keys(checkedItems)
+                        .filter((item) => checkedItems[item] === true)
+                        .join(", ")}{" "}
+                      ?
+                    </p>
+                  ) : actionForMultipleItems === "resolve-multiple" ? (
                     <p>
                       Bạn có chắc chắn muốn phục hồi bản ghi:{" "}
+                      {Object.keys(checkedItems)
+                        .filter((item) => checkedItems[item] === true)
+                        .join(", ")}{" "}
+                      ?
+                    </p>
+                  ) : (
+                    <p>
+                      Bạn có chắc chắn muốn duyệt bản ghi:{" "}
                       {Object.keys(checkedItems)
                         .filter((item) => checkedItems[item] === true)
                         .join(", ")}{" "}
@@ -272,12 +365,12 @@ const BaseTable = ({
                 <>
                   <div className="vr"></div>
                   <Link
-                    to="/admin/songs/create"
+                    to={`${basePath}/create`}
                     style={{ textDecoration: "none" }}
                   >
                     <Button className="btn add-btn">
                       <Plus size={20} style={{ marginRight: "0.313rem" }} />
-                      Thêm bài hát
+                      Thêm dữ liệu
                     </Button>
                   </Link>
                 </>
@@ -358,11 +451,7 @@ const BaseTable = ({
                   ))}
                   <td>
                     <div
-                      className={`table-data-action d-flex ${
-                        tableActions === "view-only"
-                          ? "justify-content-center"
-                          : "justify-content-start"
-                      }`}
+                      className={`table-data-action d-flex justify-content-center`}
                     >
                       {tableActions === "view-only" ? (
                         <div className="img-container view-detail-btn">

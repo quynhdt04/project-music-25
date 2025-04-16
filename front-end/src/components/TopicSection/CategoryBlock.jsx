@@ -3,10 +3,10 @@ import "./CategoryBlock.scss";
 import { isError } from "lodash";
 import { Stack } from "react-bootstrap";
 import CategoryItem from "../CategoryItem/CategoryItem";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { ChevronRight } from "react-bootstrap-icons";
 
-const CategoryBlock = ({ title, data }) => {
+const CategoryBlock = ({ title, data, type }) => {
   return (
     <section className="topic-section mt-5">
       <h5
@@ -29,7 +29,7 @@ const CategoryBlock = ({ title, data }) => {
       </h5>
       <div className="d-flex flex-wrap">
         {data.map((item, index) => (
-          <CategoryItem key={item.id} data={item} />
+          <CategoryItem key={item.id} data={item} type={type} />
         ))}
       </div>
     </section>

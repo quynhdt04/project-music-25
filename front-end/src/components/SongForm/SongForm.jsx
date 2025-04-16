@@ -49,6 +49,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
       description: "",
       status: "pending",
       deleted: false,
+      isPremiumOnly: false,
     },
   });
 
@@ -140,11 +141,6 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
   // Handle lyrics
   const addLyricLine = () => {
     const lastLine = lyrics[lyrics.length - 1];
-    // if (lastLine.endAt < lastLine.beginAt) {
-    //   toast.error("End time must be greater than start time.");
-    //   return;
-    // }
-
     setLyrics([
       ...lyrics,
       { content: "", beginAt: (+lastLine.endAt + 1).toString(), endAt: "" },
@@ -240,6 +236,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
     );
     formData.append("status", data.status);
     formData.append("deleted", data.deleted);
+    formData.append("isPremiumOnly", data.isPremiumOnly);
 
     try {
       setIsSubmitting(true);
@@ -257,7 +254,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
         setIsSubmitting(false);
         toast.success("Cập nhật bài hát thành công!", response);
       }
-      // navigate("/admin/songs", { replace: true });
+      navigate("/admin/songs", { replace: true });
     } catch (error) {
       console.error("Error:", error);
       toast.error("An error occurred. Please try again later.");
@@ -283,7 +280,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
         <Form onSubmit={handleSubmit(onSubmit)}>
           {/* Basic Information */}
           <Row className="mb-3">
-            <Col md={6}>
+            <Col md={4}>
               <Form.Group controlId="songId">
                 <Form.Label className="required">Mã bài hát</Form.Label>
                 <Form.Control
@@ -295,7 +292,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
               </Form.Group>
             </Col>
 
-            <Col md={6}>
+            <Col md={4}>
               <Form.Group controlId="title">
                 <Form.Label className="required">Tên bài hát</Form.Label>
                 <Form.Control
@@ -305,6 +302,16 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
                 <Form.Control.Feedback type="invalid">
                   {errors.title?.message}
                 </Form.Control.Feedback>
+              </Form.Group>
+            </Col>
+
+            <Col md={4}>
+              <Form.Group controlId="isPremiumOnly">
+                <Form.Label className="required">Trạng thái premium</Form.Label>
+                <Form.Select {...register("isPremiumOnly")}>
+                  <option value={false}>Miễn phí</option>
+                  <option value={true}>Premium</option>
+                </Form.Select>
               </Form.Group>
             </Col>
           </Row>
@@ -546,16 +553,6 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
 
           {type === "update" && (
             <Row className="mb-3">
-              {/* <Col md={6}>
-              <Form.Group controlId="status">
-                <Form.Label>Display Status</Form.Label>
-                <Form.Select {...register("status")}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </Form.Select>
-              </Form.Group>
-            </Col> */}
-
               <Col md={6}>
                 <Form.Group controlId="deleted">
                   <Form.Label>Deletion Status</Form.Label>
