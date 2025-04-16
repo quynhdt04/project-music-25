@@ -28,19 +28,7 @@ function LayoutDefault() {
   const [selectedMenuKey, setSelectedMenuKey] = useState("home");
   const user = useSelector((state) => state.authenReducer.user);
   const isLogin = Boolean(user);
-  // console.log("User từ Redux:", user);
-  console.log("isLogin:", isLogin);
   const isPremium = user?.isPremium;
-  
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const user = JSON.parse(storedUser).user;  // Lấy dữ liệu user từ localStorage
-      dispatch(updateUser(user));  // Dispatch action để cập nhật Redux state
-    }
-  }, [dispatch]);
-
-  
 
   const handleRegisterSuccess = () => {
     setShowRegisterForm(false);
@@ -76,6 +64,15 @@ function LayoutDefault() {
     setShowRegisterForm(false);
     setShowLoginForm(true);
   };
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser).user;
+      dispatch(updateUser(user));
+    }
+  }, [dispatch]);
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -89,7 +86,6 @@ function LayoutDefault() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
 
   const menuItems = [
     { key: "home", icon: <FaHome />, label: <Link to="/">Trang chủ</Link> },
@@ -114,9 +110,6 @@ function LayoutDefault() {
       : []),
     { key: "bxh", icon: <FaChartBar />, label: <Link to="/bxh">BXH</Link> },
   ];
-  console.log("🔁 Render LayoutDefault với user:", user);
-  console.log("🔍 isPremium ở JSX:", user?.isPremium, typeof user?.isPremium);
-  console.log("User trong localStorage:", localStorage.getItem('user'));
   return (
     <>
       <div className="app-container">
@@ -141,7 +134,7 @@ function LayoutDefault() {
             </div>
             <div className="user-menu" ref={menuRef}>
               {isLogin &&
-                (isPremium? (
+                (isPremium ? (
                   <button className="upgrade-button">🌟 Premium</button>
                 ) : (
                   <button

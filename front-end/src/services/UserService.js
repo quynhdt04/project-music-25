@@ -156,3 +156,27 @@ export const editProfileWithAvatar = async (userId, avatarFile) => {
     throw error;
   }
 };
+
+// export const updatePremiumStatus = async (userId, isPremium) => {
+//   try {
+//     const response = await fetch("http://127.0.0.1:8000/update-premium-status", {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({ userId, isPremium }), // Truyền userId và isPremium
+//     });
+
+//     if (!response.ok) {
+//       const errorData = await response.text();
+//       throw new Error(`Lỗi cập nhật trạng thái Premium: ${response.status} - ${errorData}`);
+//     }
+
+//     const data = await response.json(); // Nhận dữ liệu trả về từ API
+//     console.log("✅ Cập nhật trạng thái Premium thành công:", data);
+//     return data; // Trả về dữ liệu người dùng đã được cập nhật
+//   } catch (error) {
+//     console.error("❌ Lỗi khi cập nhật trạng thái Premium:", error);
+//     throw error; // Ném lỗi ra để frontend xử lý
+//   }
+// };

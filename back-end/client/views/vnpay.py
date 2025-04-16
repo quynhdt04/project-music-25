@@ -330,3 +330,4 @@ def check_and_update_user_premium(user):
         user.isPremium = False
         user.premiumExpiresAt = None
         user.save()
+
