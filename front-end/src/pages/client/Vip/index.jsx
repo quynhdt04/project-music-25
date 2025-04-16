@@ -1,32 +1,34 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import "./Vip.css";
-// import { color } from "@cloudinary/url-gen/qualifiers/background";
 import { useNavigate } from "react-router-dom";
-import PremiumCard  from "../../../components/PremiumCard";
+import PremiumCard from "../../../components/PremiumCard";
 
 function Vip() {
-
   const navigate = useNavigate();
   const handleOpenNewTab = (url) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const handlePaymentNavigation = (paymentUrl, amount) => {
     const fullUrl = `${paymentUrl}?amount=${amount}`;
     navigate(fullUrl);
   };
-  
+
   return (
     <div className="vip-container">
       <div className="vip-spotify-style">
         <div className="vip-banner">
-          <h1>Nghe nhạc không giới hạn. Thử 1 tháng gói Premium chỉ ₫40,000.</h1>
+          <h1>
+            Nghe nhạc không giới hạn. Thử 1 tháng gói Premium chỉ ₫40,000.
+          </h1>
           <div className="vip-buttons">
-          <button
-            className="btn-primary"
-            onClick={() => handlePaymentNavigation("/payment", 40000)}
-          >Thử 1 tháng Premium chỉ ₫40,000</button>
+            <button
+              className="btn-primary"
+              onClick={() => handlePaymentNavigation("/payment", 40000)}
+            >
+              Thử 1 tháng Premium chỉ ₫40,000
+            </button>
           </div>
         </div>
       </div>
@@ -44,31 +46,30 @@ function Vip() {
         </div>
       </div>
       <PremiumCard
-  title="6 Tháng"
-  priceOffer="₫200,000 cho 6 tháng"
-  features={[
-    "1 tài khoản Premium",
-    "Nghe và tải tất cả các bài hát",
-    "Đăng ký hoặc thanh toán một lần",
-  ]}
-  buttonText="Try 6 months for ₫200,000"
-  note="₫200,000 for 6 months. Offer only available if you haven't tried Premium before."
-  onButtonClick={() => handlePaymentNavigation("/payment", 200000)}
-/>
+        title="6 Tháng"
+        priceOffer="₫200,000 cho 6 tháng"
+        features={[
+          "1 tài khoản Premium",
+          "Nghe và tải tất cả các bài hát",
+          "Đăng ký hoặc thanh toán một lần",
+        ]}
+        buttonText="Try 6 months for ₫200,000"
+        note="₫200,000 for 6 months. Offer only available if you haven't tried Premium before."
+        onButtonClick={() => handlePaymentNavigation("/payment", 200000)}
+      />
 
-<PremiumCard
-  title="12 Tháng"
-  priceOffer="₫350,000 cho 12 tháng"
-  features={[
-    "1 tài khoản Premium",
-    "Nghe và tải tất cả các bài hát",
-    "Đăng ký hoặc thanh toán một lần",
-  ]}
-  buttonText="Try 12 months for ₫350,000"
-  note="₫350,000 for 12 months"
-  onButtonClick={() => handlePaymentNavigation("/payment", 350000)}
-/>
-
+      <PremiumCard
+        title="12 Tháng"
+        priceOffer="₫350,000 cho 12 tháng"
+        features={[
+          "1 tài khoản Premium",
+          "Nghe và tải tất cả các bài hát",
+          "Đăng ký hoặc thanh toán một lần",
+        ]}
+        buttonText="Try 12 months for ₫350,000"
+        note="₫350,000 for 12 months"
+        onButtonClick={() => handlePaymentNavigation("/payment", 350000)}
+      />
 
       {/* Footer */}
       <div className="vip-footer">
