@@ -303,15 +303,6 @@ main {
     gap: 10px;
 }
 
-/* Dropdown user menu */
-/* .user-menu {
-  position: relative;
-  display: flex;
-} */
-/* .menu-item {
-  /* background: #7497dc; */
-/* }  */
-
 .dropdown-menu {
   position: absolute;
   right: 10px;
@@ -343,7 +334,7 @@ main {
   will-change: unset !important;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.235);
+  background: rgba(77, 67, 77, 0.959);
   color: #f0f0f0;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   /* background: border-box; */
