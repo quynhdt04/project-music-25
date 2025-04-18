@@ -76,8 +76,8 @@ function LayoutDefault() {
       icon: <FaMusic />,
       label: <Link to="/songs">Danh sách bài hát</Link>,
     },
-    ...(isLogin
-      ? [
+    // ...(isLogin
+      // ? [
           {
             key: "music-love",
             icon: <FaHeart />,
@@ -88,8 +88,8 @@ function LayoutDefault() {
             icon: <FaList />,
             label: <Link to="/playlist">Danh sách phát nhạc</Link>,
           },
-        ]
-      : []),
+        // ]
+      // : []),
     { key: "bxh", icon: <FaChartBar />, label: <Link to="/bxh">BXH</Link> },
   ];
 
