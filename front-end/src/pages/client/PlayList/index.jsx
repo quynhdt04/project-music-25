@@ -4,8 +4,10 @@ import { Col, Row, Modal, Form, Input, Button } from "antd";
 import { IoIosAddCircleOutline } from "react-icons/io";
 import { PlayCircleOutlined, CloseOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { create_playList, get_all_playList } from "../../../services/PlayListServices";
+import { create_playList, get_all_playList, path_playList } from "../../../services/PlayListServices";
 import { useSelector } from "react-redux";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
 function PlayList() {
 
@@ -14,6 +16,7 @@ function PlayList() {
     const user = useSelector((state) => state.authenReducer.user);
     const [data, setData] = useState([]);
     const [updateState, setUpdateState] = useState(false);
+    const MySwal = withReactContent(Swal);
 
     const showModal = () => {
         setIsModalOpen(true);
@@ -27,13 +30,33 @@ function PlayList() {
         setIsModalOpen(false);
     };
 
-    const handlePlay = () => {
-        console.log("hey");
+    const handlePlay = (id) => {
+        console.log("hey" , id);
     }
 
-    const handleDel = () => {
-        console.log("del");
+    const handleDel = async (id) => {
+        MySwal.fire({
+            title: "Xác nhận xóa",
+            text: "Bạn có chắc chắn muốn xóa album này không?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Xóa",
+            cancelButtonText: "Hủy"
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                const result = await path_playList(id, { deleted: true });
+                if (result.message) {
+                    setUpdateState(!updateState);
+                    Swal.fire("Thành công!", "Album đã được xóa.", "success");
+                } else {
+                    Swal.fire("Thất bại!", "Không thể xóa Album.", "error");
+                }
+            }
+        });
     }
+
 
     useEffect(() => {
         const fetchApi = async () => {
@@ -110,8 +133,8 @@ function PlayList() {
                             <p className="name">{user.fullName}</p>
                         </Link>
                         <div className="play-list__icon">
-                            <CloseOutlined className="close" onClick={handleDel} />
-                            <PlayCircleOutlined className="play" onClick={handlePlay} />
+                            <CloseOutlined className="close" onClick={() => handleDel(item.id)} />
+                            <PlayCircleOutlined className="play" onClick={() => handlePlay(item.id)} />
                         </div>
                     </Col>
                 ))}

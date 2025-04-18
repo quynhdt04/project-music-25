@@ -1,6 +1,6 @@
 from django.urls import path
 from client.views.user import register_user, login_user, update_user, get_user_by_id, update_avatar  # Thêm import get_all_users
-from client.views.playlist import get_all_playList, create_playlist
+from client.views.playlist import get_all_playList, create_playlist, patch_playlist
 
 urlpatterns = [
     path("user/create/", register_user, name="register_user"),
@@ -12,5 +12,6 @@ urlpatterns = [
     path('users/<str:_id>/avatar', update_avatar, name='update_avatar'),
     path('play-list/', get_all_playList, name="get_all_playList"),
     path('play-list/create', create_playlist, name="create_playlist"),
+    path('play-list/edit/<str:playlist_id>/', patch_playlist, name="patch_playlist"),
 
 ]
