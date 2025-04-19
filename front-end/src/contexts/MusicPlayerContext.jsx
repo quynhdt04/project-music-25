@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MusicPlayerContext } from "./MusicPlayerContextObject";
-import { increment_song_playCount } from "../services/SongServices";
+import {
+  increment_song_playCount,
+  checkIsSongLikedByCurrentUser,
+} from "../services/SongServices";
 
 const MusicPlayerProvider = ({ children }) => {
+  const [isLiked, setIsLiked] = useState(false);
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
@@ -24,6 +28,22 @@ const MusicPlayerProvider = ({ children }) => {
   // Play count tracking refs
   const playCountTimerRef = useRef(null);
   const hasIncrementedPlayCount = useRef(false);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const currentSong = JSON.parse(localStorage.getItem("currentSong"));
+      const response = await checkIsSongLikedByCurrentUser(
+        currentSong.id,
+        user.id
+      );
+      if (response.status === 200) {
+        setIsLiked(response.isLiked);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   // Show the last song that the user played
   useEffect(() => {
@@ -233,7 +253,37 @@ const MusicPlayerProvider = ({ children }) => {
     setQueue([]);
   };
 
+  const moveSong = (song, direction) => {
+    const songIndex = queue.findIndex((item) => item.id === song.id);
+
+    if (songIndex === -1) return; // Song not found in queue
+
+    const newQueue = [...queue];
+
+    if (direction === "up" && songIndex > 0) {
+      // Swap with previous song
+      [newQueue[songIndex], newQueue[songIndex - 1]] = [
+        newQueue[songIndex - 1],
+        newQueue[songIndex],
+      ];
+      setQueue(newQueue);
+    } else if (direction === "down" && songIndex < newQueue.length - 1) {
+      // Swap with next song
+      [newQueue[songIndex], newQueue[songIndex + 1]] = [
+        newQueue[songIndex + 1],
+        newQueue[songIndex],
+      ];
+      setQueue(newQueue);
+    }
+  };
+
+  const removeSongFromQueue = (song) => {
+    if (!song) return;
+    setQueue((prevQueue) => prevQueue.filter((item) => item.id !== song.id));
+  };
+
   const value = {
+    isLiked,
     currentSong,
     isPlaying,
     volume,
@@ -243,6 +293,7 @@ const MusicPlayerProvider = ({ children }) => {
     queue,
     showLyrics,
     showPremiumMessage,
+    setIsLiked,
     setCurrentSong,
     playSong,
     togglePlay,
@@ -256,6 +307,8 @@ const MusicPlayerProvider = ({ children }) => {
     setIsPlayerVisible,
     setShowLyrics,
     setShowPremiumMessage,
+    moveSong,
+    removeSongFromQueue,
   };
 
   return (
