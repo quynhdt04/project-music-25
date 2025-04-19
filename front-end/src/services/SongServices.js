@@ -156,3 +156,9 @@ export const reject_song = async (songId, userId) => {
   const response = await patch(`api/songs/reject-song`, songId, { userId });
   return response;
 };
+
+export const checkIsSongLikedByCurrentUser = async (songId, userId) => {
+  return await get(
+    `api/songs/check-song-is-liked-by-user?id=${userId}&songId=${songId}`
+  );
+};
