@@ -30,6 +30,7 @@ const MusicPlayerProvider = ({ children }) => {
     const currentSong = JSON.parse(localStorage.getItem("currentSong"));
     if (currentSong) {
       setCurrentSong(currentSong);
+      addToQueue(currentSong);
     }
   }, []);
 
@@ -145,6 +146,8 @@ const MusicPlayerProvider = ({ children }) => {
 
   const playSong = (song) => {
     localStorage.setItem("currentSong", JSON.stringify(song));
+    addToQueue(song);
+
     // Then set it as current song and start playing
     setCurrentSong(song);
     setIsPlaying(true);
@@ -161,19 +164,23 @@ const MusicPlayerProvider = ({ children }) => {
     }
 
     const currentIndex = queue.findIndex((song) => song.id === currentSong.id);
+    let nextSong = null;
     if (currentIndex === -1 || currentIndex === queue.length - 1) {
+      nextSong = queue[0];
       // If current song not in queue or is last song, play first song in queue
-      setCurrentSong(queue[0]);
+      setCurrentSong(nextSong);
       if (!isPlaying) {
         setIsPlaying(true);
       }
     } else {
       // Play next song in queue
-      setCurrentSong(queue[currentIndex + 1]);
+      nextSong = queue[currentIndex + 1];
+      setCurrentSong(nextSong);
       if (!isPlaying) {
         setIsPlaying(true);
       }
     }
+    localStorage.setItem("currentSong", JSON.stringify(nextSong));
   };
 
   const previousSong = () => {
@@ -183,26 +190,42 @@ const MusicPlayerProvider = ({ children }) => {
     }
 
     const currentIndex = queue.findIndex((song) => song.id === currentSong.id);
+    let prevSong = null;
     if (currentIndex === -1 || currentIndex === 0) {
       // If current song not in queue or is first song, play last song in queue
-      setCurrentSong(queue[queue.length - 1]);
+      prevSong = queue[queue.length - 1];
+      console.log("PrevSong: ", prevSong);
+      setCurrentSong(prevSong);
       if (!isPlaying) {
         setIsPlaying(true);
       }
     } else {
       // Play previous song in queue
-      setCurrentSong(queue[currentIndex - 1]);
+      prevSong = queue[currentIndex - 1];
+      console.log("PrevSong: ", prevSong);
+      setCurrentSong(prevSong);
       if (!isPlaying) {
         setIsPlaying(true);
       }
     }
+    localStorage.setItem("currentSong", JSON.stringify(prevSong));
   };
 
   const addToQueue = (song) => {
     if (Array.isArray(song)) {
-      setQueue([...queue, ...song]);
+      // Filter out songs that are already in the queue
+      const newSongs = song.filter(
+        (newSong) =>
+          !queue.some((existingSong) => existingSong.id === newSong.id)
+      );
+      if (newSongs.length > 0) {
+        setQueue([...queue, ...newSongs]);
+      }
     } else {
-      setQueue([...queue, song]);
+      // Check if the single song is not already in the queue
+      if (!queue.some((existingSong) => existingSong.id === song.id)) {
+        setQueue([...queue, song]);
+      }
     }
   };
 
