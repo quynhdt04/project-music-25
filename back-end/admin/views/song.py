@@ -968,3 +968,32 @@ async def reject_song(request, song_id):
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
     return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def check_song_is_liked_by_user(request):
+    if request.method == "GET":
+        try:
+            # Get user ID and song ID from query parameters
+            user_id = request.GET.get('id')
+            song_id = request.GET.get('songId')
+
+            if not user_id:
+                return JsonResponse({"error": "User ID is required"}, status=400)
+            
+            if not song_id:
+                return JsonResponse({"error": "Song ID is required"}, status=400)
+
+            # Get favorite songs for the user
+            try:
+                favorite_songs = await sync_to_async(FavoriteSong.objects.get)(userId=user_id)
+                # Check if the song exists in the user's favorites
+                is_liked = song_id in favorite_songs.songId
+                return JsonResponse({"isLiked": is_liked, "status": 200}, status=200)
+            except FavoriteSong.DoesNotExist:
+                # If user has no favorites, the song is not liked
+                return JsonResponse({"isLiked": False, "status": 200}, status=200)
+        
+        except Exception as e:
+            logger.error("Error in check_song_is_liked_by_user: %s", traceback.format_exc())
+            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)

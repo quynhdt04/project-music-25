@@ -1,25 +1,72 @@
-import React, { useState } from "react";
-import { Button } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import { Button, Dropdown } from "react-bootstrap";
 import {
   SuitHeart,
   ThreeDots,
   Plus,
   HeartFill,
   Heart,
+  ArrowUpShort,
+  ArrowDownShort,
+  XCircle,
 } from "react-bootstrap-icons";
 import { FaPlay, FaPause } from "react-icons/fa";
 import useMusicPlayer from "../../hooks/useMusicPlayer";
 import "./Media.scss";
-import { Link } from "react-router-dom";
+import { checkIsSongLikedByCurrentUser } from "../../services/SongServices.js";
 
 const Media = ({ item, selectedItem, handlePlayClick, type }) => {
   const [isLiked, setIsLiked] = useState(false);
-  const { addToQueue } = useMusicPlayer();
+  const { addToQueue, moveSong, removeSongFromQueue } = useMusicPlayer();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const response = await checkIsSongLikedByCurrentUser(item.id, user.id);
+      if (response.status === 200) {
+        setIsLiked(response.isLiked);
+      }
+    };
+
+    fetchData();
+  }, [item.id]);
 
   const handleAddToQueue = (e) => {
     e.stopPropagation();
     addToQueue(item);
   };
+
+  const handleRemoveFromQueue = (e, item) => {
+    e.stopPropagation();
+    removeSongFromQueue(item);
+    // removeFromQueue(item.id);
+  };
+
+  const handleMoveUp = (e, song) => {
+    e.stopPropagation();
+    moveSong(song, "up");
+    // moveQueueItem(item.id, -1); // Move up one position
+  };
+
+  const handleMoveDown = (e, song) => {
+    e.stopPropagation();
+    moveSong(song, "down");
+    // moveQueueItem(item.id, 1); // Move down one position
+  };
+
+  const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
+    <Button
+      variant="link"
+      className="more-button"
+      ref={ref}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick(e);
+      }}
+    >
+      <ThreeDots />
+    </Button>
+  ));
 
   return (
     <div
@@ -93,31 +140,43 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
           style={{ flex: type !== "queue" ? "10%" : "none" }}
         >
           <div className="song-actions">
-            <Button
-              variant="link"
-              className={`like-button ${isLiked ? "liked" : ""}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsLiked(!isLiked);
-              }}
-            >
-              {isLiked ? <HeartFill /> : <Heart />}
-            </Button>
+            {type === "queue" && (
+              <Button
+                variant="link"
+                className={`like-button ${isLiked ? "liked" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLiked(!isLiked);
+                }}
+              >
+                {isLiked ? <HeartFill /> : <Heart />}
+              </Button>
+            )}
             <div className="duration">
               <span style={{ fontSize: "13px", color: "#FFFFFF80" }}>
                 {item.duration}
               </span>
             </div>
-            {type !== "queue" && (
-              <Button
-                variant="link"
-                className="more-button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <ThreeDots />
-              </Button>
+            {type === "queue" && (
+              <Dropdown>
+                <Dropdown.Toggle as={CustomToggle} />
+                <Dropdown.Menu className="custom-dropdown-menu">
+                  <Dropdown.Item
+                    onClick={(e) => handleRemoveFromQueue(e, item)}
+                  >
+                    <XCircle className="me-2" />
+                    Remove from queue
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={(e) => handleMoveUp(e, item)}>
+                    <ArrowUpShort className="me-2" />
+                    Move up
+                  </Dropdown.Item>
+                  <Dropdown.Item onClick={(e) => handleMoveDown(e, item)}>
+                    <ArrowDownShort className="me-2" />
+                    Move down
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
             )}
           </div>
         </div>

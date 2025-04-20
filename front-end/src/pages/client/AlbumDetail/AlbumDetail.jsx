@@ -129,7 +129,7 @@ const AlbumDetail = () => {
             title: songInfo.data.title,
             cover: songInfo.data.avatar,
             description: songInfo.data.description,
-            singers: songInfo.data.singers
+            artist: songInfo.data.singers
               .map((item) => item.singerName)
               .join(", "),
             audio: songInfo.data.audio,
