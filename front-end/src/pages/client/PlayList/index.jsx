@@ -4,10 +4,12 @@ import { Col, Row, Modal, Form, Input, Button } from "antd";
 import { IoIosAddCircleOutline } from "react-icons/io";
 import { PlayCircleOutlined, CloseOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
-import { create_playList, get_all_playList, path_playList } from "../../../services/PlayListServices";
+import { create_playList, get_all_playList, get_play_list_by_id, path_playList } from "../../../services/PlayListServices";
 import { useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import useMusicPlayer from "../../../hooks/useMusicPlayer";
+import { get_song_by_id } from "../../../services/SongServices";
 
 function PlayList() {
 
@@ -17,6 +19,8 @@ function PlayList() {
     const [data, setData] = useState([]);
     const [updateState, setUpdateState] = useState(false);
     const MySwal = withReactContent(Swal);
+    const { playSong, currentSong, previousSong, nextSong, addToQueue, isPlaying } = useMusicPlayer();
+
 
     const showModal = () => {
         setIsModalOpen(true);
@@ -30,9 +34,43 @@ function PlayList() {
         setIsModalOpen(false);
     };
 
-    const handlePlay = (id) => {
-        console.log("hey" , id);
-    }
+
+    const handlePlay = async (id) => {
+        try {
+            const album = await get_play_list_by_id(id);
+    
+            if (album.playlist && Array.isArray(album.playlist.songs)) {
+                const songIds = album.playlist.songs;
+    
+                const songsData = await Promise.all(
+                    songIds.map(async (songId) => {
+                        const res = await get_song_by_id(songId);
+                        return res.data;
+                    })
+                );
+                const songsDataWithCover = songsData.map((song) => ({
+                    ...song,
+                    cover: song.avatar || "/default-album.jpg", 
+                    artist: song.singers
+                    .map((item) => item.singerName)
+                    .join(", "),
+                }));
+    
+                if (songsDataWithCover.length > 0) {
+                    playSong(songsDataWithCover[0]);  
+                    addToQueue([...songsDataWithCover]);    
+                    console.log(songsDataWithCover[0]);
+                } else {
+                    console.log("Playlist rỗng");
+                }
+            } else {
+                console.log("Không có danh sách bài hát trong playlist");
+            }
+        } catch (error) {
+            console.error("Lỗi khi play:", error);
+        }
+    };
+    
 
     const handleDel = async (id) => {
         MySwal.fire({
@@ -125,7 +163,7 @@ function PlayList() {
 
                 {data && data.map(item => (
                     <Col xs={12} sm={12} md={6} lg={6} xl={4} className="play-list__col" key={item.id}>
-                        <Link to="/playlist/detail">
+                        <Link to={`/playlist/detail/${item.id}`}>
                             <div className="img-wrapper">
                                 <img src={item.imageAlbum !== "" ? item.imageAlbum : "../../../../public/image/album_default.png"} alt="" />
                             </div>

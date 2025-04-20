@@ -106,3 +106,34 @@ async def patch_playlist(request, playlist_id):
             return JsonResponse({"error": str(e)}, status=400)
 
     return JsonResponse({"error": "Invalid request"}, status=405)
+
+
+@csrf_exempt
+async def get_play_list_by_id(request, playlist_id):
+    if request.method == "GET":
+        try:
+            # Tìm playlist theo id và chưa bị xóa
+            playlist = await sync_to_async(lambda: PlayList.objects.filter(id=playlist_id, deleted=False).first())()
+            
+            if not playlist:
+                return JsonResponse({"error": "Không tìm thấy playlist!"}, status=404)
+
+            # Trả về chi tiết playlist
+            data = {
+                "id": str(playlist.id),
+                "userId": playlist.userId,
+                "title": playlist.title,
+                "imageAlbum": playlist.imageAlbum,
+                "songs": playlist.songs if playlist.songs else [],
+                "deleted": playlist.deleted,
+                "deletedAt": playlist.deletedAt,
+                "createdAt": playlist.createdAt,
+                "updatedAt": playlist.updatedAt
+            }
+
+            return JsonResponse({"playlist": data}, status=200)
+        
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+
+    return JsonResponse({"error": "Invalid request"}, status=405)

@@ -9,6 +9,11 @@ export const get_all_playList = async () => {
     return result;
 }
 
+export const get_play_list_by_id = async (id) => {
+    const result = await get(`play-list/${id}/`);
+    return result;
+}
+
 export const create_playList = async (data) => {
     const result = await post(`play-list/create`, data);
     return result;
