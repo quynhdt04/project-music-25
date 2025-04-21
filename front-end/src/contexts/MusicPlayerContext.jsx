@@ -33,12 +33,15 @@ const MusicPlayerProvider = ({ children }) => {
     const fetchData = async () => {
       const user = JSON.parse(sessionStorage.getItem("user"));
       const currentSong = JSON.parse(localStorage.getItem("currentSong"));
-      const response = await checkIsSongLikedByCurrentUser(
-        currentSong.id,
-        user.id
-      );
-      if (response.status === 200) {
-        setIsLiked(response.isLiked);
+      if (user && currentSong) {
+        const response = await checkIsSongLikedByCurrentUser(
+          currentSong.id,
+          user.id
+        );
+        
+        if (response.status === 200) {
+          setIsLiked(response.isLiked);
+        }
       }
     };
 
