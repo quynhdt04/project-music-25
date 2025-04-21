@@ -8,56 +8,73 @@ import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { get_play_list_by_id } from "../../../services/PlayListServices";
 import { get_all_songs, get_song_by_id } from "../../../services/SongServices";
+import { useSelector } from "react-redux";
+import { create_favoriteSong } from "../../../services/FavoriteSongServices";
 
 function PlayListDetail() {
 
-    // const params = useParams();
-    // const [data, setData] = useState([]);
-    // const [randomSongs, setRandomSongs] = useState([]);
-    // const [refresh, setRefresh] = useState(false);
+    const params = useParams();
+    const [data, setData] = useState([]);
+    const [randomSongs, setRandomSongs] = useState([]);
+    const [refresh, setRefresh] = useState(false);
+    const user = useSelector((state) => state.authenReducer.user);
 
-    // useEffect(() => {
-    //     const fetchApi = async () => {
-    //         const album = await get_play_list_by_id(params.id);
-    //         const songDetails = await Promise.all(
-    //             album.playlist.songs.map((songId) => get_song_by_id(songId))
-    //         );
-    //         setData(songDetails);
-    //     }
-    //     fetchApi();
-    // }, []);
 
-    // // console.log(data);
+    useEffect(() => {
+        const fetchApi = async () => {
+            const album = await get_play_list_by_id(params.id);
+            const songDetails = await Promise.all(
+                album.playlist.songs.map((songId) => get_song_by_id(songId))
+            );
+            setData(songDetails);
+        }
+        fetchApi();
+    }, []);
 
-    // useEffect(() => {
-    //     const fetchRandomSongs = async () => {
-    //         const allSongs = await get_all_songs();
+    useEffect(() => {
+        const fetchRandomSongs = async () => {
+            const allSongs = await get_all_songs();
 
-    //         const existingSongIds = data.length > 0
-    //             ? data.map(song => song.data?._id ?? song._id)
-    //             : [];
+            const existingSongIds = data.length > 0
+                ? data.map(song => song.data?._id ?? song._id)
+                : [];
 
-    //         const filteredSongs = allSongs.data.filter(
-    //             song => !existingSongIds.includes(song._id)
-    //         );
+            const filteredSongs = allSongs.data.filter(
+                song => !existingSongIds.includes(song._id)
+            );
 
-    //         const songsToPickFrom = filteredSongs.length > 0 ? filteredSongs : allSongs.data;
+            const songsToPickFrom = filteredSongs.length > 0 ? filteredSongs : allSongs.data;
 
-    //         const shuffled = songsToPickFrom.sort(() => 0.5 - Math.random());
-    //         const selected = shuffled.slice(0, 3);
+            const shuffled = songsToPickFrom.sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 3);
 
-    //         setRandomSongs(selected);
-    //     };
+            setRandomSongs(selected);
+        };
 
-    //     fetchRandomSongs();
-    // }, [data, refresh]);
+        fetchRandomSongs();
+    }, [data, refresh]);
 
-    // const handleRefresh = () => {
-    //     setRefresh(!refresh);
-    // }
+    const handleRefresh = () => {
+        setRefresh(!refresh);
+    }
+
+    const handleFavorite = async (id) => {
+        const songID = id;
+        const userID = user.id;
+        try {
+            const result = await create_favoriteSong({
+                userId: userID,
+                songId: songID, 
+            });
+
+            console.log("Yêu thích thành công:", result);
+        } catch (error) {
+            console.error("Lỗi khi thêm vào yêu thích:", error);
+        }
+    }
     return (
         <>
-            {/* <div className="playlist">
+            <div className="playlist">
                 <div className="playlist__info">
                     <div className="playlist__cover">
                         <img src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/hinh-nen-de-thuong.jpg" alt="" />
@@ -84,10 +101,10 @@ function PlayListDetail() {
                                 <span>THỜI GIAN</span>
                             </div>
                             {data.map(item => (
-                                <div className="playlist__song" key={item.data.id}>
+                                <div className="playlist__song" key={item.data._id}>
                                     <div className="playlist__song-info">
                                         <div className="playlist__thumbnail-wrapper">
-                                            <img src=""
+                                            <img src={item.data.avatar}
                                                 alt="Mặt Mộc" className="playlist__thumbnail" />
                                             <div className="playlist__play-icon">
                                                 <FaPlay />
@@ -101,7 +118,7 @@ function PlayListDetail() {
                                     <span className="playlist__album">Mặt Mộc (Single)</span>
                                     <span className="playlist__duration">03:24</span>
                                     <div className="playlist__actions">
-                                        <FaHeart />
+                                        <FaHeart onClick={() => handleFavorite(item.data._id)} />
                                         <RiDeleteBin6Line />
                                     </div>
                                 </div>
@@ -123,7 +140,7 @@ function PlayListDetail() {
 
                         {randomSongs && (
                             randomSongs.map(item => (
-                                <div className="playlist__song" key={item.id}>
+                                <div className="playlist__song" key={item._id}>
                                     <div className="playlist__song-info">
                                         <div className="playlist__thumbnail-wrapper">
                                             <img src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/hinh-nen-de-thuong.jpg"
@@ -148,7 +165,7 @@ function PlayListDetail() {
                         )}
                     </div>
                 </div>
-            </div > */}
+            </div >
         </>
     )
 }

@@ -1,6 +1,7 @@
 from django.urls import path
 from client.views.user import register_user, login_user, update_user, get_user_by_id, update_avatar  # Thêm import get_all_users
 from client.views.playlist import get_all_playList, create_playlist, patch_playlist, get_play_list_by_id
+from client.views.favoriteSongs import create_favorite_song;
 
 urlpatterns = [
     path("user/create/", register_user, name="register_user"),
@@ -15,4 +16,5 @@ urlpatterns = [
     path('play-list/create', create_playlist, name="create_playlist"),
     path('play-list/edit/<str:playlist_id>/', patch_playlist, name="patch_playlist"),
 
+    path('favorite/create/', create_favorite_song, name="create_favorite_song"),
 ]
