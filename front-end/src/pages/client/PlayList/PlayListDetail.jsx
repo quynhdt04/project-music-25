@@ -11,51 +11,53 @@ import { get_all_songs, get_song_by_id } from "../../../services/SongServices";
 
 function PlayListDetail() {
 
-    const params = useParams();
-    const [data, setData] = useState([]);
-    const [randomSongs, setRandomSongs] = useState([]);
-    const [refresh, setRefresh] = useState(false);
+    // const params = useParams();
+    // const [data, setData] = useState([]);
+    // const [randomSongs, setRandomSongs] = useState([]);
+    // const [refresh, setRefresh] = useState(false);
 
-    useEffect(() => {
-        const fetchApi = async () => {
-            const album = await get_play_list_by_id(params.id);
-            const songDetails = await Promise.all(
-                album.playlist.songs.map((songId) => get_song_by_id(songId))
-            );
-            setData(songDetails);
-        }
-        fetchApi();
-    }, []);
+    // useEffect(() => {
+    //     const fetchApi = async () => {
+    //         const album = await get_play_list_by_id(params.id);
+    //         const songDetails = await Promise.all(
+    //             album.playlist.songs.map((songId) => get_song_by_id(songId))
+    //         );
+    //         setData(songDetails);
+    //     }
+    //     fetchApi();
+    // }, []);
 
-    useEffect(() => {
-        const fetchRandomSongs = async () => {
-            const allSongs = await get_all_songs();
+    // // console.log(data);
 
-            const existingSongIds = data.length > 0
-                ? data.map(song => song.data?._id ?? song._id)
-                : [];
+    // useEffect(() => {
+    //     const fetchRandomSongs = async () => {
+    //         const allSongs = await get_all_songs();
 
-            const filteredSongs = allSongs.data.filter(
-                song => !existingSongIds.includes(song._id)
-            );
+    //         const existingSongIds = data.length > 0
+    //             ? data.map(song => song.data?._id ?? song._id)
+    //             : [];
 
-            const songsToPickFrom = filteredSongs.length > 0 ? filteredSongs : allSongs.data;
+    //         const filteredSongs = allSongs.data.filter(
+    //             song => !existingSongIds.includes(song._id)
+    //         );
 
-            const shuffled = songsToPickFrom.sort(() => 0.5 - Math.random());
-            const selected = shuffled.slice(0, 3);
+    //         const songsToPickFrom = filteredSongs.length > 0 ? filteredSongs : allSongs.data;
 
-            setRandomSongs(selected);
-        };
+    //         const shuffled = songsToPickFrom.sort(() => 0.5 - Math.random());
+    //         const selected = shuffled.slice(0, 3);
 
-        fetchRandomSongs();
-    }, [data, refresh]);
+    //         setRandomSongs(selected);
+    //     };
 
-    const handleRefresh = () => {
-        setRefresh(!refresh);
-    }
+    //     fetchRandomSongs();
+    // }, [data, refresh]);
+
+    // const handleRefresh = () => {
+    //     setRefresh(!refresh);
+    // }
     return (
         <>
-            <div className="playlist">
+            {/* <div className="playlist">
                 <div className="playlist__info">
                     <div className="playlist__cover">
                         <img src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/hinh-nen-de-thuong.jpg" alt="" />
@@ -85,15 +87,15 @@ function PlayListDetail() {
                                 <div className="playlist__song" key={item.data.id}>
                                     <div className="playlist__song-info">
                                         <div className="playlist__thumbnail-wrapper">
-                                            <img src={item.data.avatar}
+                                            <img src=""
                                                 alt="Mặt Mộc" className="playlist__thumbnail" />
                                             <div className="playlist__play-icon">
                                                 <FaPlay />
                                             </div>
                                         </div>
                                         <div className="playlist__details">
-                                            <h4 className="playlist__title">{item.data.title}</h4>
-                                            <p className="playlist__artists">{item.data.singers?.map(singer => singer.singerName).join(', ')}</p>
+                                            <h4 className="playlist__title"></h4>
+                                            <p className="playlist__artists"></p>
                                         </div>
                                     </div>
                                     <span className="playlist__album">Mặt Mộc (Single)</span>
@@ -146,7 +148,7 @@ function PlayListDetail() {
                         )}
                     </div>
                 </div>
-            </div >
+            </div > */}
         </>
     )
 }
