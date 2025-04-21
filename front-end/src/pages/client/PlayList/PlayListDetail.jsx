@@ -4,9 +4,55 @@ import { FaHeart, FaPlay } from "react-icons/fa";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { IoAddOutline } from "react-icons/io5";
 import DropupMenu from "../../../components/DropupMenu";
+import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { get_play_list_by_id } from "../../../services/PlayListServices";
+import { get_all_songs, get_song_by_id } from "../../../services/SongServices";
 
 function PlayListDetail() {
 
+    const params = useParams();
+    const [data, setData] = useState([]);
+    const [randomSongs, setRandomSongs] = useState([]);
+    const [refresh, setRefresh] = useState(false);
+
+    useEffect(() => {
+        const fetchApi = async () => {
+            const album = await get_play_list_by_id(params.id);
+            const songDetails = await Promise.all(
+                album.playlist.songs.map((songId) => get_song_by_id(songId))
+            );
+            setData(songDetails);
+        }
+        fetchApi();
+    }, []);
+
+    useEffect(() => {
+        const fetchRandomSongs = async () => {
+            const allSongs = await get_all_songs();
+
+            const existingSongIds = data.length > 0
+                ? data.map(song => song.data?._id ?? song._id)
+                : [];
+
+            const filteredSongs = allSongs.data.filter(
+                song => !existingSongIds.includes(song._id)
+            );
+
+            const songsToPickFrom = filteredSongs.length > 0 ? filteredSongs : allSongs.data;
+
+            const shuffled = songsToPickFrom.sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, 3);
+
+            setRandomSongs(selected);
+        };
+
+        fetchRandomSongs();
+    }, [data, refresh]);
+
+    const handleRefresh = () => {
+        setRefresh(!refresh);
+    }
     return (
         <>
             <div className="playlist">
@@ -23,75 +69,84 @@ function PlayListDetail() {
                 </div>
 
                 <div className="playlist__music">
-                    {/* Nếu không có danh sách */}
-                    <div className="playlist__list-null">
-                        <IoMdMusicalNotes />
-                        <h4>Không có bài hát nào trong danh sách này</h4>
-                    </div>
-                    {/* Có danh sách */}
-                    <div className="playlist__list">
-                        <div className="playlist__header">
-                            <span>BÀI HÁT</span>
-                            <span>ALBUM</span>
-                            <span>THỜI GIAN</span>
+                    {data.length <= 0 ? (<>
+                        <div className="playlist__list-null" >
+                            <IoMdMusicalNotes />
+                            <h4>Không có bài hát nào trong danh sách này</h4>
                         </div>
-                        <div className="playlist__song">
-                            <div className="playlist__song-info">
-                                <div className="playlist__thumbnail-wrapper">
-                                    <img src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/hinh-nen-de-thuong.jpg"
-                                        alt="Mặt Mộc" className="playlist__thumbnail" />
-                                    <div className="playlist__play-icon">
-                                        <FaPlay />
+                    </>) : (<>
+                        <div className="playlist__list">
+                            <div className="playlist__header">
+                                <span>BÀI HÁT</span>
+                                <span>ALBUM</span>
+                                <span>THỜI GIAN</span>
+                            </div>
+                            {data.map(item => (
+                                <div className="playlist__song" key={item.data.id}>
+                                    <div className="playlist__song-info">
+                                        <div className="playlist__thumbnail-wrapper">
+                                            <img src={item.data.avatar}
+                                                alt="Mặt Mộc" className="playlist__thumbnail" />
+                                            <div className="playlist__play-icon">
+                                                <FaPlay />
+                                            </div>
+                                        </div>
+                                        <div className="playlist__details">
+                                            <h4 className="playlist__title">{item.data.title}</h4>
+                                            <p className="playlist__artists">{item.data.singers?.map(singer => singer.singerName).join(', ')}</p>
+                                        </div>
+                                    </div>
+                                    <span className="playlist__album">Mặt Mộc (Single)</span>
+                                    <span className="playlist__duration">03:24</span>
+                                    <div className="playlist__actions">
+                                        <FaHeart />
+                                        <RiDeleteBin6Line />
                                     </div>
                                 </div>
-                                <div className="playlist__details">
-                                    <h4 className="playlist__title">Mặt Mộc (Acoustic Version)</h4>
-                                    <p className="playlist__artists">Phạm Nguyên Ngọc, VAnh, Ân Nhi, BMZ</p>
-                                </div>
-                            </div>
-                            <span className="playlist__album">Mặt Mộc (Single)</span>
-                            <span className="playlist__duration">03:24</span>
-                            <div className="playlist__actions">
-                                <FaHeart />
-                                <RiDeleteBin6Line />
+                            ))}
+                            <div className="playlist__footer">
+                                <span>{data.length} bài hát • 3 phút</span>
                             </div>
                         </div>
-                        <div className="playlist__footer">
-                            <span>1 bài hát • 3 phút</span>
-                        </div>
-                    </div>
+                    </>)}
+
+
                     <div className="suggested-songs">
                         <div className="suggested-songs__header">
                             <h3>Bài Hát Gợi Ý</h3>
-                            <button>
+                            <button onClick={handleRefresh}>
                                 <LuRefreshCcw /> Làm mới
                             </button>
                         </div>
 
-                        <div className="playlist__song">
-                            <div className="playlist__song-info">
-                                <div className="playlist__thumbnail-wrapper">
-                                    <img src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/hinh-nen-de-thuong.jpg"
-                                        alt="Mặt Mộc" className="playlist__thumbnail" />
-                                    <div className="playlist__play-icon">
-                                        <FaPlay />
+                        {randomSongs && (
+                            randomSongs.map(item => (
+                                <div className="playlist__song" key={item.id}>
+                                    <div className="playlist__song-info">
+                                        <div className="playlist__thumbnail-wrapper">
+                                            <img src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/hinh-nen-de-thuong.jpg"
+                                                alt="Mặt Mộc" className="playlist__thumbnail" />
+                                            <div className="playlist__play-icon">
+                                                <FaPlay />
+                                            </div>
+                                        </div>
+                                        <div className="playlist__details">
+                                            <h4 className="playlist__title">{item.title}</h4>
+                                            <p className="playlist__artists">{item.singers?.map(singer => singer.singerName).join(', ')}</p>
+                                        </div>
+                                    </div>
+                                    <span className="playlist__album">Mặt Mộc (Single)</span>
+                                    <span className="playlist__duration">03:24</span>
+                                    <div className="playlist__actions">
+                                        <FaHeart />
+                                        <IoAddOutline />
                                     </div>
                                 </div>
-                                <div className="playlist__details">
-                                    <h4 className="playlist__title">Mặt Mộc (Acoustic Version)</h4>
-                                    <p className="playlist__artists">Phạm Nguyên Ngọc, VAnh, Ân Nhi, BMZ</p>
-                                </div>
-                            </div>
-                            <span className="playlist__album">Mặt Mộc (Single)</span>
-                            <span className="playlist__duration">03:24</span>
-                            <div className="playlist__actions">
-                                <FaHeart />
-                                <IoAddOutline />
-                            </div>
-                        </div>
+                            ))
+                        )}
                     </div>
                 </div>
-            </div>
+            </div >
         </>
     )
 }
