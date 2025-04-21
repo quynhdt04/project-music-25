@@ -21,7 +21,7 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const user = JSON.parse(localStorage.getItem("user"));
+      const user = JSON.parse(sessionStorage.getItem("user"));
       const response = await checkIsSongLikedByCurrentUser(item.id, user.id);
       if (response.status === 200) {
         setIsLiked(response.isLiked);

@@ -31,7 +31,7 @@ const MusicPlayerProvider = ({ children }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const user = JSON.parse(localStorage.getItem("user"));
+      const user = JSON.parse(sessionStorage.getItem("user"));
       const currentSong = JSON.parse(localStorage.getItem("currentSong"));
       const response = await checkIsSongLikedByCurrentUser(
         currentSong.id,
