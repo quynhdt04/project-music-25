@@ -126,11 +126,11 @@ async def get_all_pending_albums(request):
             # Convert all ObjectId fields to strings
             albums = convert_objectid_to_str(albums)
 
-            return JsonResponse({"data": albums}, status=200)
+            return JsonResponse({"data": albums, "message": "Get data successfully", "status": 200}, status=200)
         except Exception as e:
             logger.error(traceback.format_exc())
-            return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"error": str(e), "status": 500}, status=500)
+    return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
 async def get_all_albums(request):
@@ -285,7 +285,7 @@ async def get_all_albums(request):
                 "message": "Lấy tất cả album thất bại!"
             }, status=500)
     return JsonResponse({
-        "error": "Phương thức yêu cầu không hợp lệ!",
+        "message": "Phương thức yêu cầu không hợp lệ!",
         "status": 405
     }, status=405)
 
@@ -369,16 +369,16 @@ async def get_album_by_id(request, album_id):
             albums = await sync_to_async(list)(Album.objects.aggregate(*pipeline))
             
             if not albums:
-                return JsonResponse({"error": "Không tìm thấy album"}, status=404)
+                return JsonResponse({"message": "Không tìm thấy album", "status": 404}, status=404)
                 
             # Convert all ObjectId fields to strings
             album = convert_objectid_to_str(albums[0])
 
-            return JsonResponse({"data": album}, status=200)
+            return JsonResponse({"data": album, "message": "Get data successfully", "status": 200}, status=200)
         except Exception as e:
             logger.error(traceback.format_exc())
-            return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"error": str(e), "status": 500}, status=500)
+    return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
 async def get_latest_album(request):
@@ -388,7 +388,7 @@ async def get_latest_album(request):
             latest_album = await sync_to_async(Album.objects.order_by('-createdAt').first)()
             
             if not latest_album:
-                return JsonResponse({"error": "Không tìm thấy album nào"}, status=404)
+                return JsonResponse({"error": "Không tìm thấy album nào", "status": 404}, status=404)
             
             # Format the response
             formatted_album = {
@@ -402,7 +402,7 @@ async def get_latest_album(request):
         except Exception as e:
             logger.error(traceback.format_exc())
             return JsonResponse({"error": str(e), "message": "Lấy album mới nhất thất bại", "status": 500}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+    return JsonResponse({"error": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
 async def create_new_album(request):
@@ -414,7 +414,7 @@ async def create_new_album(request):
                     parser = MultiPartParser(request.META, request, request.upload_handlers)
                     data, files = parser.parse()
                 except MultiPartParserError as e:
-                    return JsonResponse({"error": f"Failed to parse multipart data: {str(e)}"}, status=400)
+                    return JsonResponse({"error": f"Failed to parse multipart data: {str(e)}", "status": 400}, status=400)
             else:
                 data = QueryDict(request.body)
                 files = {}
@@ -430,13 +430,13 @@ async def create_new_album(request):
             try:
                 songs = json.loads(songs_str) if isinstance(songs_str, str) else songs_str
                 if not isinstance(songs, list):
-                    return JsonResponse({"error": "Songs must be a list"}, status=400)
+                    return JsonResponse({"message": "Songs must be a list", "status": 400}, status=400)
             except json.JSONDecodeError:
-                return JsonResponse({"error": "Invalid songs format"}, status=400)
+                return JsonResponse({"message": "Invalid songs format", "status": 400}, status=400)
 
             # Validate required fields
             if not all([id, title, singerId, songs, accountId]):
-                return JsonResponse({"error": "Vui lòng cung cấp đầy đủ thông tin"}, status=400)
+                return JsonResponse({"message": "Vui lòng cung cấp đầy đủ thông tin", "status": 400}, status=400)
 
             # Handle avatar upload
             avatar_file = files.get("avatar")
@@ -444,7 +444,7 @@ async def create_new_album(request):
             if avatar_file:
                 avatar_url = await upload_file_to_cloudinary(avatar_file, "Spotify/images", "image")
                 if not avatar_url:
-                    return JsonResponse({"error": "Lỗi khi tải lên ảnh đại diện"}, status=500)
+                    return JsonResponse({"message": "Lỗi khi tải lên ảnh đại diện", "status": 500}, status=500)
 
             # Create new album
             album = Album(
@@ -468,8 +468,8 @@ async def create_new_album(request):
             }, status=200)
         except Exception as e:
             logger.error(traceback.format_exc())
-            return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"error": str(e), "status": 500}, status=500)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def update_album(request, album_id):
@@ -481,7 +481,7 @@ async def update_album(request, album_id):
                     parser = MultiPartParser(request.META, request, request.upload_handlers)
                     data, files = parser.parse()
                 except MultiPartParserError as e:
-                    return JsonResponse({"error": f"Failed to parse multipart data: {str(e)}"}, status=400)
+                    return JsonResponse({"message": f"Failed to parse multipart data: {str(e)}", "status": 400}, status=400)
             else:
                 data = QueryDict(request.body)
                 files = {}
@@ -497,24 +497,24 @@ async def update_album(request, album_id):
             try:
                 songs = json.loads(songs_str) if isinstance(songs_str, str) else songs_str
                 if not isinstance(songs, list):
-                    return JsonResponse({"error": "Songs must be a list"}, status=400)
+                    return JsonResponse({"message": "Songs must be a list", "status": 400}, status=400)
             except json.JSONDecodeError:
-                return JsonResponse({"error": "Invalid songs format"}, status=400)
+                return JsonResponse({"message": "Invalid songs format", "status": 400}, status=400)
 
             # Validate required fields
             if not all([id, title, singerId, songs, accountId]):
-                return JsonResponse({"error": "Vui lòng cung cấp đầy đủ thông tin"}, status=400)
+                return JsonResponse({"message": "Vui lòng cung cấp đầy đủ thông tin", "status": 400}, status=400)
 
             # Check if album exists
             try:
                 album = await sync_to_async(Album.objects.get)(_id=album_id)
             except Album.DoesNotExist:
-                return JsonResponse({"error": "Album không tồn tại!"}, status=404)
+                return JsonResponse({"message": "Album không tồn tại!", "status": 404}, status=404)
 
             # Update title if provided
             if title is not None:
                 if not title.strip():
-                    return JsonResponse({"error": "Tiêu đề album không được để trống!"}, status=400)
+                    return JsonResponse({"message": "Tiêu đề album không được để trống!", "status": 400}, status=400)
                 album.title = title
 
             # Handle avatar update
@@ -537,7 +537,7 @@ async def update_album(request, album_id):
                         album.cover_image = avatar_url
                 except Exception as e:
                     logger.error(f"Error uploading new avatar: {str(e)}")
-                    return JsonResponse({"error": "Lỗi khi tải lên ảnh đại diện mới"}, status=500)
+                    return JsonResponse({"message": "Lỗi khi tải lên ảnh đại diện mới", "status": 500}, status=500)
             elif current_avatar_url:
                 album.cover_image = current_avatar_url
 
@@ -574,7 +574,7 @@ async def delete_album(request, album_id):
             try:
                 album = await sync_to_async(Album.objects.get)(_id=album_id)
             except Album.DoesNotExist:
-                return JsonResponse({"error": "Album không tồn tại!"}, status=404)
+                return JsonResponse({"message": "Album không tồn tại!", "status": 404}, status=404)
 
             # Update deleted field
             album.deleted = True
@@ -586,7 +586,7 @@ async def delete_album(request, album_id):
         except Exception as e:
             logger.error(traceback.format_exc())
             return JsonResponse({"error": str(e), "message": "Xóa album thất bại", "status": 500}, status=500)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def delete_multiple_albums(request):
@@ -612,7 +612,7 @@ async def delete_multiple_albums(request):
         except Exception as e:
             logger.error(traceback.format_exc())
             return JsonResponse({"error": str(e), "message": "Xóa album thất bại", "status": 500}, status=500)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def restore_multiple_albums(request):
@@ -632,15 +632,15 @@ async def restore_multiple_albums(request):
                     await sync_to_async(album.save)()
                 except Exception as e:
                     logger.error(traceback.format_exc())
-                    return JsonResponse({"error": str(e), "message": "Khôi phục album thất bại", "status": 500}, status=500)
+                    return JsonResponse({"message": str(e), "message": "Khôi phục album thất bại", "status": 500}, status=500)
 
             return JsonResponse({"message": "Khôi phục album thành công", "status": 200}, status=200)
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Dữ liệu không hợp lệ!", "status": 400}, status=400)
+            return JsonResponse({"message": "Dữ liệu không hợp lệ!", "status": 400}, status=400)
         except Exception as e:
             logger.error(traceback.format_exc())
             return JsonResponse({"error": str(e), "message": "Khôi phục album thất bại", "status": 500}, status=500)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def search_album(request):
@@ -783,8 +783,8 @@ async def search_album(request):
             }, status=200)
         except Exception as e:
             logger.error(traceback.format_exc())
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def filter_album(request):
@@ -943,8 +943,8 @@ async def filter_album(request):
             }, status=200)
         except Exception as e:
             logger.error(traceback.format_exc())
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"error": str(e), "status": 400}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
             
 @csrf_exempt
 async def approve_multiple_albums(request):
@@ -967,7 +967,7 @@ async def approve_multiple_albums(request):
             return JsonResponse({"message": "Album đã được phê duyệt!", "status": 200}, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt album!", "status": 400}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def reject_multiple_albums(request):
@@ -987,10 +987,10 @@ async def reject_multiple_albums(request):
                 except Exception as e:
                     return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
                 
-            return JsonResponse({"message": "Album đã được từ chối!", "status": 200}, status=200)
+            return JsonResponse({"message": "Album đã bị từ chối!", "status": 200}, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def approve_album(request, album_id):
@@ -1007,7 +1007,7 @@ async def approve_album(request, album_id):
             return JsonResponse({"message": "Album đã được phê duyệt!", "status": 200}, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt album!", "status": 400}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def reject_album(request, album_id):
@@ -1024,4 +1024,4 @@ async def reject_album(request, album_id):
             return JsonResponse({"message": "Album đã được từ chối!", "status": 200}, status=200)
         except Exception as e:
             return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
