@@ -9,27 +9,67 @@ import { useEffect, useState } from "react";
 import { get_play_list_by_id } from "../../../services/PlayListServices";
 import { get_all_songs, get_song_by_id } from "../../../services/SongServices";
 import { useSelector } from "react-redux";
-import { create_favoriteSong } from "../../../services/FavoriteSongServices";
+import { create_favoriteSong, get_favoriteSong } from "../../../services/FavoriteSongServices";
 
 function PlayListDetail() {
 
     const params = useParams();
     const [data, setData] = useState([]);
+    const [favoriteSong, setFavoriteSong] = useState([]);
     const [randomSongs, setRandomSongs] = useState([]);
     const [refresh, setRefresh] = useState(false);
+    const [refreshFavoriteSong, setRefreshFavoriteSong] = useState(false);
     const user = useSelector((state) => state.authenReducer.user);
 
 
     useEffect(() => {
         const fetchApi = async () => {
             const album = await get_play_list_by_id(params.id);
+            const favoriteSongs = await get_favoriteSong(user.id);
+
             const songDetails = await Promise.all(
                 album.playlist.songs.map((songId) => get_song_by_id(songId))
             );
-            setData(songDetails);
-        }
+
+            const updatedSongs = songDetails.map((song) => ({
+                ...song,
+                data: {
+                    ...song.data,
+                    isFavorite: favoriteSongs.songs.includes(song.data._id)
+                }
+            }));
+
+            setData(updatedSongs);
+        };
         fetchApi();
-    }, []);
+    }, [refreshFavoriteSong]);
+
+
+    // useEffect(() => {
+    //     const fetchRandomSongs = async () => {
+    //         const allSongs = await get_all_songs();
+
+    //         const existingSongIds = data.length > 0
+    //             ? data.map(song => song.data?._id ?? song._id)
+    //             : [];
+
+    //         const filteredSongs = allSongs.data.filter(
+    //             song => !existingSongIds.includes(song._id)
+    //         );
+
+    //         const songsToPickFrom = filteredSongs.length > 0 ? filteredSongs : allSongs.data;
+
+    //         const shuffled = songsToPickFrom.sort(() => 0.5 - Math.random());
+    //         const selected = shuffled.slice(0, 3);
+    //         const favoriteSongs = await get_favoriteSong(user.id);
+    //         console.log(selected);
+    //         console.log(favoriteSongs);
+
+    //         setRandomSongs(selected);
+    //     };
+
+    //     fetchRandomSongs();
+    // }, [data, refresh]);
 
     useEffect(() => {
         const fetchRandomSongs = async () => {
@@ -44,15 +84,25 @@ function PlayListDetail() {
             );
 
             const songsToPickFrom = filteredSongs.length > 0 ? filteredSongs : allSongs.data;
-
             const shuffled = songsToPickFrom.sort(() => 0.5 - Math.random());
             const selected = shuffled.slice(0, 3);
 
-            setRandomSongs(selected);
+            const favoriteSongs = await get_favoriteSong(user.id);
+            const favoriteSongIds = favoriteSongs?.songs || []; // đảm bảo là mảng
+
+            const dataUpdate = selected.map((song) => ({
+                ...song,
+                isFavorite: favoriteSongIds.includes(song._id),
+            }));
+
+            setRandomSongs(dataUpdate);
         };
 
         fetchRandomSongs();
     }, [data, refresh]);
+
+
+    // console.log(randomSongs);
 
     const handleRefresh = () => {
         setRefresh(!refresh);
@@ -64,8 +114,9 @@ function PlayListDetail() {
         try {
             const result = await create_favoriteSong({
                 userId: userID,
-                songId: songID, 
+                songId: songID,
             });
+            setRefreshFavoriteSong(!refreshFavoriteSong);
 
             console.log("Yêu thích thành công:", result);
         } catch (error) {
@@ -111,14 +162,14 @@ function PlayListDetail() {
                                             </div>
                                         </div>
                                         <div className="playlist__details">
-                                            <h4 className="playlist__title"></h4>
+                                            <h4 className="playlist__title">{item.data.title}</h4>
                                             <p className="playlist__artists"></p>
                                         </div>
                                     </div>
-                                    <span className="playlist__album">Mặt Mộc (Single)</span>
+                                    <span className="playlist__album">{item.data.album.title}</span>
                                     <span className="playlist__duration">03:24</span>
                                     <div className="playlist__actions">
-                                        <FaHeart onClick={() => handleFavorite(item.data._id)} />
+                                        <FaHeart className={item.data.isFavorite ? "heart-color" : ""} onClick={() => handleFavorite(item.data._id)} />
                                         <RiDeleteBin6Line />
                                     </div>
                                 </div>
@@ -157,7 +208,7 @@ function PlayListDetail() {
                                     <span className="playlist__album">Mặt Mộc (Single)</span>
                                     <span className="playlist__duration">03:24</span>
                                     <div className="playlist__actions">
-                                        <FaHeart />
+                                        <FaHeart className={item.isFavorite ? "heart-color" : ""} onClick={() => handleFavorite(item._id)} />
                                         <IoAddOutline />
                                     </div>
                                 </div>

@@ -6,6 +6,40 @@ from models.favorite_songs import FavoriteSong
 import datetime
 
 @csrf_exempt
+async def get_favorite_songs(request, user_id):
+    if request.method != "GET":
+        return JsonResponse({"error": "Chỉ hỗ trợ phương thức GET."}, status=405)
+
+    @sync_to_async
+    def fetch_fav_songs():
+        fav = FavoriteSong.objects(userId=user_id, deleted=False).first()
+        if fav:
+            return {
+                "favoriteSongId": str(fav.id),
+                "songList": fav.songId
+            }
+        else:
+            return None
+
+    try:
+        result = await fetch_fav_songs()
+
+        if result:
+            return JsonResponse({
+                "favoriteSongId": result["favoriteSongId"],
+                "songs": result["songList"]
+            }, status=200)
+        else:
+            return JsonResponse({
+                "message": "Không tìm thấy danh sách yêu thích cho người dùng này.",
+                "songs": []
+            }, status=404)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
+@csrf_exempt
 async def create_favorite_song(request):
     if request.method != "POST":
         return JsonResponse({"error": "Chỉ hỗ trợ phương thức POST."}, status=405)
