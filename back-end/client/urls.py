@@ -1,4 +1,9 @@
 from django.urls import path
+from client.views.user import register_user, login_user, update_user, get_user_by_id, update_avatar # Thêm import get_all_users
+# from client.views import payment_success_callback 
+from client.views.vnpay import payment, payment_ipn, payment_return, query, refund
+
+
 from client.views.user import register_user, login_user, update_user, get_user_by_id, update_avatar  # Thêm import get_all_users
 from client.views.playlist import get_all_playList, create_playlist, patch_playlist, get_play_list_by_id
 
@@ -15,4 +20,9 @@ urlpatterns = [
     path('play-list/create', create_playlist, name="create_playlist"),
     path('play-list/edit/<str:playlist_id>/', patch_playlist, name="patch_playlist"),
 
+    path('payment', payment, name='payment'),
+    path('payment_ipn', payment_ipn, name='payment_ipn'),
+    path("api/payment-return", payment_return, name='payment_return'),
+    path('query', query, name='query'),
+    path('refund', refund, name='refund'),
 ]
