@@ -24,7 +24,6 @@ import { like_song } from "../../services/SongServices";
 import Media from "../Media/Media";
 
 const MusicPlayer = () => {
-  const [isLiked, setIsLiked] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);
   const [isLyricsClosing, setIsLyricsClosing] = useState(false);
@@ -35,6 +34,8 @@ const MusicPlayer = () => {
   const lyricsContainerRef = useRef(null);
 
   const {
+    isLiked,
+    setIsLiked,
     currentSong,
     isPlaying,
     volume,

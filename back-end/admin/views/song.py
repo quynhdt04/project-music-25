@@ -11,7 +11,9 @@ import json
 from slugify import slugify
 from models.song import Song, Singer, Topic, Lyric
 from models.topic import Topic as TopicModel
+from models.singer import Singer as SingerModel
 from models.favorite_songs import FavoriteSong
+from models.album import Album
 import logging
 import traceback
 from mongoengine.queryset.visitor import Q
@@ -42,12 +44,12 @@ async def list_all_song(request):
                 for song in songs
             ]
 
-            return JsonResponse({"data": serialized_songs}, status=200)
+            return JsonResponse({"data": serialized_songs, "message": "Get all songs successfully", "status": 200}, status=200)
         
         except Exception as e:
             logger.error("Error in list_all_song: %s", traceback.format_exc())
-            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+    return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 def generate_public_id(file):
     # Generate a hash of the file content
@@ -142,13 +144,13 @@ async def create_new_song(request):
 
             # Validate required fields
             if not title:
-                return JsonResponse({"error": "Tiêu đề không được để trống!"}, status=400)
+                return JsonResponse({"message": "Tiêu đề không được để trống!", "status": 400}, status=400)
             if not audio_url:
-                return JsonResponse({"error": "Bài hát phải có file audio!"}, status=400)
+                return JsonResponse({"message": "Bài hát phải có file audio!", "status": 400}, status=400)
             if not singers:
-                return JsonResponse({"error": "Bài hát phải thuộc ít nhất 1 ca sĩ!"}, status=400)
+                return JsonResponse({"message": "Bài hát phải thuộc ít nhất 1 ca sĩ!", "status": 400}, status=400)
             if not lyrics:
-                return JsonResponse({"error": "Bài hát phải có lời!"}, status=400)
+                return JsonResponse({"message": "Bài hát phải có lời!", "status": 400}, status=400)
 
             # Create a new song
             new_song = Song(
@@ -170,20 +172,43 @@ async def create_new_song(request):
             )
             await sync_to_async(new_song.save)()
 
-            return JsonResponse({"message": "Tạo bài hát thành công!", "id": str(new_song._id)}, status=201)
+            return JsonResponse({"message": "Tạo bài hát thành công!", "id": str(new_song._id), "status": 201}, status=201)
 
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Dữ liệu không hợp lệ!"}, status=400)
+            return JsonResponse({"message": "Dữ liệu không hợp lệ!", "status": 400}, status=400)
         except Exception as e:
             logger.error("Error in create_new_song: %s", traceback.format_exc())
-            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+    return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
     
 @csrf_exempt
 async def get_song_by_id(request, song_id):
     if request.method == "GET":
         try:
             song = await sync_to_async(Song.objects.get)(_id=song_id)
+            
+            # Try to find the album that contains this song
+            try:
+                album = await sync_to_async(Album.objects.get)(songs__in=[song._id])
+
+                try:
+                    singer = await sync_to_async(SingerModel.objects.get)(id=album.singerId)
+                    serialized_album = {
+                        "id": str(album._id),
+                        "title": album.title,
+                        "singer": {
+                            "id": str(singer.id),
+                            "fullName": singer.fullName
+                        }
+                    }
+                except SingerModel.DoesNotExist:
+                    serialized_album = {
+                        "id": str(album._id),
+                        "title": album.title,
+                        "singer": None
+                    }
+            except Album.DoesNotExist:
+                serialized_album = None
 
             serialized_song = {
                 "_id": song._id,
@@ -213,18 +238,19 @@ async def get_song_by_id(request, song_id):
                 "createdBy": song.createdBy,
                 "approvedBy": song.approvedBy,
                 "slug": song.slug,
+                "album": serialized_album,
                 "createdAt": song.createdAt.isoformat() if song.createdAt else None,
                 "updatedAt": song.updatedAt.isoformat() if song.updatedAt else None,
             }
 
-            return JsonResponse({"data": serialized_song}, status=200)
+            return JsonResponse({"data": serialized_song, "message": "Get data successfully", "status": 200}, status=200)
         
         except Song.DoesNotExist:
-            return JsonResponse({"error": "Không tìm thấy bài hát!"}, status=404)
+            return JsonResponse({"error": "Không tìm thấy bài hát!", "status": 404}, status=404)
         except Exception as e:
             logger.error("Error in get_song_by_id: %s", traceback.format_exc())
-            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+    return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
 async def update_song_data(request, song_id):
@@ -337,14 +363,14 @@ async def update_song_data(request, song_id):
             song.updatedAt = datetime.now(UTC)
 
             await sync_to_async(song.save)()
-            return JsonResponse({"message": "Cập nhật bài hát thành công!", "id": song_id}, status=200)
+            return JsonResponse({"message": "Cập nhật bài hát thành công!", "id": song_id, "status": 200}, status=200)
 
         except json.JSONDecodeError:
-            return JsonResponse({"error": "Dữ liệu không hợp lệ!"}, status=400)
+            return JsonResponse({"message": "Dữ liệu không hợp lệ!", "status": 400}, status=400)
         except Exception as e:
             logger.error("Error in update_song_data: %s", traceback.format_exc())
-            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+    return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
 async def get_latest_song(request):
@@ -361,14 +387,14 @@ async def get_latest_song(request):
                 "updatedAt": song.updatedAt.isoformat() if song.updatedAt else None,
             }
 
-            return JsonResponse({"data": serialized_song}, status=200)
+            return JsonResponse({"data": serialized_song, "message": "Get data successfully", "status": 200}, status=200)
         
         except Song.DoesNotExist:
-            return JsonResponse({"error": "Không tìm thấy bài hát nào!"}, status=404)
+            return JsonResponse({"message": "Không tìm thấy bài hát nào!", "status": 404}, status=404)
         except Exception as e:
             logger.error("Error in get_latest_song: %s", traceback.format_exc())
-            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+    return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
 async def delete_song_data(request, song_id):
@@ -386,11 +412,11 @@ async def delete_song_data(request, song_id):
             return JsonResponse({"message": "Xóa bài hát thành công!", "status": 200}, status=200)
         
         except Song.DoesNotExist:
-            return JsonResponse({"error": "Không tìm thấy bài hát!"}, status=404)
+            return JsonResponse({"message": "Không tìm thấy bài hát!", "status": 404}, status=404)
         except Exception as e:
             logger.error("Error in delete_song_data: %s", traceback.format_exc())
-            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+    return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
 async def delete_multiple_songs(request):
@@ -409,16 +435,16 @@ async def delete_multiple_songs(request):
                     await sync_to_async(song.save)()
                 except Song.DoesNotExist:
                     logger.warning(f"Song with ID {song_id} not found. Skipping.")
-                    return JsonResponse({"error": f"Không tìm thấy bài hát với ID {song_id}!"}, status=404)
+                    return JsonResponse({"message": f"Không tìm thấy bài hát với ID {song_id}!", "status": 404}, status=404)
 
-            return JsonResponse({"message": "Xóa bài hát thành công!"}, status=200)
+            return JsonResponse({"message": "Xóa bài hát thành công!", "status": 200}, status=200)
         
         except Song.DoesNotExist:
-            return JsonResponse({"error": "Không tìm thấy bài hát!"}, status=404)
+            return JsonResponse({"message": "Không tìm thấy bài hát!", "status": 404}, status=404)
         except Exception as e:
             logger.error("Error in delete_multiple_songs: %s", traceback.format_exc())
-            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+    return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
 async def restore_multiple_songs(request):
@@ -437,16 +463,16 @@ async def restore_multiple_songs(request):
                     await sync_to_async(song.save)()
                 except Song.DoesNotExist:
                     logger.warning(f"Song with ID {song_id} not found. Skipping.")
-                    return JsonResponse({"error": f"Không tìm thấy bài hát với ID {song_id}!"}, status=404)
+                    return JsonResponse({"message": f"Không tìm thấy bài hát với ID {song_id}!", "status": 404}, status=404)
 
             return JsonResponse({"message": "Khôi phục bài hát thành công!", "status": 200}, status=200)
         
         except Song.DoesNotExist:
-            return JsonResponse({"error": "Không tìm thấy bài hát!"}, status=404)
+            return JsonResponse({"message": "Không tìm thấy bài hát!", "status": 404}, status=404)
         except Exception as e:
             logger.error("Error in restore_multiple_songs: %s", traceback.format_exc())
-            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+    return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
 async def get_all_pending_songs(request):
@@ -471,12 +497,12 @@ async def get_all_pending_songs(request):
                 for song in songs
             ]
 
-            return JsonResponse({"data": serialized_songs}, status=200)
+            return JsonResponse({"data": serialized_songs, "message": "Get data successfully", "status": 200}, status=200)
         
         except Exception as e:
             logger.error("Error in get_all_pending_song: %s", traceback.format_exc())
-            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}"}, status=500)
-    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+            return JsonResponse({"error": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+    return JsonResponse({"error": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
 async def get_number_of_top_liked_songs(request):
@@ -506,8 +532,8 @@ async def get_number_of_top_liked_songs(request):
             } for song in number_of_top_liked_songs]
             return JsonResponse({"data": data, "status": 200, "message": "Lấy bài hát thành công theo số lượng thành công!"}, status=200)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def get_number_of_top_play_count_songs(request):
@@ -537,21 +563,50 @@ async def get_number_of_top_play_count_songs(request):
             } for song in number_of_top_played_songs]
             return JsonResponse({"data": data, "status": 200, "message": "Lấy bài hát thành công theo số lượng thành công!"}, status=200)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def get_songs_by_topic(request, topic_slug):
     if request.method == "GET":
         try:
+            # Get topic and its songs
             topic = await sync_to_async(TopicModel.objects.get)(slug=topic_slug)
-            # Log the topic details using to_dict() method
             topic_dict = await sync_to_async(topic.to_dict)()
-
-            # Fix the filter syntax - use a dictionary for the filter criteria
+            
+            # Get all songs for this topic
             songs = await sync_to_async(list)(Song.objects.filter(topics__topicId=topic_dict['id'], deleted=False))
-            serialized_songs = [
-                {
+            
+            serialized_songs = []
+            for song in songs:
+                # Get all albums for this song
+                albums = await sync_to_async(list)(Album.objects.filter(songs__in=[song._id]))
+                
+                if albums:
+                    serialized_albums = []
+                    for album in albums:
+                        try:
+                            singer = await sync_to_async(SingerModel.objects.get)(id=album.singerId)
+                            serialized_album = {
+                                "id": str(album._id),
+                                "title": album.title,
+                                "singer": {
+                                    "id": str(singer.id),
+                                    "fullName": singer.fullName
+                                }
+                            }
+                        except SingerModel.DoesNotExist:
+                            serialized_album = {
+                                "id": str(album._id),
+                                "title": album.title,
+                                "singer": None
+                            }
+                        serialized_albums.append(serialized_album)
+                else:
+                    serialized_albums = []
+                
+                # Serialize the song
+                serialized_song = {
                     "_id": str(song._id),
                     "title": song.title,
                     "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
@@ -566,20 +621,62 @@ async def get_songs_by_topic(request, topic_slug):
                     "isPremiumOnly": song.isPremiumOnly,
                     "play_count": song.play_count,
                     "slug": song.slug,
+                    "albums": serialized_albums,  # Changed from 'album' to 'albums'
                     "createdAt": song.createdAt,
                     "updatedAt": song.updatedAt
-                } for song in songs
-            ]
-            return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
+                }
+                serialized_songs.append(serialized_song)
+            
+            return JsonResponse({
+                "data": serialized_songs,
+                "status": 200,
+                "message": "Lấy bài hát thành công!"
+            }, status=200)
+        
+        except TopicModel.DoesNotExist:
+            return JsonResponse({
+                "message": "Topic không tồn tại",
+                "status": 404
+            }, status=404)
+        
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405) 
+            return JsonResponse({
+                "message": f"Lỗi: {str(e)}",
+                "status": 500
+            }, status=500)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!"}, status=405) 
 
 @csrf_exempt
 async def get_song_by_slug(request, song_slug):
     if request.method == "GET":
         try:
             song = await sync_to_async(Song.objects.get)(slug=song_slug)
+            # Get all albums for this song
+            albums = await sync_to_async(list)(Album.objects.filter(songs__in=[song._id]))
+            
+            if albums:
+                serialized_albums = []
+                for album in albums:
+                    try:
+                        singer = await sync_to_async(SingerModel.objects.get)(id=album.singerId)
+                        serialized_album = {
+                            "id": str(album._id),
+                            "title": album.title,
+                            "singer": {
+                                "id": str(singer.id),
+                                "fullName": singer.fullName
+                            }
+                        }
+                    except SingerModel.DoesNotExist:
+                        serialized_album = {
+                            "id": str(album._id),
+                            "title": album.title,
+                            "singer": None
+                        }
+                    serialized_albums.append(serialized_album)
+            else:
+                serialized_albums = []
+
             song_serialized = {
                 "id": song._id,
                 "title": song.title,
@@ -595,15 +692,16 @@ async def get_song_by_slug(request, song_slug):
                 "isPremiumOnly": song.isPremiumOnly,
                 "play_count": song.play_count,
                 "slug": song.slug,
+                "albums": serialized_albums,
                 "createdAt": song.createdAt,
                 "updatedAt": song.updatedAt
             }
             return JsonResponse({"data": song_serialized, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
         except Song.DoesNotExist:
-            return JsonResponse({"error": "Bài hát không tồn tại!"}, status=404)
+            return JsonResponse({"message": "Bài hát không tồn tại!", "status": 404}, status=404)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e)}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def like_song(request, song_slug):
@@ -618,13 +716,13 @@ async def like_song(request, song_slug):
                 user_id = request.body.decode('utf-8')
             
             if not user_id:
-                return JsonResponse({"error": "User ID is required"}, status=400)
+                return JsonResponse({"message": "User ID is required", "status": 400}, status=400)
 
             # Get the song
             try:
                 song = await sync_to_async(Song.objects.get)(slug=song_slug)
             except Song.DoesNotExist:
-                return JsonResponse({"error": "Song not found"}, status=404)
+                return JsonResponse({"message": "Song not found", "status": 404}, status=404)
 
             try:
                 favorite_song = await sync_to_async(FavoriteSong.objects.get)(userId=user_id)
@@ -656,8 +754,8 @@ async def like_song(request, song_slug):
         
         except Exception as e:
             logger.error(traceback.format_exc())
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def increment_play_count(request, song_id):
@@ -670,8 +768,8 @@ async def increment_play_count(request, song_id):
             await sync_to_async(song.save)()
             return JsonResponse({"message": "Số lượt nghe tăng lên!", "status": 200}, status=200)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def filter_song(request):
@@ -723,8 +821,8 @@ async def filter_song(request):
             return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
         except Exception as e:
             print("Error in filter_song:", str(e))  # Add error logging
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def search_song(request):
@@ -752,8 +850,8 @@ async def search_song(request):
             
             return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def get_all_songs_by_singer(request):
@@ -763,13 +861,13 @@ async def get_all_songs_by_singer(request):
             singer_ids_str = request.GET.get('singer_ids', '')
             
             if not singer_ids_str:
-                return JsonResponse({"error": "Vui lòng cung cấp ít nhất một ca sĩ"}, status=400)
+                return JsonResponse({"message": "Vui lòng cung cấp ít nhất một ca sĩ", "status": 400}, status=400)
             
             # Split the comma-separated string into a list
             singer_ids = [id.strip() for id in singer_ids_str.split(',') if id.strip()]
             
             if not singer_ids:
-                return JsonResponse({"error": "Vui lòng cung cấp ít nhất một ca sĩ"}, status=400)
+                return JsonResponse({"message": "Vui lòng cung cấp ít nhất một ca sĩ", "status": 400}, status=400)
             
             # Use MongoDB's $in operator to find songs by multiple singers
             songs = await sync_to_async(list)(Song.objects.filter(
@@ -800,8 +898,8 @@ async def get_all_songs_by_singer(request):
             }, status=200)
         except Exception as e:
             logger.error("Error in get_all_songs_by_singer: %s", traceback.format_exc())
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def get_all_available_songs(request):
@@ -821,8 +919,8 @@ async def get_all_available_songs(request):
             } for song in songs]
             return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def filter_pending_songs(request):
@@ -874,8 +972,8 @@ async def filter_pending_songs(request):
 
             return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def approve_multiple_songs(request):
@@ -894,12 +992,12 @@ async def approve_multiple_songs(request):
                     song.updatedAt = datetime.now(UTC)
                     await sync_to_async(song.save)()
                 except Exception as e:
-                    return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt bài hát!"}, status=400) 
+                    return JsonResponse({"message": str(e), "message": "Lỗi khi phê duyệt bài hát!", "status": 400}, status=400) 
             return JsonResponse({"message": "Bài hát đã được phê duyệt!", "status": 200}, status=200)
 
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def reject_multiple_songs(request):
@@ -918,12 +1016,12 @@ async def reject_multiple_songs(request):
                     song.updatedAt = datetime.now(UTC)
                     await sync_to_async(song.save)()
                 except Exception as e:
-                    return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối bài hát!"}, status=400)
+                    return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối bài hát!", "status": 400}, status=400)
             return JsonResponse({"message": "Bài hát đã được từ chối!", "status": 200}, status=200)
         
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def approve_song(request, song_id):
@@ -944,8 +1042,8 @@ async def approve_song(request, song_id):
             await sync_to_async(song.save)()
             return JsonResponse({"message": "Bài hát đã được phê duyệt!", "status": 200}, status=200)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
 
 @csrf_exempt
 async def reject_song(request, song_id):
@@ -966,5 +1064,34 @@ async def reject_song(request, song_id):
             await sync_to_async(song.save)()
             return JsonResponse({"message": "Bài hát đã được từ chối!", "status": 200}, status=200)
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+            return JsonResponse({"message": str(e), "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+
+@csrf_exempt
+async def check_song_is_liked_by_user(request):
+    if request.method == "GET":
+        try:
+            # Get user ID and song ID from query parameters
+            user_id = request.GET.get('id')
+            song_id = request.GET.get('songId')
+
+            if not user_id:
+                return JsonResponse({"message": "User ID is required", "status": 400}, status=400)
+            
+            if not song_id:
+                return JsonResponse({"message": "Song ID is required", "status": 400}, status=400)
+
+            # Get favorite songs for the user
+            try:
+                favorite_songs = await sync_to_async(FavoriteSong.objects.get)(userId=user_id)
+                # Check if the song exists in the user's favorites
+                is_liked = song_id in favorite_songs.songId
+                return JsonResponse({"isLiked": is_liked, "status": 200, "message": "Get data succesfully"}, status=200)
+            except FavoriteSong.DoesNotExist:
+                # If user has no favorites, the song is not liked
+                return JsonResponse({"isLiked": False, "status": 200, "message": "Get data succesfully"}, status=200)
+        
+        except Exception as e:
+            logger.error("Error in check_song_is_liked_by_user: %s", traceback.format_exc())
+            return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)

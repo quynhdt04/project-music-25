@@ -98,6 +98,7 @@ export async function getUserById(_id) {
     throw error;
   }
 }
+
 export async function editProfile(userId, updatedData) {
   console.log(
     "📤 Dữ liệu gửi lên backend:",
@@ -158,43 +159,3 @@ export const editProfileWithAvatar = async (userId, avatarFile) => {
     throw error;
   }
 };
-
-export const updatePremiumStatus = async (userId, isPremium) => {
-  try {
-    const response = await axios.post(
-      'http://localhost:8000/update-premium-status',
-      { userId, isPremium },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': Cookies.get('csrftoken'),
-        },
-        withCredentials: true, // Bắt buộc để gửi cookie
-      }
-    );
-    console.log("✅ Cập nhật trạng thái Premium thành công:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Lỗi khi cập nhật trạng thái Premium:", error.response?.data || error);
-    throw error;
-  }
-};
-
-export const checkAndUpdatePremiumStatus = async (userId, premiumExpiresAt, dispatch) => {
-  const now = new Date();
-  const expiry = new Date(premiumExpiresAt);
-
-  if (expiry < now) {
-    try {
-      const updatedUser = await updatePremiumStatus(userId, false);
-      dispatch(updateUser(updatedUser));
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      toast.info("🌟 Gói Premium của bạn đã hết hạn.");
-
-      return updatedUser;
-    } catch (error) {
-      console.error("❌ Lỗi khi cập nhật Premium hết hạn:", error);
-    }
-  }
-};
-

@@ -76,7 +76,7 @@ export const allRoutes = [
             element: <PlayList />,
           },
           {
-            path: "playlist/detail",
+            path: "playlist/detail/:id",
             element: <PlayListDetail />,
           },
         ],

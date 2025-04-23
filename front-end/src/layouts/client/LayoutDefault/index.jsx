@@ -47,6 +47,7 @@ function LayoutDefault() {
     navigate("/");
     setMenuOpen(false);
   };
+
   const handleLoginSuccess = (user) => {
     const token = sessionStorage.getItem("token");
     if (user && user.id && token) {
@@ -124,8 +125,8 @@ function LayoutDefault() {
       icon: <FaMusic />,
       label: <Link to="/songs">Danh sách bài hát</Link>,
     },
-    ...(isLogin
-      ? [
+    // ...(isLogin
+      // ? [
           {
             key: "music-love",
             icon: <FaHeart />,
@@ -136,8 +137,8 @@ function LayoutDefault() {
             icon: <FaList />,
             label: <Link to="/playlist">Danh sách phát nhạc</Link>,
           },
-        ]
-      : []),
+        // ]
+      // : []),
     { key: "bxh", icon: <FaChartBar />, label: <Link to="/bxh">BXH</Link> },
   ];
   return (
@@ -265,7 +266,8 @@ function LayoutDefault() {
       {showEditForm && user && user.id && (
         <EditProfileForm onClose={() => setShowEditForm(false)} user={user} />
       )}
-      <footer className="footer"></footer>
+      <footer className="footer">
+      </footer>
     </>
   );
 }

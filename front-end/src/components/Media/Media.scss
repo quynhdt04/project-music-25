@@ -88,6 +88,10 @@
           &:hover {
             color: #c273ed;
           }
+
+          &.liked {
+            color: #c273ed;
+          }
         }
       }
     }
@@ -95,6 +99,44 @@
     &:hover .song-actions .like-button,
     &:hover .song-actions .more-button {
       opacity: 1;
+    }
+
+    .dropdown-toggle::after {
+      display: none;
+    }
+
+    .custom-dropdown-menu {
+      background: #231b2e !important;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      min-width: 200px;
+      padding: 0.5rem 0;
+      inset: 0px -11px auto auto !important;
+
+      .dropdown-item {
+        color: #ffffff;
+        font-size: 14px;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+
+        svg {
+          font-size: 1.2em;
+          margin-right: 8px;
+        }
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.1);
+          color: #c273ed;
+        }
+
+        &:active {
+          background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        &:focus {
+          background-color: transparent;
+        }
+      }
     }
   }
 }

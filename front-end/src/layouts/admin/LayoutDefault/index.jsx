@@ -21,18 +21,18 @@ import { Menu } from "antd";
 import "./LayoutDefault.css";
 
 const menuItems = [
-  { menuKey: "dashboard", key: "dashboard", icon: <FaTachometerAlt />, label: <Link to="/admin/dashboard">Tổng quan</Link> },
-  { menuKey: "topic_view", key: "topic_view", icon: <FaTags />, label: <Link to="/admin/topics">Chủ đề</Link> },
-  { menuKey: "singer_view", key: "singer_view", icon: <FaMicrophone />, label: <Link to="/admin/singers">Ca sĩ</Link> },
-  { menuKey: "song_view", key: "song_view", icon: <FaMusic />, label: <Link to="/admin/songs">Bài hát</Link> },
-  { menuKey: "songs-approval_view", key: "songs-approval_view", icon: <FaMusic />, label: <Link to="/admin/songs-approval">Duyệt bài hát</Link> },
-  { menuKey: "albums-approval_view", key: "albums-approval_view", icon: <JournalAlbum />, label: <Link to="/admin/albums-approval">Duyệt album</Link> },
-  { menuKey: "user_view", key: "user_view", icon: <FaUsers />, label: <Link to="/admin/users">Người dùng</Link> },
-  { menuKey: "account_view", key: "account_view", icon: <FaUserTie />, label: <Link to="/admin/accounts">Tài khoản</Link> },
-  { menuKey: "role_1", key: "role", icon: <FaUserShield />, label: <Link to="/admin/roles">Nhóm quyền</Link> },
-  { menuKey: "role_2", key: "role", icon: <FaUnlockAlt />, label: <Link to="/admin/roles/permissions">Phân quyền</Link> },
-  { menuKey: "conversation_view", key: "conversation_view", icon: <FaComments />, label: <Link to="/admin/conversations">Trò chuyện</Link> },
-  { menuKey: "general_view", key: "general_view", icon: <FaCog />, label: <Link to="/admin/general">Cài đặt chung</Link> },
+  { key: "dashboard", role: "dashboard", icon: <FaTachometerAlt />, label: <Link to="/admin/dashboard">Tổng quan</Link> },
+  { key: "topic_view", role: "topic_view", icon: <FaTags />, label: <Link to="/admin/topics">Chủ đề</Link> },
+  { key: "singer_view", role: "singer_view", icon: <FaMicrophone />, label: <Link to="/admin/singers">Ca sĩ</Link> },
+  { key: "song_view", role: "song_view", icon: <FaMusic />, label: <Link to="/admin/songs">Bài hát</Link> },
+  { key: "songs-approval_view", role: "songs-approval_view", icon: <FaMusic />, label: <Link to="/admin/songs-approval">Duyệt bài hát</Link> },
+  { key: "albums-approval_view", role: "albums-approval_view", icon: <JournalAlbum />, label: <Link to="/admin/albums-approval">Duyệt album</Link> },
+  { key: "user_view", role: "user_view", icon: <FaUsers />, label: <Link to="/admin/users">Người dùng</Link> },
+  { key: "account_view", role: "account_view", icon: <FaUserTie />, label: <Link to="/admin/accounts">Tài khoản</Link> },
+  { key: "role_1", role: "role", icon: <FaUserShield />, label: <Link to="/admin/roles">Nhóm quyền</Link> },
+  { key: "role_2", role: "role", icon: <FaUnlockAlt />, label: <Link to="/admin/roles/permissions">Phân quyền</Link> },
+  { key: "conversation_view", role: "conversation_view", icon: <FaComments />, label: <Link to="/admin/conversations">Trò chuyện</Link> },
+  { key: "general_view", role: "general_view", icon: <FaCog />, label: <Link to="/admin/general">Cài đặt chung</Link> },
 ];
 
 function LayoutDefault() {
@@ -56,7 +56,7 @@ function LayoutDefault() {
           items={menuItems
             .filter(
               (item) =>
-                role?.permissions?.includes(item.key) || item.key == "dashboard"
+                role?.permissions?.includes(item.role) || item.key == "dashboard"
             )
             .map((item) => ({ ...item, key: item.menuKey }))}
         />
