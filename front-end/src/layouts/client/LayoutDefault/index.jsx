@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, Bounce } from "react-toastify";
 import "./LayoutDefault.css";
 import { IoIosLogOut } from "react-icons/io";
 import { FaRegUser } from "react-icons/fa";
@@ -13,6 +13,7 @@ import { GiMusicalScore } from "react-icons/gi";
 import { Menu } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import { updateUser } from "../../../reducers/index";
+import dayjs from "dayjs";
 
 function LayoutDefault() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -29,12 +30,12 @@ function LayoutDefault() {
   const user = useSelector((state) => state.authenReducer.user);
   const isLogin = Boolean(user);
   const isPremium = user?.isPremium;
+  const [checkedPremium, setCheckedPremium] = useState(false);
 
   const handleRegisterSuccess = () => {
     setShowRegisterForm(false);
     setShowLoginForm(false);
   };
-
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
     sessionStorage.removeItem("user");
@@ -58,6 +59,7 @@ function LayoutDefault() {
       });
     }
     setShowLoginForm(false);
+    setCheckedPremium(false);
   };
 
   const closeModal = () => {
@@ -86,6 +88,34 @@ function LayoutDefault() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (user && !checkedPremium) {
+      const premiumExpiresAt = dayjs(user?.premiumExpiresAt);
+      const currentDate = dayjs();
+
+      // Kiểm tra ngày hết hạn nếu có sự thay đổi
+      if (!premiumExpiresAt.isValid()) {
+        // toast.warning("Thông tin gói Premium không hợp lệ.");
+        setCheckedPremium(true);
+        return;
+      }
+
+      // Nếu ngày hết hạn đã qua
+      if (currentDate.isAfter(premiumExpiresAt)) {
+        toast.warning("Gói Premium đã hết hạn", {
+          transition: Bounce,
+        });
+
+        // sessionStorage.removeItem("user");
+        // sessionStorage.removeItem("token");
+        // dispatch({ type: "LOGOUT" });
+        setShowLoginForm(true);
+      } else {
+        setCheckedPremium(true); // Đánh dấu đã kiểm tra
+      }
+    }
+  }, [user, checkedPremium, dispatch]); // Cập nhật khi user thay đổi
 
   const menuItems = [
     { key: "home", icon: <FaHome />, label: <Link to="/">Trang chủ</Link> },

@@ -117,6 +117,7 @@ const PaymentReturn = () => {
             <p>vnp_ResponseCode: {data.vnp_ResponseCode} - Lỗi</p>
           )}
           {data.msg && <p className="alert-warning">{data.msg}</p>}
+          <div style={{ textAlign: "center", marginTop: "20px" }}>
           <button
             className="go-back-home-btn"
             onClick={() => navigate("/")}
@@ -134,6 +135,7 @@ const PaymentReturn = () => {
           >
             Quay lại trang chủ
           </button>
+          </div>
         </div>
       </div>
     </div>

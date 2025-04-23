@@ -169,6 +169,12 @@ def login_user(request):
             
             print("User avatar:", user.avatar) # Kiểm tra user.avatar
             print("User object:", user) # Kiểm tra toàn bộ object user
+
+                    # 🔁 Tự động cập nhật isPremium nếu hết hạn
+            if user.premiumExpiresAt and user.premiumExpiresAt < datetime.datetime.utcnow():
+                user.isPremium = False
+                user.save()
+
             return JsonResponse({
                 "message": "Đăng nhập thành công",
                 "token": token,
@@ -198,6 +204,12 @@ def get_user_by_id(request, _id):
     try:
         user = User.objects.get(id=_id, deleted=False)  # MongoEngine dùng "id" thay vì "_id"
         print("Avatar từ DB:", user.avatar)
+
+                # 🔁 Tự động cập nhật isPremium nếu hết hạn
+        if user.premiumExpiresAt and user.premiumExpiresAt < datetime.datetime.utcnow():
+            user.isPremium = False
+            user.save()
+
         user_data = {
             "id": str(user.id),  # Chuyển ObjectId thành chuỗi
             "fullName": user.fullName,
