@@ -26,23 +26,55 @@ async def list_all_song(request):
             songs = await sync_to_async(Song.objects.all)()
             songs = await sync_to_async(list)(songs)
 
-            # Serialize the songs into JSON-compatible data
-            serialized_songs = [
-                {
+            serialized_songs = []
+            for song in songs:
+                # Get all albums for this song
+                albums = await sync_to_async(list)(Album.objects.filter(songs__in=[song._id]))
+                
+                if albums:
+                    serialized_albums = []
+                    for album in albums:
+                        try:
+                            singer = await sync_to_async(SingerModel.objects.get)(id=album.singerId)
+                            serialized_album = {
+                                "id": str(album._id),
+                                "title": album.title,
+                                "singer": {
+                                    "id": str(singer.id),
+                                    "fullName": singer.fullName
+                                }
+                            }
+                        except SingerModel.DoesNotExist:
+                            serialized_album = {
+                                "id": str(album._id),
+                                "title": album.title,
+                                "singer": None
+                            }
+                        serialized_albums.append(serialized_album)
+                else:
+                    serialized_albums = []
+                
+                # Serialize the song
+                serialized_song = {
                     "_id": str(song._id),
                     "title": song.title,
-                    "singers": [
-            {"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers
-        ],  # Serialize each Singer object
+                    "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                    "topics": [{"topicId": topic.topicId, "topicName": topic.topicName} for topic in song.topics],
                     "like": song.like,
+                    "lyrics": [{"lyricContent": lyric.lyricContent, "lyricStartTime": lyric.lyricStartTime, "lyricEndTime": lyric.lyricEndTime} for lyric in song.lyrics],
                     "status": song.status,
-                    "deleted": song.deleted,
-                    "createdAt": song.createdAt,
-                    "updatedAt": song.updatedAt,
+                    "avatar": song.avatar,
+                    "audio": song.audio,
+                    "video": song.video,
+                    "description": song.description,
+                    "isPremiumOnly": song.isPremiumOnly,
+                    "play_count": song.play_count,
                     "slug": song.slug,
+                    "albums": serialized_albums,  # Changed from 'album' to 'albums'
+                    "createdAt": song.createdAt,
+                    "updatedAt": song.updatedAt
                 }
-                for song in songs
-            ]
+                serialized_songs.append(serialized_song)
 
             return JsonResponse({"data": serialized_songs, "message": "Get all songs successfully", "status": 200}, status=200)
         
@@ -188,68 +220,55 @@ async def get_song_by_id(request, song_id):
             song = await sync_to_async(Song.objects.get)(_id=song_id)
             
             # Try to find the album that contains this song
-            try:
-                album = await sync_to_async(Album.objects.get)(songs__in=[song._id])
-
-                try:
-                    singer = await sync_to_async(SingerModel.objects.get)(id=album.singerId)
-                    serialized_album = {
-                        "id": str(album._id),
-                        "title": album.title,
-                        "singer": {
-                            "id": str(singer.id),
-                            "fullName": singer.fullName
+            albums = await sync_to_async(list)(Album.objects.filter(songs__in=[song._id]))
+            
+            if albums:
+                serialized_albums = []
+                for album in albums:
+                    try:
+                        singer = await sync_to_async(SingerModel.objects.get)(id=album.singerId)
+                        serialized_album = {
+                            "id": str(album._id),
+                            "title": album.title,
+                            "singer": {
+                                "id": str(singer.id),
+                                "fullName": singer.fullName
+                            }
                         }
-                    }
-                except SingerModel.DoesNotExist:
-                    serialized_album = {
-                        "id": str(album._id),
-                        "title": album.title,
-                        "singer": None
-                    }
-            except Album.DoesNotExist:
-                serialized_album = None
+                    except SingerModel.DoesNotExist:
+                        serialized_album = {
+                            "id": str(album._id),
+                            "title": album.title,
+                            "singer": None
+                        }
+                    serialized_albums.append(serialized_album)
+            else:
+                serialized_albums = []
 
-            serialized_song = {
-                "_id": song._id,
+            song_serialized = {
+                "id": song._id,
                 "title": song.title,
+                "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                "topics": [{"topicId": topic.topicId, "topicName": topic.topicName} for topic in song.topics],
+                "like": song.like,
+                "lyrics": [{"lyricContent": lyric.lyricContent, "lyricStartTime": lyric.lyricStartTime, "lyricEndTime": lyric.lyricEndTime} for lyric in song.lyrics],
+                "status": song.status,
                 "avatar": song.avatar,
                 "audio": song.audio,
                 "video": song.video,
                 "description": song.description,
-                "singers": [
-                    {"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers
-                ],
-                "topics": [
-                    {"topicId": topic.topicId, "topicName": topic.topicName} for topic in song.topics
-                ],
-                "like": song.like,
-                "lyrics": [
-                    {
-                        "lyricContent": lyric.lyricContent,
-                        "lyricStartTime": lyric.lyricStartTime,
-                        "lyricEndTime": lyric.lyricEndTime,
-                    }
-                    for lyric in song.lyrics
-                ],
-                "status": song.status,
-                "deleted": song.deleted,
                 "isPremiumOnly": song.isPremiumOnly,
-                "createdBy": song.createdBy,
-                "approvedBy": song.approvedBy,
+                "play_count": song.play_count,
                 "slug": song.slug,
-                "album": serialized_album,
-                "createdAt": song.createdAt.isoformat() if song.createdAt else None,
-                "updatedAt": song.updatedAt.isoformat() if song.updatedAt else None,
+                "albums": serialized_albums,
+                "createdAt": song.createdAt,
+                "updatedAt": song.updatedAt
             }
-
-            return JsonResponse({"data": serialized_song, "message": "Get data successfully", "status": 200}, status=200)
-        
+            return JsonResponse({"data": song_serialized, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
         except Song.DoesNotExist:
-            return JsonResponse({"error": "Không tìm thấy bài hát!", "status": 404}, status=404)
+            return JsonResponse({"message": "Bài hát không tồn tại!", "status": 404}, status=404)
         except Exception as e:
-            logger.error("Error in get_song_by_id: %s", traceback.format_exc())
-            return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
+            return JsonResponse({"message": str(e)}, status=400)
     return JsonResponse({"message": "Chức năng đang được phát triển", "status": 501}, status=501)
 
 @csrf_exempt
