@@ -91,7 +91,7 @@
 
 .header .user-menu {
   position: relative;
-  display: inline-block;
+  display: flex;
 }
 
 .header .user-menu img {
@@ -209,7 +209,7 @@ main {
 .modal-thuytrang .modal-content {
   /* background: white; */
   padding: 20px;
-  width: 350px;
+  width: 450px;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   text-align: center;
@@ -222,6 +222,7 @@ main {
       rgba(12, 12, 12, 0.801) 100%
     ),
     #4a1f8a !important;
+
 }
 
 /* Hiệu ứng fade-in */
@@ -311,11 +312,8 @@ main {
   position: relative;
   display: inline-block;
 }
-.menu-item {
-  /* background: #7497dc; */
-}
 
-.dropdown-menu {
+.user-menu .dropdown-menu {
   position: absolute;
   right: 10px;
   background: white;
@@ -342,7 +340,7 @@ main {
   will-change: unset !important;
   border: 1px solid #ccc;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.235);
+  background: rgb(56, 39, 91);
   color: #f0f0f0;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
@@ -393,4 +391,16 @@ main {
     font-size: 12px !important ; /* Bạn có thể thay đổi giá trị này tùy ý */
     color: red; /* Đổi màu chữ để hiển thị thông báo lỗi rõ ràng */
     margin: 2px !important; /* Khoảng cách giữa input và lỗi */
+}
+.upgrade-button {
+    background:
+    #6414dc ;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-right: 30px;
+   
 }

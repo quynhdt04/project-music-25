@@ -22,8 +22,7 @@ class User(Document):
     deleted = BooleanField(default=False)
     deletedAt = DateTimeField(default=None)
     isPremium = BooleanField(default=False)  # Mặc định là False
-    premiumExpiresAt = DateTimeField(default=lambda: datetime.datetime.utcnow() + datetime.timedelta(days=365))  # Mặc định là 365 ngày  sau khi tạo tài khoản
-    # premiumExpiresAt = DateTimeField(default=None)  
+    premiumExpiresAt = DateTimeField(default=None)
 
     # Tự động thêm timestamps 
     createdAt = DateTimeField(default=datetime.datetime.utcnow)

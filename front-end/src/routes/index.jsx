@@ -36,7 +36,12 @@ import PlayListDetail from "../pages/client/PlayList/PlayListDetail";
 import CreateUser from "../pages/admin/User/createUser";
 import EditUser from "../pages/admin/User/editUser";
 import UserDetail from "../pages/admin/User/userDetail";
+import Conversation from "../pages/admin/Conversation/";
 
+import Vip from "../pages/client/Vip";
+import IndexPage from "../pages/client/VnpayPage/index";
+import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
+import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
 export const allRoutes = [
   // Routes cho Client
   {
@@ -71,7 +76,7 @@ export const allRoutes = [
             element: <PlayList />,
           },
           {
-            path: "playlist/detail",
+            path: "playlist/detail/:id",
             element: <PlayListDetail />,
           },
         ],
@@ -84,8 +89,25 @@ export const allRoutes = [
         path: "/profile/:userId",
         element: <Profile />,
       },
+      {
+        path: "/vip",
+        element: <Vip />,
+      },
     ],
   },
+    // Route  cho  Payment
+    {
+      path: "/index", // Đường dẫn tới IndexPage
+      element: <IndexPage title="Trang Chính" />, // Pass title as prop
+    },
+    {
+      path: "/payment", 
+      element: <PaymentForm />, 
+    },  
+    {
+      path: "/payment_return", 
+      element: <PaymentReturn />, 
+    },
 
   // Routes cho Admin
   {
@@ -186,6 +208,14 @@ export const allRoutes = [
           {
             path: ":managementPage/:action?/:id?",
             element: <MainContent />,
+          },
+          // {
+          //   path: "songs/:action?/:id?",
+          //   element: <SongFormManagementPage />,
+          // },
+          {
+            path: "conversations",
+            element: <Conversation />,
           },
         ],
       },

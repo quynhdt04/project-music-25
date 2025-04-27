@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, Bounce } from "react-toastify";
 import "./LayoutDefault.css";
 import { IoIosLogOut } from "react-icons/io";
 import { FaRegUser } from "react-icons/fa";
@@ -12,6 +12,8 @@ import { FaHome, FaMusic, FaHeart, FaList, FaChartBar } from "react-icons/fa";
 import { GiMusicalScore } from "react-icons/gi";
 import { Menu } from "antd";
 import { useSelector, useDispatch } from "react-redux";
+import { updateUser } from "../../../reducers/index";
+import dayjs from "dayjs";
 
 function LayoutDefault() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -26,20 +28,20 @@ function LayoutDefault() {
   const dispatch = useDispatch();
   const [selectedMenuKey, setSelectedMenuKey] = useState("home");
   const user = useSelector((state) => state.authenReducer.user);
+  const isLogin = Boolean(user);
+  const isPremium = user?.isPremium;
+  const [checkedPremium, setCheckedPremium] = useState(false);
 
   const handleRegisterSuccess = () => {
     setShowRegisterForm(false);
     setShowLoginForm(false);
   };
-
-  const isLogin = Boolean(user);
-  console.log("isLogin", isLogin);
-
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     toast.success("Bạn đã đăng xuất");
     setShowLoginForm(false);
     navigate("/");
@@ -47,16 +49,33 @@ function LayoutDefault() {
   };
 
   const handleLoginSuccess = (user) => {
-    if (user && user.id) {
-      dispatch({ type: "USER", value: user }); // Đảm bảo chỉ dispatch khi có user hợp lệ
+    const token = sessionStorage.getItem("token");
+    if (user && user.id && token) {
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: {
+          user,
+          token,
+        },
+      });
     }
     setShowLoginForm(false);
+    setCheckedPremium(false);
   };
 
   const closeModal = () => {
     setShowRegisterForm(false);
     setShowLoginForm(true);
   };
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser).user;
+      dispatch(updateUser(user));
+    }
+  }, [dispatch]);
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -71,6 +90,34 @@ function LayoutDefault() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (user && !checkedPremium) {
+      const premiumExpiresAt = dayjs(user?.premiumExpiresAt);
+      const currentDate = dayjs();
+
+      // Kiểm tra ngày hết hạn nếu có sự thay đổi
+      if (!premiumExpiresAt.isValid()) {
+        // toast.warning("Thông tin gói Premium không hợp lệ.");
+        setCheckedPremium(true);
+        return;
+      }
+
+      // Nếu ngày hết hạn đã qua
+      if (currentDate.isAfter(premiumExpiresAt)) {
+        toast.warning("Gói Premium đã hết hạn", {
+          transition: Bounce,
+        });
+
+        // sessionStorage.removeItem("user");
+        // sessionStorage.removeItem("token");
+        // dispatch({ type: "LOGOUT" });
+        setShowLoginForm(true);
+      } else {
+        setCheckedPremium(true); // Đánh dấu đã kiểm tra
+      }
+    }
+  }, [user, checkedPremium, dispatch]); // Cập nhật khi user thay đổi
+
   const menuItems = [
     { key: "home", icon: <FaHome />, label: <Link to="/">Trang chủ</Link> },
     {
@@ -78,8 +125,8 @@ function LayoutDefault() {
       icon: <FaMusic />,
       label: <Link to="/songs">Danh sách bài hát</Link>,
     },
-    ...(isLogin
-      ? [
+    // ...(isLogin
+      // ? [
           {
             key: "music-love",
             icon: <FaHeart />,
@@ -90,11 +137,10 @@ function LayoutDefault() {
             icon: <FaList />,
             label: <Link to="/playlist">Danh sách phát nhạc</Link>,
           },
-        ]
-      : []),
+        // ]
+      // : []),
     { key: "bxh", icon: <FaChartBar />, label: <Link to="/bxh">BXH</Link> },
   ];
-
   return (
     <>
       <div className="app-container">
@@ -118,6 +164,17 @@ function LayoutDefault() {
               <input type="text" placeholder="Tìm kiếm bài hát, nghệ sĩ..." />
             </div>
             <div className="user-menu" ref={menuRef}>
+              {isLogin &&
+                (isPremium ? (
+                  <button className="upgrade-button">🌟 Premium</button>
+                ) : (
+                  <button
+                    className="upgrade-button"
+                    onClick={() => navigate("/vip")}
+                  >
+                    Nâng cấp tài khoản
+                  </button>
+                ))}
               <img
                 src={
                   user?.avatar ||
@@ -209,7 +266,8 @@ function LayoutDefault() {
       {showEditForm && user && user.id && (
         <EditProfileForm onClose={() => setShowEditForm(false)} user={user} />
       )}
-      <footer className="footer"></footer>
+      <footer className="footer">
+      </footer>
     </>
   );
 }

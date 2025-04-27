@@ -54,8 +54,8 @@ function Permissions() {
                     toast.error('Cập nhật quyền thất bại!', { transition: Bounce });
                 }
             }
-            
-            if(successCount > 0){
+
+            if (successCount > 0) {
                 toast.success('Cập nhật quyền thành công!', { transition: Bounce });
             }
         }
@@ -66,9 +66,15 @@ function Permissions() {
             roles.forEach((record, index) => {
                 record.permissions.forEach(permission => {
                     const row = document.querySelector(`[data-name="${permission}"]`);
-                    const inputs = row.querySelectorAll("input");
-                    const input = inputs[index];
-                    input.checked = true;
+                    if (row) {
+                        const inputs = row.querySelectorAll("input");
+                        const input = inputs[index];
+                        if (input) {
+                            input.checked = true;
+                        }
+                    } else {
+                        console.warn(`Không tìm thấy hàng có data-name="${permission}"`);
+                    }
                 });
             });
         }
@@ -316,10 +322,22 @@ function Permissions() {
                                 <td key={index}><input type="checkbox" /></td>
                             ))}
                         </tr>
+                        <tr data-name="dashboard">
+                            <td style={{ fontWeight: "bold" }}>Tổng quan</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
                         <tr data-name="role">
+                            <td style={{ fontWeight: "bold" }}>Trò chuyện</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="conversation_view">
                             <td style={{ fontWeight: "bold" }}>Phân quyền & Nhóm quyền</td>
                             {roles.map((item, index) => (
-                                    <td key={index}><input type="checkbox" /></td>
+                                <td key={index}><input type="checkbox" /></td>
                             ))}
                         </tr>
                     </tbody>
