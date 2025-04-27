@@ -296,33 +296,6 @@ function Permissions() {
                             ))}
                         </tr>
                         <tr>
-                            <td colSpan="3"><b>Trò chuyện</b></td>
-                        </tr>
-                        <tr data-name="conversation_view">
-                            <td>Xem</td>
-                            {roles.map((item, index) => (
-                                <td key={index}><input type="checkbox" /></td>
-                            ))}
-                        </tr>
-                        <tr data-name="conversation_create">
-                            <td>Thêm mới</td>
-                            {roles.map((item, index) => (
-                                <td key={index}><input type="checkbox" /></td>
-                            ))}
-                        </tr>
-                        <tr data-name="conversation_edit">
-                            <td>Chỉnh sửa</td>
-                            {roles.map((item, index) => (
-                                <td key={index}><input type="checkbox" /></td>
-                            ))}
-                        </tr>
-                        <tr data-name="conversation_del">
-                            <td>Xóa</td>
-                            {roles.map((item, index) => (
-                                <td key={index}><input type="checkbox" /></td>
-                            ))}
-                        </tr>
-                        <tr>
                             <td colSpan="3"><b>Cài đặt chung</b></td>
                         </tr>
                         <tr data-name="general_view">
@@ -349,7 +322,19 @@ function Permissions() {
                                 <td key={index}><input type="checkbox" /></td>
                             ))}
                         </tr>
+                        <tr data-name="dashboard">
+                            <td style={{ fontWeight: "bold" }}>Tổng quan</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
                         <tr data-name="role">
+                            <td style={{ fontWeight: "bold" }}>Trò chuyện</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="conversation_view">
                             <td style={{ fontWeight: "bold" }}>Phân quyền & Nhóm quyền</td>
                             {roles.map((item, index) => (
                                 <td key={index}><input type="checkbox" /></td>

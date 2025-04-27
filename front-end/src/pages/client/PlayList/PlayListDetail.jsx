@@ -6,7 +6,7 @@ import { IoAddOutline } from "react-icons/io5";
 import DropupMenu from "../../../components/DropupMenu";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { get_play_list_by_id } from "../../../services/PlayListServices";
+import { add_song_to_playlist, get_play_list_by_id } from "../../../services/PlayListServices";
 import { get_all_songs, get_song_by_id } from "../../../services/SongServices";
 import { useSelector } from "react-redux";
 import { create_favoriteSong, get_favoriteSong } from "../../../services/FavoriteSongServices";
@@ -15,20 +15,68 @@ function PlayListDetail() {
 
     const params = useParams();
     const [data, setData] = useState([]);
-    const [favoriteSong, setFavoriteSong] = useState([]);
     const [randomSongs, setRandomSongs] = useState([]);
     const [refresh, setRefresh] = useState(false);
     const [refreshFavoriteSong, setRefreshFavoriteSong] = useState(false);
+    const [refreshAddSong, setRefreshAddSong] = useState(false);
     const user = useSelector((state) => state.authenReducer.user);
 
+    const getAudioDuration = (audioUrl) => {
+        return new Promise((resolve) => {
+            const audio = new Audio();
+
+            audio.addEventListener("error", () => {
+                console.error("Error loading audio:", audioUrl);
+                resolve(0);
+            });
+
+            const timeout = setTimeout(() => {
+                console.warn("Audio metadata loading timed out:", audioUrl);
+                resolve(0);
+            }, 5000);
+
+            audio.addEventListener("loadedmetadata", () => {
+                clearTimeout(timeout);
+                resolve(audio.duration);
+            });
+
+            audio.src = audioUrl;
+        });
+    };
+
+    const formatDuration = (seconds) => {
+        if (!seconds || isNaN(seconds)) return "00:00";
+
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+
+        return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+            .toString()
+            .padStart(2, "0")}`;
+    };
 
     useEffect(() => {
         const fetchApi = async () => {
             const album = await get_play_list_by_id(params.id);
             const favoriteSongs = await get_favoriteSong(user.id);
 
+
             const songDetails = await Promise.all(
-                album.playlist.songs.map((songId) => get_song_by_id(songId))
+                album.playlist.songs.map(async (songId) => {
+                    const song = await get_song_by_id(songId);
+                    console.log("Thông tin bài hát vừa fetch:", song);
+                    
+                    const durationSeconds = await getAudioDuration(song.audio);
+
+                    const formattedDuration = formatDuration(durationSeconds);
+
+                    console.log("Duration dạng giây:", durationSeconds); 
+                    console.log("Duration đã format:", formattedDuration);
+                    return {
+                        ...song,
+                        duration: formattedDuration, 
+                    };
+                })
             );
 
             const updatedSongs = songDetails.map((song) => ({
@@ -42,34 +90,8 @@ function PlayListDetail() {
             setData(updatedSongs);
         };
         fetchApi();
-    }, [refreshFavoriteSong]);
-
-
-    // useEffect(() => {
-    //     const fetchRandomSongs = async () => {
-    //         const allSongs = await get_all_songs();
-
-    //         const existingSongIds = data.length > 0
-    //             ? data.map(song => song.data?._id ?? song._id)
-    //             : [];
-
-    //         const filteredSongs = allSongs.data.filter(
-    //             song => !existingSongIds.includes(song._id)
-    //         );
-
-    //         const songsToPickFrom = filteredSongs.length > 0 ? filteredSongs : allSongs.data;
-
-    //         const shuffled = songsToPickFrom.sort(() => 0.5 - Math.random());
-    //         const selected = shuffled.slice(0, 3);
-    //         const favoriteSongs = await get_favoriteSong(user.id);
-    //         console.log(selected);
-    //         console.log(favoriteSongs);
-
-    //         setRandomSongs(selected);
-    //     };
-
-    //     fetchRandomSongs();
-    // }, [data, refresh]);
+    }, [refreshFavoriteSong, refreshAddSong]);
+    console.log(data);
 
     useEffect(() => {
         const fetchRandomSongs = async () => {
@@ -102,8 +124,6 @@ function PlayListDetail() {
     }, [data, refresh]);
 
 
-    // console.log(randomSongs);
-
     const handleRefresh = () => {
         setRefresh(!refresh);
     }
@@ -123,6 +143,20 @@ function PlayListDetail() {
             console.error("Lỗi khi thêm vào yêu thích:", error);
         }
     }
+
+    const handleAddSong = async (newSongId) => {
+        try {
+            const result = await add_song_to_playlist(params.id, {
+                songId: newSongId
+            });
+            setRefreshAddSong(!refreshAddSong);
+            console.log("Kết quả cập nhật:", result);
+        } catch (error) {
+            console.error("Lỗi khi thêm bài hát vào playlist:", error);
+        }
+    };
+
+
     return (
         <>
             <div className="playlist">
@@ -156,7 +190,7 @@ function PlayListDetail() {
                                     <div className="playlist__song-info">
                                         <div className="playlist__thumbnail-wrapper">
                                             <img src={item.data.avatar}
-                                                alt="Mặt Mộc" className="playlist__thumbnail" />
+                                                alt={item.data.title} className="playlist__thumbnail" />
                                             <div className="playlist__play-icon">
                                                 <FaPlay />
                                             </div>
@@ -166,8 +200,8 @@ function PlayListDetail() {
                                             <p className="playlist__artists"></p>
                                         </div>
                                     </div>
-                                    <span className="playlist__album">{item.data.album.title}</span>
-                                    <span className="playlist__duration">03:24</span>
+                                    <span className="playlist__album">{item.data.album?.title || ""}</span>
+                                    <span className="playlist__duration">{item.duration}</span>
                                     <div className="playlist__actions">
                                         <FaHeart className={item.data.isFavorite ? "heart-color" : ""} onClick={() => handleFavorite(item.data._id)} />
                                         <RiDeleteBin6Line />
@@ -209,7 +243,7 @@ function PlayListDetail() {
                                     <span className="playlist__duration">03:24</span>
                                     <div className="playlist__actions">
                                         <FaHeart className={item.isFavorite ? "heart-color" : ""} onClick={() => handleFavorite(item._id)} />
-                                        <IoAddOutline />
+                                        <IoAddOutline onClick={() => handleAddSong(item._id)} />
                                     </div>
                                 </div>
                             ))

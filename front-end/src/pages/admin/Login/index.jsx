@@ -22,13 +22,13 @@ function Login({ onClose, onLoginSuccess }) {
         try {
             const checkLogin = await login(accountData.email, accountData.password);
             if (checkLogin.message) {
-                const time = 1;
+                const time = 0.3;
                 const account = checkLogin.account;
                 const role = await get_role(account.role_id);
                 if (role.role) {
                     setCookie("account", JSON.stringify(account), time);
                     setCookie("role", JSON.stringify(role.role), time);
-                    setCookie("token", account.token, time);
+                    setCookie("tokenAdmin", account.token, time);
                     dispatch(setAuthAccount(account));
                     dispatch(setAuthRole(role.role));
                     navigate('/admin/dashboard');
