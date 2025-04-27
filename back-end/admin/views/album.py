@@ -290,6 +290,163 @@ async def get_all_albums(request):
     }, status=405)
 
 @csrf_exempt
+async def get_all_albums(request):
+    if request.method == "GET":
+        try:
+            # Create aggregation pipeline to join with singers and accounts
+            pipeline = [
+                {
+                    "$lookup": {
+                        "from": "singers",
+                        "let": {"singerId": "$singerId"},
+                        "pipeline": [
+                            {
+                                "$match": {
+                                    "$expr": {
+                                        "$eq": [
+                                            {"$toString": "$_id"},
+                                            "$$singerId"
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                "$project": {
+                                    "_id": 1,
+                                    "fullName": 1,
+                                    "avatar": 1
+                                }
+                            }
+                        ],
+                        "as": "singer"
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "accounts",
+                        "let": {"createdBy": "$createdBy"},
+                        "pipeline": [
+                            {
+                                "$match": {
+                                    "$expr": {
+                                        "$eq": [
+                                            {"$toString": "$_id"},
+                                            "$$createdBy"
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                # $lookup = include
+                                "$lookup": {
+                                    "from": "roles",
+                                    "let": {"roleId": "$role_id"},
+                                    "pipeline": [
+                                        {
+                                            "$match": {
+                                                "$expr": {
+                                                    "$eq": [
+                                                        {"$toString": "$_id"},
+                                                        "$$roleId"
+                                                    ]
+                                                }
+                                            }
+                                        },
+                                        {
+                                            # $project = attributes exclude
+                                            "$project": {
+                                                "_id": 1,
+                                                "title": 1,
+                                                "description": 1
+                                            }
+                                        }
+                                    ],
+                                    "as": "roleDetails"
+                                }
+                            },
+                            {
+                                # $unwind = JS destructuring
+                                "$unwind": {
+                                    "path": "$roleDetails",
+                                    "preserveNullAndEmptyArrays": True
+                                }
+                            },
+                            {
+                                "$project": {
+                                    "_id": 1,
+                                    "fullName": 1,
+                                    "email": 1,
+                                    "role": {
+                                        "_id": "$roleDetails._id",
+                                        "name": "$roleDetails.title",
+                                        "description": "$roleDetails.description"
+                                    }
+                                }
+                            }
+                        ],
+                        "as": "creator"
+                    }
+                },
+                {
+                    "$unwind": {
+                        "path": "$singer",
+                        "preserveNullAndEmptyArrays": True
+                    }
+                },
+                {
+                    "$unwind": {
+                        "path": "$creator",
+                        "preserveNullAndEmptyArrays": True
+                    }
+                },
+                {
+                    "$project": {
+                        "title": 1,
+                        "cover_image": 1,
+                        "songs": 1,
+                        "status": 1,
+                        "deleted": 1,
+                        "createdAt": 1,
+                        "updatedAt": 1,
+                        "singer": {
+                            "_id": "$singer._id",
+                            "fullName": "$singer.fullName",
+                            "avatar": "$singer.avatar"
+                        },
+                        "creator": {
+                            "_id": "$creator._id",
+                            "username": "$creator.fullName",
+                            "email": "$creator.email",
+                            "role": "$creator.role"
+                        }
+                    }
+                }
+            ]
+
+            # Execute the aggregation pipeline
+            albums = await sync_to_async(list)(Album.objects.aggregate(*pipeline))
+            
+            # Convert all ObjectId fields to strings
+            albums = convert_objectid_to_str(albums)
+
+            return JsonResponse({
+                "data": albums,
+                "status": 200,
+                "message": "Lấy tất cả album thành công!"
+            }, status=200)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return JsonResponse({
+                "error": str(e),
+                "status": 500,
+                "message": "Lấy tất cả album thất bại!"
+            }, status=500)
+    return JsonResponse({
+        "error": "Phương thức yêu cầu không hợp lệ!",
+        "status": 405
+    }, status=405)
+
+@csrf_exempt
 async def get_album_by_id(request, album_id):
     if request.method == "GET":
         try:
@@ -943,85 +1100,5 @@ async def filter_album(request):
             }, status=200)
         except Exception as e:
             logger.error(traceback.format_exc())
-            return JsonResponse({"error": str(e), "status": 400}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
-            
-@csrf_exempt
-async def approve_multiple_albums(request):
-    if request.method == "PATCH":
-        try:
-            data = json.loads(request.body)
-            album_ids = data.get("albumIds", [])
-            approved_by = data.get("approvedBy", None)
-            
-            for album_id in album_ids:
-                try:
-                    album = await sync_to_async(Album.objects.get)(_id=album_id)
-                    album.status = "approved"
-                    album.approvedBy = approved_by
-                    album.updatedAt = datetime.now(UTC)
-                    await sync_to_async(album.save)()
-                except Exception as e:
-                    return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt album!"}, status=400)
-                
-            return JsonResponse({"message": "Album đã được phê duyệt!", "status": 200}, status=200)
-        except Exception as e:
-            return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt album!", "status": 400}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
-
-@csrf_exempt
-async def reject_multiple_albums(request):
-    if request.method == "PATCH":
-        try:
-            data = json.loads(request.body)
-            album_ids = data.get("albumIds", [])
-            approved_by = data.get("approvedBy", None)
-                        
-            for album_id in album_ids:
-                try:
-                    album = await sync_to_async(Album.objects.get)(_id=album_id)
-                    album.status = "rejected"
-                    album.approvedBy = approved_by
-                    album.updatedAt = datetime.now(UTC)
-                    await sync_to_async(album.save)()
-                except Exception as e:
-                    return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
-                
-            return JsonResponse({"message": "Album đã bị từ chối!", "status": 200}, status=200)
-        except Exception as e:
-            return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
-    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
-
-@csrf_exempt
-async def approve_album(request, album_id):
-    if request.method == "PATCH":
-        try:
-            data = json.loads(request.body)
-            userId = data.get("userId", None)
-
-            album = await sync_to_async(Album.objects.get)(_id=album_id)
-            album.status = "approved"
-            album.approvedBy = userId
-            album.updatedAt = datetime.now(UTC)
-            await sync_to_async(album.save)()
-            return JsonResponse({"message": "Album đã được phê duyệt!", "status": 200}, status=200)
-        except Exception as e:
-            return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt album!", "status": 400}, status=400)
-    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
-
-@csrf_exempt
-async def reject_album(request, album_id):
-    if request.method == "PATCH":
-        try:
-            data = json.loads(request.body)
-            userId = data.get("userId", None)
-
-            album = await sync_to_async(Album.objects.get)(_id=album_id)
-            album.status = "rejected"   
-            album.approvedBy = userId
-            album.updatedAt = datetime.now(UTC)
-            await sync_to_async(album.save)()
-            return JsonResponse({"message": "Album đã được từ chối!", "status": 200}, status=200)
-        except Exception as e:
-            return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
-    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+            return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)

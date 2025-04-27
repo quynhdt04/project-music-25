@@ -130,6 +130,22 @@ const EditProfileModal = ({ onClose }) => {
   };
 
   
+  // const handleUpdatePremiumStatus = async (userId, isPremium) => {
+  //   try {
+  //     const updatedUser = await updatePremiumStatus(userId, isPremium);
+      
+  //     // Dispatch action để cập nhật thông tin người dùng vào Redux
+  //     dispatch(updateUser(updatedUser));
+  
+  //     // Cập nhật lại localStorage
+  //     localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+  //     console.log("Trạng thái Premium đã được cập nhật:", updatedUser);
+  //   } catch (error) {
+  //     console.error("Lỗi khi cập nhật trạng thái Premium:", error);
+  //   }
+  // };
+  
 
   return (
     <div className="modal modal-thuytrang">

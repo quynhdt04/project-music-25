@@ -4,6 +4,7 @@ import json
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.hashers import check_password
 from models.user import User  
+# from models.pricingPlan import PricingPlan  # Import the PricingPlan model
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
@@ -20,7 +21,6 @@ import time
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 import datetime
-
 
 CLOUDINARY_API_SECRET = "your_api_secret"
 SECRET_KEY = settings.SECRET_KEY
@@ -140,6 +140,7 @@ def login_user(request):
                 return JsonResponse({"error": "user not found"}, status=400)
             print("📌 Mật khẩu nhập vào:", password)
             print("📌 Mật khẩu trong DB:", user.password)
+            
             if user.deleted:
                 return JsonResponse({"error": "Tài khoản không tồn tại"}, status=403)
 
@@ -149,7 +150,12 @@ def login_user(request):
 
             if user.status == "inactive":
                 return JsonResponse({"error": "Tài khoản đã bị khóa"}, status=403)
-            
+              # Lưu user_id vào session
+            request.session['user_id'] = str(user.id)
+            print(f"📌 Đã lưu user_id vào session: {user.id}")
+
+            # Cập nhật trạng thái Premium nếu có
+            # check_and_update_user_premium(request)
             #  🔹 Tạo JWT Token
             payload = {
                 "id": str(user.id),
@@ -163,6 +169,12 @@ def login_user(request):
             
             print("User avatar:", user.avatar) # Kiểm tra user.avatar
             print("User object:", user) # Kiểm tra toàn bộ object user
+
+                    # 🔁 Tự động cập nhật isPremium nếu hết hạn
+            if user.premiumExpiresAt and user.premiumExpiresAt < datetime.datetime.utcnow():
+                user.isPremium = False
+                user.save()
+
             return JsonResponse({
                 "message": "Đăng nhập thành công",
                 "token": token,
@@ -178,6 +190,7 @@ def login_user(request):
                     "premiumExpiresAt": user.premiumExpiresAt.strftime("%Y-%m-%d") if user.premiumExpiresAt else None,
                 }
             }, status=200)
+        
 
         except Exception as e:
             print("Lỗi:", e)
@@ -191,6 +204,12 @@ def get_user_by_id(request, _id):
     try:
         user = User.objects.get(id=_id, deleted=False)  # MongoEngine dùng "id" thay vì "_id"
         print("Avatar từ DB:", user.avatar)
+
+                # 🔁 Tự động cập nhật isPremium nếu hết hạn
+        if user.premiumExpiresAt and user.premiumExpiresAt < datetime.datetime.utcnow():
+            user.isPremium = False
+            user.save()
+
         user_data = {
             "id": str(user.id),  # Chuyển ObjectId thành chuỗi
             "fullName": user.fullName,
