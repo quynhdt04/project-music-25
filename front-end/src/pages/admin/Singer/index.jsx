@@ -6,11 +6,13 @@ import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { toast, Bounce } from "react-toastify";
+import { useSelector } from "react-redux";
 function Singer() {
     const [singers, setSingers] = useState([]);
     const [refresh, setRefresh] = useState(false);
     const MySwal = withReactContent(Swal);
     const [searchTerm, setSearchTerm] = useState(""); // Lưu từ khóa tìm kiếm
+    const roleCheck = useSelector((state) => state.authenReducer.role);
 
     useEffect(() => {
         const fetchAPI = async () => {
@@ -90,9 +92,11 @@ function Singer() {
                             <input type="text" placeholder="Tìm kiếm..." value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)} />
                         </div>
-                        <div className="singer__create">
-                            <Link to="/admin/singers/create" className="singer__btn singer__btn-success" >+ Thêm mới</Link>
-                        </div>
+                        {roleCheck && roleCheck?.permissions?.includes("singer_create") && (
+                            <div className="singer__create">
+                                <Link to="/admin/singers/create" className="singer__btn singer__btn-success" >+ Thêm mới</Link>
+                            </div>
+                        )}
                     </div>
                     <table className="singer__table">
                         <thead>
@@ -128,11 +132,14 @@ function Singer() {
                                         <td>{singer.createdAt}</td>
                                         <td>{singer.updatedAt}</td>
                                         <td style={{ width: '150px' }}>
-                                            <Link className="singer__btn singer__btn-warning" to={`/admin/singers/edit/${singer.id}`}>
-                                                Sửa
-                                            </Link>
-
-                                            <button className="singer__btn singer__btn-danger" onClick={() => handleDelete(singer.id)}>Xóa</button>
+                                            {roleCheck && roleCheck?.permissions?.includes("singer_edit") && (
+                                                <Link className="singer__btn singer__btn-warning" to={`/admin/singers/edit/${singer.id}`}>
+                                                    Sửa
+                                                </Link>
+                                            )}
+                                            {roleCheck && roleCheck?.permissions?.includes("singer_del") && (
+                                                <button className="singer__btn singer__btn-danger" onClick={() => handleDelete(singer.id)}>Xóa</button>
+                                            )}
                                         </td>
                                     </tr>
 

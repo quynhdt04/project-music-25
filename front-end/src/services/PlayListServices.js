@@ -23,3 +23,8 @@ export const path_playList = async (id, data) => {
     const result = await patch(`play-list/edit`, id, data);
     return result;
 }
+
+export const add_song_to_playlist = async (id, data) =>{
+    const result = await patch(`play-list/addSong`, id, data);
+    return result;
+}

@@ -6,12 +6,14 @@ import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import { toast, Bounce } from "react-toastify";
+import { useSelector } from "react-redux";
 
 function User() {
     const [users, setUsers] = useState([]);
     const [refresh, setRefresh] = useState(false);
     const MySwal = withReactContent(Swal);
     const [searchTerm, setSearchTerm] = useState(""); // Lưu từ khóa tìm kiếm
+    const roleCheck = useSelector((state) => state.authenReducer.role);
 
     useEffect(() => {
         const fetchAPI = async () => {
@@ -90,9 +92,11 @@ function User() {
                             <input type="text" placeholder="Tìm kiếm..." value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)} />
                         </div>
-                        <div className="user__create">
-                            <Link to="/admin/users/create" className="user__btn user__btn-success" >+ Thêm mới</Link>
-                        </div>
+                        {roleCheck && roleCheck?.permissions?.includes("user_create") && (
+                            <div className="user__create">
+                                <Link to="/admin/users/create" className="user__btn user__btn-success" >+ Thêm mới</Link>
+                            </div>
+                        )}
                     </div>
                     <table className="user__table">
                         <thead>
@@ -129,13 +133,16 @@ function User() {
                                         </td>
                                         <td style={{ width: '210px' }}>
                                             <Link className="user__btn user__btn-info" to={`/admin/users/view/${user.id}`}>Chi tiết</Link>
-                                            <Link className="user__btn user__btn-warning" to={`/admin/users/edit/${user.id}`}>
-                                                Sửa
-                                            </Link>
-
-                                            <button className="user__btn user__btn-danger" onClick={() => handleDelete(user.id)} >
-                                                Xóa
-                                            </button>
+                                            {roleCheck && roleCheck?.permissions?.includes("user_edit") && (
+                                                <Link className="user__btn user__btn-warning" to={`/admin/users/edit/${user.id}`}>
+                                                    Sửa
+                                                </Link>
+                                            )}
+                                            {roleCheck && roleCheck?.permissions?.includes("user_del") && (
+                                                <button className="user__btn user__btn-danger" onClick={() => handleDelete(user.id)} >
+                                                    Xóa
+                                                </button>
+                                            )}
                                         </td>
                                     </tr>
 

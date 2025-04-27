@@ -9,12 +9,12 @@ function Logout() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    deleteAllCookies();
     useEffect(() => {
-            dispatch(setAuthAccount({}));
-            dispatch(setAuthRole({}));
-            navigate('/admin/login');
-    },[])
+        deleteAllCookies();
+        dispatch(setAuthAccount({}));
+        dispatch(setAuthRole({}));
+        navigate('/admin/login');
+    }, [])
 
     return (
         <>

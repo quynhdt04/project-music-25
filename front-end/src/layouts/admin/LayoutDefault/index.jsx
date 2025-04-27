@@ -64,7 +64,7 @@ function LayoutDefault() {
       <div className="admin__main-content">
         <header className="admin__header">
           <div className="admin__user-menu">
-            <img src={account.avatar} alt="User Avatar" />
+            <img src={account?.avatar || ""} alt="User Avatar" />
             <div className="user-menu">
               <Link to="/admin/info-user">
                 <button className="menu-item">

@@ -7,6 +7,7 @@ import { get_all_roles } from "../../../services/RoleServices";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 import Pagination from "../../../components/Pagination";
+import { useSelector } from "react-redux";
 
 function Account() {
     const [data, setData] = useState([]);
@@ -18,6 +19,7 @@ function Account() {
     const [searchTerm, setSearchTerm] = useState("");
     const page = parseInt(searchParams.get("page")) || 1;
     const limit = parseInt(searchParams.get("limit")) || 3;
+    const roleCheck = useSelector((state) => state.authenReducer.role);
 
     useEffect(() => {
         const fetchAPI = async () => {
@@ -84,11 +86,11 @@ function Account() {
         if (searchTerm.trim() === "") {
             setSearchParams(prevParams => {
                 const newParams = new URLSearchParams(prevParams);
-                newParams.delete("search"); 
+                newParams.delete("search");
                 return newParams;
             });
         }
-    }, [searchTerm]); 
+    }, [searchTerm]);
 
     return (
         <>
@@ -105,9 +107,11 @@ function Account() {
                             />
                             <button onClick={handleSearch}>Tìm</button>
                         </div>
-                        <div className="account__create">
-                            <Link to="/admin/accounts/create" className="account__btn account__btn-success" >+ Thêm mới</Link>
-                        </div>
+                        {roleCheck && roleCheck?.permissions?.includes("account_create") && (
+                            <div className="account__create">
+                                <Link to="/admin/accounts/create" className="account__btn account__btn-success" >+ Thêm mới</Link>
+                            </div>
+                        )}
                     </div>
                     <table className="account__table">
                         <thead>
@@ -143,10 +147,14 @@ function Account() {
                                             </span>
                                         </td>
                                         <td>
-                                            <a className="account__btn account__btn-warning" href={`/admin/accounts/edit/${account.id}`}>
-                                                Sửa
-                                            </a>
-                                            <button className="account__btn account__btn-danger" onClick={() => handleDel(account.id)}>Xóa</button>
+                                            {roleCheck && roleCheck?.permissions?.includes("account_edit") && (
+                                                <a className="account__btn account__btn-warning" href={`/admin/accounts/edit/${account.id}`}>
+                                                    Sửa
+                                                </a>
+                                            )}
+                                            {roleCheck && roleCheck?.permissions?.includes("account_del") && (
+                                                <button className="account__btn account__btn-danger" onClick={() => handleDel(account.id)}>Xóa</button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
