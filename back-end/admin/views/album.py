@@ -1102,3 +1102,83 @@ async def filter_album(request):
             logger.error(traceback.format_exc())
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Chức năng đang được phát triển"}, status=501)
+
+@csrf_exempt
+async def approve_multiple_albums(request):
+    if request.method == "PATCH":
+        try:
+            data = json.loads(request.body)
+            album_ids = data.get("albumIds", [])
+            approved_by = data.get("approvedBy", None)
+            
+            for album_id in album_ids:
+                try:
+                    album = await sync_to_async(Album.objects.get)(_id=album_id)
+                    album.status = "approved"
+                    album.approvedBy = approved_by
+                    album.updatedAt = datetime.now(UTC)
+                    await sync_to_async(album.save)()
+                except Exception as e:
+                    return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt album!"}, status=400)
+                
+            return JsonResponse({"message": "Album đã được phê duyệt!", "status": 200}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt album!", "status": 400}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+
+@csrf_exempt
+async def reject_multiple_albums(request):
+    if request.method == "PATCH":
+        try:
+            data = json.loads(request.body)
+            album_ids = data.get("albumIds", [])
+            approved_by = data.get("approvedBy", None)
+                        
+            for album_id in album_ids:
+                try:
+                    album = await sync_to_async(Album.objects.get)(_id=album_id)
+                    album.status = "rejected"
+                    album.approvedBy = approved_by
+                    album.updatedAt = datetime.now(UTC)
+                    await sync_to_async(album.save)()
+                except Exception as e:
+                    return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
+                
+            return JsonResponse({"message": "Album đã bị từ chối!", "status": 200}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+
+@csrf_exempt
+async def approve_album(request, album_id):
+    if request.method == "PATCH":
+        try:
+            data = json.loads(request.body)
+            userId = data.get("userId", None)
+
+            album = await sync_to_async(Album.objects.get)(_id=album_id)
+            album.status = "approved"
+            album.approvedBy = userId
+            album.updatedAt = datetime.now(UTC)
+            await sync_to_async(album.save)()
+            return JsonResponse({"message": "Album đã được phê duyệt!", "status": 200}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e), "message": "Lỗi khi phê duyệt album!", "status": 400}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+
+@csrf_exempt
+async def reject_album(request, album_id):
+    if request.method == "PATCH":
+        try:
+            data = json.loads(request.body)
+            userId = data.get("userId", None)
+
+            album = await sync_to_async(Album.objects.get)(_id=album_id)
+            album.status = "rejected"   
+            album.approvedBy = userId
+            album.updatedAt = datetime.now(UTC)
+            await sync_to_async(album.save)()
+            return JsonResponse({"message": "Album đã được từ chối!", "status": 200}, status=200)
+        except Exception as e:
+            return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
