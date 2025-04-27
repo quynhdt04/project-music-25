@@ -56,7 +56,7 @@ function LayoutDefault() {
           items={menuItems
             .filter(
               (item) =>
-                role?.permissions?.includes(item.role) || item.key == "dashboard"
+                role?.permissions?.includes(item.role)
             )
             .map((item) => ({ ...item, key: item.menuKey }))}
         />
