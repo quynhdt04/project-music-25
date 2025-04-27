@@ -91,7 +91,7 @@ function Role() {
                     <td>{index + 1}</td>
                     <td>{item.title}</td>
                     <td>{item.desciption}</td>
-                    <td>
+                    <td className="action-buttons">
                       <Link
                         to={`/admin/roles/edit/${item.id}`}
                         className="role__btn role__btn-warning"

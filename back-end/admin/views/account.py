@@ -238,8 +238,6 @@ async def patch_account(request, account_id):
 async def get_account_by_id(request, account_id):
     if request.method == "GET":
         try:
-            # Lấy tài khoản với điều kiện deleted=False
-            # account = await sync_to_async(Account.objects.filter(id=account_id, deleted=False).afirst)()
             account = await sync_to_async(lambda: Account.objects.filter(id=account_id, deleted=False).first())()
 
             if not account:
