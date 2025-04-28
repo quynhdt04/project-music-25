@@ -16,7 +16,7 @@ import { v4 as uuidv4 } from 'uuid'; //Tạo id message
 
 // const socket = io("http://localhost:5000");
 // const socket = io("http://192.168.36.61:5000");
-const socket = io("http://18.214.161.189/");
+// const socket = io("http://18.214.161.189/");
 
 function Conversation() {
     const [activeMenu, setActiveMenu] = useState(null);

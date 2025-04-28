@@ -54,6 +54,7 @@ const MusicPlayer = () => {
     setShowPremiumMessage,
     queue,
     playSong,
+    fetchQueueData,
   } = useMusicPlayer();
 
   // Handle play/pause
@@ -193,8 +194,15 @@ const MusicPlayer = () => {
     }
   };
 
-  const handleQueueClick = () => {
-    setShowQueue(!showQueue);
+  const handleQueueClick = async () => {
+    try {
+      const response = await fetchQueueData();
+      if (response) {
+        setShowQueue(!showQueue);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleVolumeChange = (e) => {
