@@ -70,7 +70,8 @@ async def list_all_song(request):
                     "isPremiumOnly": song.isPremiumOnly,
                     "play_count": song.play_count,
                     "slug": song.slug,
-                    "albums": serialized_albums,  # Changed from 'album' to 'albums'
+                    "albums": serialized_albums,  
+                    "deleted": song.deleted,
                     "createdAt": song.createdAt,
                     "updatedAt": song.updatedAt
                 }
