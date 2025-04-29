@@ -117,7 +117,7 @@ function PlayListDetail() {
     };
 
     fetchRandomSongs();
-  }, [data, refresh]);
+  }, [refresh]);
 
   const handleRefresh = () => {
     setRefresh(!refresh);
