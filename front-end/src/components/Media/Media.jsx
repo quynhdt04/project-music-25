@@ -108,6 +108,7 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
                 fontWeight: "600",
                 lineHeight: "1.5",
               }}
+              title={item.title}
             >
               {item.title}
             </div>

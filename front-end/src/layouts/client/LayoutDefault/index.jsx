@@ -8,7 +8,7 @@ import LoginForm from "../../../pages/client/Login";
 import RegisterForm from "../../../pages/client/Register";
 import EditProfileForm from "../../../pages/client/EditProfile";
 import Profile from "../../../pages/client/Profile";
-import { FaHome, FaMusic, FaHeart, FaList, FaChartBar } from "react-icons/fa";
+import { FaHome, FaHeart, FaList, FaChartBar } from "react-icons/fa";
 import { GiMusicalScore } from "react-icons/gi";
 import { Menu } from "antd";
 import { useSelector, useDispatch } from "react-redux";
@@ -120,13 +120,8 @@ function LayoutDefault() {
 
   const menuItems = [
     { key: "home", icon: <FaHome />, label: <Link to="/">Trang chủ</Link> },
-    {
-      key: "songs",
-      icon: <FaMusic />,
-      label: <Link to="/songs">Danh sách bài hát</Link>,
-    },
-    // ...(isLogin
-      // ? [
+    ...(isLogin
+      ? [
           {
             key: "music-love",
             icon: <FaHeart />,
@@ -137,8 +132,8 @@ function LayoutDefault() {
             icon: <FaList />,
             label: <Link to="/playlist">Danh sách phát nhạc</Link>,
           },
-        // ]
-      // : []),
+        ]
+      : []),
     { key: "bxh", icon: <FaChartBar />, label: <Link to="/bxh">BXH</Link> },
   ];
   return (

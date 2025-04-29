@@ -3,6 +3,7 @@ import { MusicPlayerContext } from "./MusicPlayerContextObject";
 import {
   increment_song_playCount,
   checkIsSongLikedByCurrentUser,
+  get_song_by_id,
 } from "../services/SongServices";
 
 const MusicPlayerProvider = ({ children }) => {
@@ -29,16 +30,88 @@ const MusicPlayerProvider = ({ children }) => {
   const playCountTimerRef = useRef(null);
   const hasIncrementedPlayCount = useRef(false);
 
+  const getAudioDuration = (audioUrl) => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+
+      // Add error handling
+      audio.addEventListener("error", () => {
+        console.error("Error loading audio:", audioUrl);
+        resolve(0); // Return 0 duration on error
+      });
+
+      // Add timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        console.warn("Audio metadata loading timed out:", audioUrl);
+        resolve(0); // Return 0 duration on timeout
+      }, 5000); // 5 second timeout
+
+      audio.addEventListener("loadedmetadata", () => {
+        clearTimeout(timeout);
+        resolve(audio.duration);
+      });
+
+      audio.src = audioUrl;
+    });
+  };
+
+  const formatDuration = (seconds) => {
+    if (!seconds || isNaN(seconds)) return "00:00";
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const fetchQueueData = async () => {
+    try {
+      const currentQueue = JSON.parse(localStorage.getItem("currentQueue"));
+      if (currentQueue) {
+        const songs = await Promise.all(currentQueue.map(async (song) => {
+          const songData = await get_song_by_id(song.id);
+
+          const duration = await getAudioDuration(songData.data.audio);
+
+          return {
+            id: songData.data.id,
+            title: songData.data.title,
+            cover: songData.data.avatar,
+            description: songData.data.description,
+            artist: songData.data.singers.map((item) => item.singerName).join(", "),
+            album: songData.data.albums?.map((item) => item.title).join(", ") || "",
+            audio: songData.data.audio,
+            video: songData.data.video,
+            lyrics: songData.data.lyrics,
+            like: songData.data.like,
+            isPremiumOnly: songData.data.isPremiumOnly,
+            playCount: songData.data.play_count,
+            duration: formatDuration(duration),
+          };
+        }));
+        console.log("Queue", songs)
+        setQueue(songs);
+        return true;
+      }
+    } catch (e) {
+      console.log(e)
+      return false;
+    }
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       const user = JSON.parse(sessionStorage.getItem("user"));
       const currentSong = JSON.parse(localStorage.getItem("currentSong"));
+
       if (user && currentSong) {
         const response = await checkIsSongLikedByCurrentUser(
           currentSong.id,
           user.id
         );
-        
+
         if (response.status === 200) {
           setIsLiked(response.isLiked);
         }
@@ -46,14 +119,15 @@ const MusicPlayerProvider = ({ children }) => {
     };
 
     fetchData();
+    fetchQueueData();
   }, []);
 
   // Show the last song that the user played
   useEffect(() => {
     const currentSong = JSON.parse(localStorage.getItem("currentSong"));
+
     if (currentSong) {
       setCurrentSong(currentSong);
-      addToQueue(currentSong);
     }
   }, []);
 
@@ -235,21 +309,30 @@ const MusicPlayerProvider = ({ children }) => {
   };
 
   const addToQueue = (song) => {
+    let newQueue = [...queue];
     if (Array.isArray(song)) {
       // Filter out songs that are already in the queue
       const newSongs = song.filter(
         (newSong) =>
           !queue.some((existingSong) => existingSong.id === newSong.id)
-      );
+      )
+      .map((song) => ({
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+      }));
       if (newSongs.length > 0) {
-        setQueue([...queue, ...newSongs]);
+        newQueue = [...newQueue, ...newSongs];
+        setQueue(newQueue);
       }
     } else {
       // Check if the single song is not already in the queue
       if (!queue.some((existingSong) => existingSong.id === song.id)) {
-        setQueue([...queue, song]);
+        newQueue = [...newQueue, { id: song.id, title: song.title, artist: song.artist }];
+        setQueue(newQueue);
       }
     }
+    localStorage.setItem("currentQueue", JSON.stringify(newQueue));
   };
 
   const clearQueue = () => {
@@ -278,11 +361,18 @@ const MusicPlayerProvider = ({ children }) => {
       ];
       setQueue(newQueue);
     }
+
+    localStorage.setItem("currentQueue", JSON.stringify(newQueue));
   };
 
   const removeSongFromQueue = (song) => {
     if (!song) return;
-    setQueue((prevQueue) => prevQueue.filter((item) => item.id !== song.id));
+    setQueue((prevQueue) => {
+      const currentQueue = prevQueue || [];
+      const newQueue = currentQueue.filter((item) => item.id !== song.id);
+      localStorage.setItem("currentQueue", JSON.stringify(newQueue));
+      return newQueue;
+    });
   };
 
   const value = {
@@ -312,6 +402,9 @@ const MusicPlayerProvider = ({ children }) => {
     setShowPremiumMessage,
     moveSong,
     removeSongFromQueue,
+    getAudioDuration,
+    formatDuration,
+    fetchQueueData
   };
 
   return (
