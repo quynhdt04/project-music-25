@@ -25,7 +25,10 @@ function PlayListDetail() {
   const [refresh, setRefresh] = useState(false);
   const [refreshFavoriteSong, setRefreshFavoriteSong] = useState(false);
   const [refreshAddSong, setRefreshAddSong] = useState(false);
-  // const user = useSelector((state) => state.authenReducer.user);
+  const [totalDuration, setTotalDuration] = useState("");
+  const [albumTitle, setAlbumTitle] = useState("");
+  const [firstAvatar, setFirstAvatar] = useState("");
+  // const userReducer = useSelector((state) => state.authenReducer.user);
   const user = JSON.parse(sessionStorage.getItem("user"));
   const { currentSong, isPlaying, playSong, togglePlay, addToQueue, getAudioDuration, formatDuration } =
     useMusicPlayer();
@@ -35,26 +38,34 @@ function PlayListDetail() {
       try {
         const album = await get_play_list_by_id(params.id);
         const favoriteSongs = await get_favoriteSong(user.id);
-  
+        let totalDurationSeconds = 0;
+
         const songDetails = await Promise.all(
           album.playlist.songs.map(async (songId) => {
             const song = await get_song_by_id(songId);
             const durationSeconds = await getAudioDuration(song.data.audio);
-            console.log("durationSeconds", durationSeconds, song.data)
-  
+            totalDurationSeconds += durationSeconds;
+            // console.log("durationSeconds", durationSeconds, song.data)
+            console.log("album", album);
+
             const formattedDuration = formatDuration(durationSeconds);
-  
+
             return {
               ...song.data,
               cover: song.data.avatar,
               artist: song.data.singers.map((item) => item.singerName).join(", "),
               duration: formattedDuration,
-              isFavorite: favoriteSongs.songs.includes(song.data._id),
+              isFavorite: favoriteSongs.songs.includes(song.data.id),
             };
           })
         );
-  
+
         setData(songDetails);
+        setTotalDuration(formatDuration(totalDurationSeconds));
+        setAlbumTitle(album.playlist.title); 
+        if (songDetails.length > 0) {
+          setFirstAvatar(songDetails[0].cover); 
+        }
       } catch (e) {
         console.error("Lỗi khi tải playlist:", e);
       }
@@ -69,25 +80,25 @@ function PlayListDetail() {
         const allSongs = await get_all_songs();
 
         const existingSongIds =
-          data.length > 0 ? data.map((song) => song.data?._id ?? song._id) : [];
-  
+          data.length > 0 ? data.map((song) => song.data?.id ?? song._id) : [];
+
         const filteredSongs = allSongs.data.filter(
           (song) => !existingSongIds.includes(song._id)
         );
-  
+
         const songsToPickFrom =
           filteredSongs.length > 0 ? filteredSongs : allSongs.data;
         const shuffled = songsToPickFrom.sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, 3);
-  
+
         const favoriteSongs = await get_favoriteSong(user.id);
         const favoriteSongIds = favoriteSongs?.songs || []; // đảm bảo là mảng
-  
+
         let dataUpdate = selected.map((song) => ({
           ...song,
           isFavorite: favoriteSongIds.includes(song._id),
         }))
-        
+
         dataUpdate = await Promise.all(dataUpdate.map(async (song) => {
           const durationSeconds = await getAudioDuration(song.audio);
           const formattedDuration = formatDuration(durationSeconds);
@@ -97,8 +108,8 @@ function PlayListDetail() {
           };
         }));
 
-        console.log("dataUpdate", dataUpdate)
-  
+        // console.log("dataUpdate", dataUpdate)
+
         setRandomSongs(dataUpdate);
       } catch (e) {
         console.error(e)
@@ -115,6 +126,8 @@ function PlayListDetail() {
   const handleFavorite = async (id) => {
     const songID = id;
     const userID = user.id;
+    console.log(userID);
+    console.log(id);
     try {
       const result = await create_favoriteSong({
         userId: userID,
@@ -166,20 +179,22 @@ function PlayListDetail() {
     }
   };
 
+  // console.log(data);
+
   return (
     <>
       <div className="playlist">
         <div className="playlist__info">
           <div className="playlist__cover">
             <img
-              src="https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/04/hinh-nen-de-thuong.jpg"
+              src={firstAvatar || "../../../../public/image/album_default.png"}
               alt=""
             />
           </div>
           <div className="playlist__details">
-            <h2>Name</h2>
+            <h2>{albumTitle}</h2>
             <p>
-              Tạo bởi <strong>Đinh Quỳnh</strong>
+              Tạo bởi <strong>{user.fullName}</strong>
             </p>
             <button className="play-btn" onClick={handlePlayAllClick}>
               {" "}
@@ -206,7 +221,7 @@ function PlayListDetail() {
                   <span>THỜI GIAN</span>
                 </div>
                 {data.map((item) => (
-                  <div className="playlist__song" key={item._id}>
+                  <div className="playlist__song" key={item.id}>
                     <div className="playlist__song-info">
                       <div className="playlist__thumbnail-wrapper">
                         <img
@@ -215,15 +230,15 @@ function PlayListDetail() {
                           className="playlist__thumbnail"
                         />
                         <div className="playlist__play-icon" onClick={(e) => {
-                            const formattedData = {
-                              ...item, 
-                              cover: item.avatar,
-                              artist: item.singers
-                                .map((item) => item.singerName)
-                                .join(", "),
-                            }
-                            handlePlayClick(e, formattedData)
-                          }}>
+                          const formattedData = {
+                            ...item,
+                            cover: item.avatar,
+                            artist: item.singers
+                              .map((item) => item.singerName)
+                              .join(", "),
+                          }
+                          handlePlayClick(e, formattedData)
+                        }}>
                           <FaPlay />
                         </div>
                       </div>
@@ -231,8 +246,8 @@ function PlayListDetail() {
                         <h4 className="playlist__title">{item.title}</h4>
                         <p className="playlist__artists">{
                           item.singers
-                          .map((item) => item.singerName)
-                          .join(", ") || ""
+                            .map((item) => item.singerName)
+                            .join(", ") || ""
                         }</p>
                       </div>
                     </div>
@@ -243,14 +258,14 @@ function PlayListDetail() {
                     <div className="playlist__actions">
                       <FaHeart
                         className={item.isFavorite ? "heart-color" : ""}
-                        onClick={() => handleFavorite(item._id)}
+                        onClick={() => handleFavorite(item.id)}
                       />
                       <RiDeleteBin6Line />
                     </div>
                   </div>
                 ))}
                 <div className="playlist__footer">
-                  <span>{data.length} bài hát • 3 phút</span>
+                  <span>{data.length} bài hát • {totalDuration} phút</span>
                 </div>
               </div>
             </>
@@ -275,16 +290,16 @@ function PlayListDetail() {
                         className="playlist__thumbnail"
                       />
                       <div className="playlist__play-icon" onClick={(e) => {
-                            const formattedData = {
-                              ...item, 
-                              id: item._id,
-                              cover: item.avatar,
-                              artist: item.singers
-                                .map((item) => item.singerName)
-                                .join(", "),
-                            }
-                            handlePlayClick(e, formattedData)
-                          }}>
+                        const formattedData = {
+                          ...item,
+                          id: item._id,
+                          cover: item.avatar,
+                          artist: item.singers
+                            .map((item) => item.singerName)
+                            .join(", "),
+                        }
+                        handlePlayClick(e, formattedData)
+                      }}>
                         <FaPlay />
                       </div>
                     </div>
