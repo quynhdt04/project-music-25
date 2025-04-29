@@ -25,9 +25,11 @@ function PlayListDetail() {
   const [refresh, setRefresh] = useState(false);
   const [refreshFavoriteSong, setRefreshFavoriteSong] = useState(false);
   const [refreshAddSong, setRefreshAddSong] = useState(false);
+  const [refreshUpdate, setRefreshUpdate] = useState(false);
   const [totalDuration, setTotalDuration] = useState("");
   const [albumTitle, setAlbumTitle] = useState("");
   const [firstAvatar, setFirstAvatar] = useState("");
+  const [album, setAlbum] = useState([]);
   // const userReducer = useSelector((state) => state.authenReducer.user);
   const user = JSON.parse(sessionStorage.getItem("user"));
   const { currentSong, isPlaying, playSong, togglePlay, addToQueue, getAudioDuration, formatDuration } =
@@ -39,6 +41,7 @@ function PlayListDetail() {
         const album = await get_play_list_by_id(params.id);
         const favoriteSongs = await get_favoriteSong(user.id);
         let totalDurationSeconds = 0;
+        setAlbum(album);
 
         const songDetails = await Promise.all(
           album.playlist.songs.map(async (songId) => {
@@ -72,7 +75,7 @@ function PlayListDetail() {
     };
 
     fetchApi();
-  }, [refreshFavoriteSong, refreshAddSong]);
+  }, [refreshFavoriteSong, refreshAddSong, refreshUpdate]);
 
   useEffect(() => {
     const fetchRandomSongs = async () => {
@@ -200,7 +203,7 @@ function PlayListDetail() {
               {" "}
               <FaPlay /> Tiếp tục phát
             </button>
-            <DropupMenu />
+            <DropupMenu album={album.playlist} refreshUpdate={refreshUpdate} setRefreshUpdate={setRefreshUpdate}/>
           </div>
         </div>
 
