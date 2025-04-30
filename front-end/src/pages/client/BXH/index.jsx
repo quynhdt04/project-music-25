@@ -5,6 +5,7 @@ import useMusicPlayer from "../../../hooks/useMusicPlayer";
 import { HeartFilled, MoreOutlined, PlayCircleOutlined, CustomerServiceOutlined } from "@ant-design/icons";
 import { create_favoriteSong, get_favoriteSong } from '../../../services/FavoriteSongServices';
 import { toast, Bounce } from "react-toastify";
+import DropupMenuPlayList from '../../../components/DropupMenuPlayList';
 
 const BXH = () => {
     const { currentSong, isPlaying, playSong, togglePlay, addToQueue, getAudioDuration, formatDuration } =
@@ -122,6 +123,17 @@ const BXH = () => {
         }
     };
 
+    // const handlePlayList = (id) => {
+    //     if (!user) {
+    //         toast.warning("Vui lòng đăng nhập để thêm bài!", {
+    //             position: "top-center",
+    //             autoClose: 3000,
+    //             transition: Bounce,
+    //         });
+    //         return;
+    //     }
+    // }
+
     return (
         <div style={{ paddingLeft: 24, paddingRight: 24, paddingBottom: 24, background: '#170F23', borderRadius: 8, marginBottom: '4rem' }}>
             <div style={{ padding: 24, background: '#170F23', borderRadius: 8, paddingBottom: '0rem' }}>
@@ -208,7 +220,11 @@ const BXH = () => {
                                     color: song.isFavorite ? 'red' : 'gray',
                                     cursor: 'pointer',
                                 }} onClick={() => handleFavourite(song._id)} />
-                                <MoreOutlined style={{ color: '#fff', cursor: 'pointer', }} />
+                                {/* <MoreOutlined 
+                                style={{ color: '#fff', cursor: 'pointer', }}
+                                onClick={() => handlePlayList(song._id)} 
+                                /> */}
+                                <DropupMenuPlayList />
                             </div>
                         ) : (
                             <span>{song.duration}</span>
