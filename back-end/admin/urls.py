@@ -18,6 +18,7 @@ from admin.views.album import (
     restore_multiple_albums, search_album, filter_album, approve_multiple_albums, reject_multiple_albums,
     approve_album, reject_album
 )
+from admin.views.statistical import get_total_statistics,get_playcount_by_topic, get_songcount_by_topic, get_top_liked_songs
 
 urlpatterns = [
     path('account/', login, name='account'), 
@@ -93,4 +94,9 @@ urlpatterns = [
     path("albums/reject-multiple-albums", reject_multiple_albums, name="reject_multiple_albums"),
     path("albums/approve-album/<str:album_id>/", approve_album, name="approve_album"),
     path("albums/reject-album/<str:album_id>/", reject_album, name="reject_album"),
+
+    path("statistical/total", get_total_statistics, name="get_total_statistics"),
+    path("statistical/playcount-by-topic", get_playcount_by_topic, name="get_playcount_by_topic"),
+    path("statistical/songcount-by-topic", get_songcount_by_topic, name="get_songcount_by_topic"),
+    path("statistical/top-liked-songs", get_top_liked_songs, name="get_top_liked_songs"),
 ]
