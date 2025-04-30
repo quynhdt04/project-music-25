@@ -2,9 +2,11 @@ import { useState, useRef, useEffect } from "react";
 import { FaEllipsisH, FaPlus, FaHeadphones } from "react-icons/fa";
 import "./DropupMenuPlayList.css";
 import { Modal, Form, Input, Button } from "antd";
-import { get_all_playList } from "../../services/PlayListServices";
+import { add_song_to_playlist, create_playList, get_all_playList } from "../../services/PlayListServices";
+import { toast, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const DropupMenuPlayList = () => {
+const DropupMenuPlayList = (props) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
@@ -12,8 +14,17 @@ const DropupMenuPlayList = () => {
     const menuRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [playlist, setPlayList] = useState([]);
+    const { songID, user } = props;
 
     const toggleMenu = () => {
+        if (!user) {
+            toast.warning("Vui lòng đăng nhập để sử dụng chức năng này!", {
+                position: "top-right",
+                autoClose: 3000,
+                transition: Bounce,
+            });
+            return;
+        }
         setIsOpen(!isOpen);
     };
 
@@ -45,21 +56,85 @@ const DropupMenuPlayList = () => {
         const fetchAPI = async () => {
             const result = await get_all_playList();
             setPlayList(result.playList);
-        }
+        };
         fetchAPI();
-    }, [])
+    }, []);
 
     const filteredPlayList = playlist.filter(item =>
         item.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    console.log(playlist);
+    const handleAddPlayList = async (values) => {
+        const title = values.title;
 
-    const handleAddPlayList = (values) => {
-        console.log("Thêm playlist:", values.title);
-        setIsModalOpen(false);
+        if (!user) {
+            toast.error("Bạn cần đăng nhập để tạo playlist!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
+            return;
+        }
+
+        const data = {
+            userId: user.id,
+            title: title,
+            imageAlbum: "",
+            songs: [],
+        };
+
+        try {
+            const result = await create_playList(data);
+
+            if (result && result.playlistId) {
+                const newPlaylistId = result.playlistId;
+
+                const resultsong = await add_song_to_playlist(newPlaylistId, {
+                    songId: songID,
+                });
+
+                if (resultsong.message) {
+                    toast.success("Đã thêm bài hát vào playlist mới!", {
+                        position: "top-right",
+                        autoClose: 3000,
+                    });
+                } else {
+                    toast.error("Thêm bài hát thất bại!", {
+                        position: "top-right",
+                        autoClose: 3000,
+                    });
+                }
+
+                setIsModalOpen(false);
+            } else {
+                toast.error("Tạo playlist thất bại!", {
+                    position: "top-right",
+                    autoClose: 3000,
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Đã xảy ra lỗi khi tạo playlist!", {
+                position: "top-right",
+                autoClose: 3000,
+            });
+        }
     };
 
+    const handleAddSongInPlayList = async (id) => {
+        try {
+            const result = await add_song_to_playlist(id, {
+                songId: songID,
+            });
+            toast.warning("Thêm bài hát vào playlist thành công!", {
+                position: "bottom-left",
+                autoClose: 3000,
+                transition: Bounce,
+            });
+            console.log("Kết quả cập nhật:", result);
+        } catch (error) {
+            console.error("Lỗi khi thêm bài hát vào playlist:", error);
+        }
+    }
 
     return (
         <>
@@ -97,7 +172,7 @@ const DropupMenuPlayList = () => {
                     <FaEllipsisH />
                 </button>
 
-                {isOpen && (
+                {user && isOpen && (
                     <div className="dropup__menu">
                         {/* Hover mở submenu */}
                         <div
@@ -113,13 +188,14 @@ const DropupMenuPlayList = () => {
                                     <div className="submenu__search">
                                         <input
                                             placeholder="Tìm playlist..."
-                                            onChange={(e) => setSearchTerm(e.target.value)} />
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
                                     </div>
                                     <div className="submenu__item" onClick={showModal}>
                                         <FaPlus /> Tạo playlist mới
                                     </div>
-                                    {filteredPlayList.map((item, index) => (
-                                        <div key={index} className="submenu__item">
+                                    {filteredPlayList.map((item) => (
+                                        <div key={item.id} className="submenu__item" onClick={() => handleAddSongInPlayList(item.id)}>
                                             <FaHeadphones /> {item.title}
                                         </div>
                                     ))}
