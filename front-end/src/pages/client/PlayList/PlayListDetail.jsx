@@ -10,7 +10,7 @@ import {
   add_song_to_playlist,
   get_play_list_by_id,
 } from "../../../services/PlayListServices";
-import { get_all_songs, get_song_by_id } from "../../../services/SongServices";
+import { get_all_songs, get_song_by_id, update_song_like_view } from "../../../services/SongServices";
 import { useSelector } from "react-redux";
 import {
   create_favoriteSong,
@@ -49,7 +49,7 @@ function PlayListDetail() {
             const durationSeconds = await getAudioDuration(song.data.audio);
             totalDurationSeconds += durationSeconds;
             // console.log("durationSeconds", durationSeconds, song.data)
-            console.log("album", album);
+            // console.log("album", album);
 
             const formattedDuration = formatDuration(durationSeconds);
 
@@ -65,9 +65,9 @@ function PlayListDetail() {
 
         setData(songDetails);
         setTotalDuration(formatDuration(totalDurationSeconds));
-        setAlbumTitle(album.playlist.title); 
+        setAlbumTitle(album.playlist.title);
         if (songDetails.length > 0) {
-          setFirstAvatar(songDetails[0].cover); 
+          setFirstAvatar(songDetails[0].cover);
         }
       } catch (e) {
         console.error("Lỗi khi tải playlist:", e);
@@ -129,20 +129,37 @@ function PlayListDetail() {
   const handleFavorite = async (id) => {
     const songID = id;
     const userID = user.id;
-    console.log(userID);
-    console.log(id);
+
     try {
       const result = await create_favoriteSong({
         userId: userID,
         songId: songID,
       });
-      setRefreshFavoriteSong(!refreshFavoriteSong);
 
-      console.log("Yêu thích thành công:", result);
+      if (result?.action) {
+        const isLiked = result.action === "added"; 
+
+        const requestData = {
+          songId: songID,
+          isLike: isLiked,
+        };
+
+        const resultLike = await update_song_like_view(requestData);
+        if (resultLike?.status === "success") {
+          console.log(isLiked ? "Đã thêm vào yêu thích" : "Đã gỡ khỏi yêu thích");
+        } else {
+          console.error("Lỗi khi cập nhật lượt thích:", resultLike?.message);
+        }
+
+        setRefreshFavoriteSong(!refreshFavoriteSong);
+      } else {
+        console.error("Không có hành động yêu thích từ API");
+      }
     } catch (error) {
       console.error("Lỗi khi thêm vào yêu thích:", error);
     }
   };
+
 
   const handleAddSong = async (newSongId) => {
     try {
@@ -203,7 +220,7 @@ function PlayListDetail() {
               {" "}
               <FaPlay /> Tiếp tục phát
             </button>
-            <DropupMenu album={album.playlist} refreshUpdate={refreshUpdate} setRefreshUpdate={setRefreshUpdate}/>
+            <DropupMenu album={album.playlist} refreshUpdate={refreshUpdate} setRefreshUpdate={setRefreshUpdate} />
           </div>
         </div>
 

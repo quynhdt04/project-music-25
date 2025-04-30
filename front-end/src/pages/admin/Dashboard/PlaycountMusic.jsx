@@ -1,60 +1,48 @@
 import { Column } from '@ant-design/plots';
+import { get_playcount_by_topic } from '../../../services/StatisticalServices';
+import { useEffect, useState } from 'react';
 
 const PlaycountMusic = () => {
-    //so luong nghe moi chu de
-  const data = [
-    { letter: 'A', frequency: 8167 },
-    { letter: 'B', frequency: 1492 },
-    { letter: 'C', frequency: 2782 },
-    { letter: 'D', frequency: 4253 },
-    { letter: 'E', frequency: 12702 },
-    { letter: 'F', frequency: 2288 },
-    { letter: 'G', frequency: 2015 },
-    { letter: 'H', frequency: 6094 },
-    { letter: 'I', frequency: 6966 },
-    { letter: 'J', frequency: 153 },
-    { letter: 'K', frequency: 772 },
-    { letter: 'L', frequency: 4025 },
-    { letter: 'M', frequency: 2406 },
-    { letter: 'N', frequency: 6749 },
-    { letter: 'O', frequency: 7507 },
-    { letter: 'P', frequency: 1929 },
-    { letter: 'Q', frequency: 95 },
-    { letter: 'R', frequency: 5987 },
-    { letter: 'S', frequency: 6327 },
-    { letter: 'T', frequency: 9056 },
-    { letter: 'U', frequency: 2758 },
-    { letter: 'V', frequency: 978 },
-    { letter: 'W', frequency: 236 },
-    { letter: 'X', frequency: 15 },
-    { letter: 'Y', frequency: 1974 },
-    { letter: 'Z', frequency: 74 },
-  ];
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchAPI = async () => {
+      const result = await get_playcount_by_topic();
+      if (result?.data) {
+        const formattedData = result.data.map((item) => ({
+          topicName: item.topicName,
+          play_count: item.play_count,
+        }));
+        setData(formattedData);
+      }
+    };
+    fetchAPI();
+  }, []);
+
   const config = {
     data,
-    xField: 'letter',
-    yField: 'frequency',
-    onReady: ({ chart }) => {
-      try {
-        const { height } = chart._container.getBoundingClientRect();
-        const tooltipItem = data[Math.floor(Math.random() * data.length)];
-        chart.on(
-          'afterrender',
-          () => {
-            chart.emit('tooltip:show', {
-              data: {
-                data: tooltipItem,
-              },
-              offsetY: height / 2 - 60,
-            });
-          },
-          true,
-        );
-      } catch (e) {
-        console.error(e);
-      }
+    xField: 'topicName',
+    yField: 'play_count',
+    label: {
+      // position: 'middle',
+      style: {
+        fill: '#FFFFFF',
+        opacity: 0.6,
+      },
     },
+    xAxis: {
+      label: {
+        autoHide: true,
+        autoRotate: false,
+      },
+    },
+    meta: {
+      topicName: { alias: 'Thể loại' },
+      play_count: { alias: 'Lượt nghe' },
+    },
+    color: '#6395F9',
   };
+
   return <Column {...config} />;
 };
 

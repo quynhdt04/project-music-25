@@ -3,7 +3,7 @@ import { Row, Col, Avatar } from "antd";
 import { HeartFilled, PlayCircleOutlined } from "@ant-design/icons";
 import { create_favoriteSong, get_favoriteSong } from "../../../services/FavoriteSongServices";
 import useMusicPlayer from "../../../hooks/useMusicPlayer";
-import { get_song_by_id } from "../../../services/SongServices";
+import { get_song_by_id, update_song_like_view } from "../../../services/SongServices";
 
 
 const MusicLove = () => {
@@ -40,21 +40,55 @@ const MusicLove = () => {
         fetchApi();
     }, [refreshFavoriteSong])
 
+    // const toggleFavorite = async (key) => {
+    //     const songID = key;
+    //     const userID = user.id;
+    //     try {
+    //         const result = await create_favoriteSong({
+    //             userId: userID,
+    //             songId: songID,
+    //         });
+    //         const requestData = {
+    //             songId: songID,
+    //             isLike: false,
+    //         };
+
+    //         const resultLike = await update_song_like_view(requestData);
+    //         setRefreshFavoriteSong(!refreshFavoriteSong);
+    //         setFavorite((prev) => ({ ...prev, [key]: !prev[key] }));
+    //         console.log("Yêu thích thành công:", result);
+    //     } catch (error) {
+    //         console.error("Lỗi khi thêm vào yêu thích:", error);
+    //     }
+    // };
+
     const toggleFavorite = async (key) => {
         const songID = key;
         const userID = user.id;
+
         try {
             const result = await create_favoriteSong({
                 userId: userID,
                 songId: songID,
             });
+
+            const requestData = {
+                songId: songID,
+                isLike: false,
+            };
+
+            const resultLike = await update_song_like_view(requestData);
+
             setRefreshFavoriteSong(!refreshFavoriteSong);
             setFavorite((prev) => ({ ...prev, [key]: !prev[key] }));
+
             console.log("Yêu thích thành công:", result);
+
         } catch (error) {
             console.error("Lỗi khi thêm vào yêu thích:", error);
         }
     };
+
 
     const handlePlay = (e, song) => {
         e.preventDefault();

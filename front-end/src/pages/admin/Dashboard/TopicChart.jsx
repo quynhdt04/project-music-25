@@ -1,21 +1,30 @@
 import { useEffect, useState } from 'react';
 import { Pie } from '@ant-design/plots';
+import { get_songcount_by_topic } from '../../../services/StatisticalServices';
 
 const TopicChart = () => {
-    //so luong bai hat cua moi chu de
   const [data, setData] = useState([]);
+
   useEffect(() => {
-    setTimeout(() => {
-      setData([
-        { type: '分类一', value: 27 },
-        { type: '分类二', value: 25 },
-        { type: '分类三', value: 18 },
-        { type: '分类四', value: 15 },
-        { type: '分类五', value: 10 },
-        { type: '其他', value: 5 },
-      ]);
-    }, 1000);
+    const fetchAPI = async () => {
+      try {
+        const result = await get_songcount_by_topic();
+        if (result?.data) {
+          const formattedData = result.data
+            .filter(item => item.song_count > 0) // chỉ hiển thị chủ đề có bài hát
+            .map(item => ({
+              type: item.topicName,
+              value: item.song_count
+            }));
+          setData(formattedData);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy dữ liệu:", error);
+      }
+    };
+    fetchAPI();
   }, []);
+
   const config = {
     data,
     angleField: 'value',
@@ -33,7 +42,13 @@ const TopicChart = () => {
         rowPadding: 5,
       },
     },
+    tooltip: {
+      customContent: (title, items) => {
+        return `<div style="padding: 5px"><strong>${title}</strong>: ${items?.[0]?.value} bài hát</div>`;
+      }
+    },
   };
+
   return <Pie {...config} />;
 };
 

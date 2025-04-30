@@ -5,8 +5,20 @@ import { GiLoveSong } from "react-icons/gi";
 import TopicChart from "./TopicChart";
 import TopMusic from "./TopMusic";
 import PlaycountMusic from "./PlaycountMusic";
+import { useEffect, useState } from "react";
+import { get_total_statistics } from "../../../services/StatisticalServices";
 
 function Dashboard() {
+    const [data, setData] = useState([]);
+
+    useEffect(() => {
+        const fetchAPI = async () => {
+            const result = await get_total_statistics()
+            setData(result.statistics);
+        }
+        fetchAPI()
+    },[])
+
     return (
         <>
             <div className="dashboard__wrap">
@@ -14,35 +26,35 @@ function Dashboard() {
                     <FaUsers />
                     <div className="dashboard__content">
                         <p>Người dùng</p>
-                        <p>1000</p>
+                        <p>{data.total_users}</p>
                     </div>
                 </div>
                 <div className="dashboard__item">
                     <FaUserTie />
                     <div className="dashboard__content">
                         <p>Quản lý</p>
-                        <p>1000</p>
+                        <p>{data.total_accounts}</p>
                     </div>
                 </div>
                 <div className="dashboard__item">
                     <MdAlbum />
                     <div className="dashboard__content">
                         <p>Album</p>
-                        <p>1000</p>
+                        <p>{data.total_albums}</p>
                     </div>
                 </div>
                 <div className="dashboard__item">
                     <GiLoveSong />
                     <div className="dashboard__content">
                         <p>Bài hát</p>
-                        <p>1000</p>
+                        <p>{data.total_songs}</p>
                     </div>
                 </div>
                 <div className="dashboard__item">
                     <FaMicrophone />
                     <div className="dashboard__content">
                         <p>Ca sĩ</p>
-                        <p>1000</p>
+                        <p>{data.total_singers}</p>
                     </div>
                 </div>
             </div>

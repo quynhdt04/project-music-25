@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timezone
 import cloudinary
 from cloudinary.uploader import destroy
 from django.http import QueryDict
@@ -1170,3 +1170,62 @@ async def get_song_top_play(request):
             }, status=500)
 
     return JsonResponse({"status": "error", "message": "Invalid HTTP method"}, status=405)
+
+@csrf_exempt
+async def update_song_like_view(request):
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Chỉ hỗ trợ phương thức POST"}, status=405)
+
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+        song_id = body.get("songId")
+        is_like = body.get("isLike")
+
+        if song_id is None or is_like is None:
+            return JsonResponse({
+                "status": "error",
+                "message": "Thiếu songId hoặc isLike"
+            }, status=400)
+
+        # Hàm đồng bộ để tương tác với MongoEngine
+        def update_like_sync():
+            try:
+                song = Song.objects.filter(_id=song_id, deleted=False).first()
+                if not song:
+                    return {"success": False, "error": "Không tìm thấy bài hát."}
+
+                if is_like:
+                    song.like += 1
+                else:
+                    song.like = max(0, song.like - 1)
+
+                song.updatedAt = datetime.now(timezone.utc)
+                song.save()
+
+                return {"success": True, "like": song.like}
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        # Gọi hàm đồng bộ bằng sync_to_async
+        result = await sync_to_async(update_like_sync)()
+
+        if result["success"]:
+            return JsonResponse({
+                "status": "success",
+                "message": "Đã cập nhật lượt like.",
+                "like": result["like"]
+            }, status=200)
+        else:
+            return JsonResponse({
+                "status": "error",
+                "message": result["error"]
+            }, status=404 if "tìm thấy" in result["error"] else 500)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Dữ liệu JSON không hợp lệ."}, status=400)
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "message": f"Lỗi hệ thống: {str(e)}",
+            "traceback": traceback.format_exc()
+        }, status=500)
