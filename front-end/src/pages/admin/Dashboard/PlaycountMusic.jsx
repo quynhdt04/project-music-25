@@ -24,7 +24,7 @@ const PlaycountMusic = () => {
     xField: 'topicName',
     yField: 'play_count',
     label: {
-      position: 'middle',
+      // position: 'middle',
       style: {
         fill: '#FFFFFF',
         opacity: 0.6,

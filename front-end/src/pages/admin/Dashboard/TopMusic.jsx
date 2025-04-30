@@ -25,7 +25,7 @@ const TopMusic = () => {
     yField: 'value',
     colorField: 'type',
     label: {
-      position: 'middle',
+      // position: 'middle',
       layout: [
         { type: 'interval-adjust-position' },
         { type: 'interval-hide-overlap' },
