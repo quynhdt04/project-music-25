@@ -167,3 +167,8 @@ export const get_song_top_play= async () => {
   const result = await get(`api/songs/top-ten-play`);
   return result;
 };
+
+export const update_song_like_view= async (data) => {
+  const result = await post(`api/songs/like-song`,data);
+  return result;
+};
