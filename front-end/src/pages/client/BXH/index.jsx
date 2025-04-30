@@ -2,17 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { Column } from '@ant-design/plots';
 import { get_song_top_play } from '../../../services/SongServices';
 import useMusicPlayer from "../../../hooks/useMusicPlayer";
-import { HeartFilled, MoreOutlined, PlayCircleOutlined, CustomerServiceOutlined  } from "@ant-design/icons";
+import { HeartFilled, MoreOutlined, PlayCircleOutlined, CustomerServiceOutlined } from "@ant-design/icons";
+import { create_favoriteSong, get_favoriteSong } from '../../../services/FavoriteSongServices';
+import { toast, Bounce } from "react-toastify";
 
 const BXH = () => {
     const { currentSong, isPlaying, playSong, togglePlay, addToQueue, getAudioDuration, formatDuration } =
         useMusicPlayer();
     const [data, setData] = useState([]);
     const [hoveredIndex, setHoveredIndex] = useState(null);
+    const [refresh, setRefresh] = useState(false);
+    const user = JSON.parse(sessionStorage.getItem("user"));
 
     useEffect(() => {
         const fetchAPI = async () => {
             const result = await get_song_top_play();
+
+            let favoriteSongIds = [];
+            if (user) {
+                const favoriteSongs = await get_favoriteSong(user.id);
+                favoriteSongIds = favoriteSongs.songs;
+            }
+
             const modifiedData = await Promise.all(
                 result.data.map(async (song) => {
                     const durationSeconds = await getAudioDuration(song.audio);
@@ -23,15 +34,18 @@ const BXH = () => {
                         artist: song.singers.map(item => item.singerName).join(", "),
                         album: song.albums.map(item => item.title).join(", "),
                         duration: formattedDuration,
+                        ...(user && {
+                            isFavorite: favoriteSongIds.includes(song._id)
+                        }),
                     };
                 })
             );
             setData(modifiedData);
         };
-        fetchAPI();
-    }, []);
 
-    console.log(data);
+        fetchAPI();
+    }, [refresh]);
+
 
     const sortedData = [...data].sort((a, b) => b.play_count - a.play_count);
 
@@ -73,8 +87,6 @@ const BXH = () => {
 
     const handlePlay = (e, song) => {
         e.preventDefault();
-        console.log("click");
-
         if (currentSong && currentSong.id === song.id) {
             togglePlay();
         } else {
@@ -83,10 +95,37 @@ const BXH = () => {
         }
     }
 
+    const handleFavourite = async (id) => {
+        if (!user) {
+            toast.warning("Vui lòng đăng nhập để thêm bài hát yêu thích!", {
+                position: "top-center",
+                autoClose: 3000,
+                transition: Bounce,
+            });
+            return;
+        }
+
+        const songID = id;
+        const userID = user.id;
+
+        try {
+            const result = await create_favoriteSong({
+                userId: userID,
+                songId: songID,
+            });
+            if(result){
+                setRefresh(!refresh);
+            }
+            console.log("Yêu thích thành công:", result);
+        } catch (error) {
+            console.error("Lỗi khi thêm vào yêu thích:", error);
+        }
+    };
+
     return (
         <div style={{ paddingLeft: 24, paddingRight: 24, paddingBottom: 24, background: '#170F23', borderRadius: 8, marginBottom: '4rem' }}>
             <div style={{ padding: 24, background: '#170F23', borderRadius: 8, paddingBottom: '0rem' }}>
-                <h2 style={{ color: '#fff', marginBottom: '0rem' }}> <CustomerServiceOutlined/> Bảng xếp hạng Top 10 bài hát</h2>
+                <h2 style={{ color: '#fff', marginBottom: '0rem' }}> <CustomerServiceOutlined /> Bảng xếp hạng Top 10 bài hát</h2>
                 <Column {...config} />
             </div>
 
@@ -137,7 +176,7 @@ const BXH = () => {
                                         transform: 'translate(-50%, -50%)',
                                         fontSize: 28,
                                         color: '#fff',
-                                        cursor:'pointer',
+                                        cursor: 'pointer',
                                     }}
                                     onClick={(e) => {
                                         const formattedData = {
@@ -165,8 +204,11 @@ const BXH = () => {
                         {/* Duration or icons */}
                         {hoveredIndex === index ? (
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                <HeartFilled style={{ color: 'red',  cursor:'pointer', }} />
-                                <MoreOutlined style={{ color: '#fff', cursor:'pointer', }} />
+                                <HeartFilled style={{
+                                    color: song.isFavorite ? 'red' : 'gray',
+                                    cursor: 'pointer',
+                                }} onClick={() => handleFavourite(song._id)} />
+                                <MoreOutlined style={{ color: '#fff', cursor: 'pointer', }} />
                             </div>
                         ) : (
                             <span>{song.duration}</span>
