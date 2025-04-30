@@ -162,3 +162,8 @@ export const checkIsSongLikedByCurrentUser = async (songId, userId) => {
     `api/songs/check-song-is-liked-by-user?id=${userId}&songId=${songId}`
   );
 };
+
+export const get_song_top_play= async () => {
+  const result = await get(`api/songs/top-ten-play`);
+  return result;
+};

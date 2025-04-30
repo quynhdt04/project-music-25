@@ -159,14 +159,13 @@
 
 // detail 
 .playlist {
-    // width: 100%;
     padding: 20px;
-    // border-radius: 12px;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     color: #fff;
     height: 100vh;
+    margin-bottom: 40px;    
 
     &__info {
         width: 30%;
@@ -264,7 +263,6 @@
     }
 
     &__list {
-        // width: 800px;
         margin: auto;
     }
 

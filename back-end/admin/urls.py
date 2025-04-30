@@ -8,7 +8,7 @@ from admin.views.song import (
     delete_multiple_songs, restore_multiple_songs, get_all_pending_songs, get_number_of_top_liked_songs, 
     get_number_of_top_play_count_songs, get_songs_by_topic, get_song_by_slug, like_song, increment_play_count,
     filter_song, search_song, get_all_songs_by_singer, get_all_available_songs, filter_pending_songs,
-    approve_multiple_songs, reject_multiple_songs, approve_song, reject_song, check_song_is_liked_by_user
+    approve_multiple_songs, reject_multiple_songs, approve_song, reject_song, check_song_is_liked_by_user, get_song_top_play
 )
 from admin.views.topic import get_all_topics, create_topic, get_topic_by_id,update_topic,delete_topic, get_number_of_topics, get_topic_by_slug
 from admin.views.user import get_all_users, get_user_by_id, create_user, delete_user, patch_user
@@ -56,6 +56,7 @@ urlpatterns = [
     path("songs/approve-song/<str:song_id>/", approve_song, name="approve_song"),
     path("songs/reject-song/<str:song_id>/", reject_song, name="reject_song"),
     path("songs/check-song-is-liked-by-user", check_song_is_liked_by_user, name="check_song_is_liked_by_user"),
+    path("songs/top-ten-play", get_song_top_play, name="get_song_top_play"),
 
     path('singers/',get_all_singers, name='get_all_singers'),
     path('singers/<str:singer_id>/',get_singer_by_id, name='get_singer_by_id'),

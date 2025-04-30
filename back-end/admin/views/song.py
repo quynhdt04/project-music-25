@@ -1115,3 +1115,58 @@ async def check_song_is_liked_by_user(request):
             logger.error("Error in check_song_is_liked_by_user: %s", traceback.format_exc())
             return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
     return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+
+@csrf_exempt
+async def get_song_top_play(request):
+    if request.method == 'GET':
+        try:
+            # Lấy 10 bài hát có lượt nghe cao nhất, không bị xóa
+            top_songs = await sync_to_async(lambda: list(Song.objects(deleted=False).order_by('-play_count')[:10]))()
+
+            result = []
+            for song in top_songs:
+                # Lấy danh sách album chứa bài hát này
+                albums = await sync_to_async(lambda: list(Album.objects.filter(songs__in=[song._id])))()
+
+                serialized_albums = []
+                for album in albums:
+                    try:
+                        singer = await sync_to_async(SingerModel.objects.get)(id=album.singerId)
+                        serialized_album = {
+                            "id": str(album._id),
+                            "title": album.title,
+                            "singer": {
+                                "id": str(singer.id),
+                                "fullName": singer.fullName
+                            }
+                        }
+                    except SingerModel.DoesNotExist:
+                        serialized_album = {
+                            "id": str(album._id),
+                            "title": album.title,
+                            "singer": None
+                        }
+                    serialized_albums.append(serialized_album)
+
+                result.append({
+                    "_id": song._id,
+                    "title": song.title,
+                    "avatar": song.avatar,
+                    "play_count": song.play_count,
+                    "singers": [{"singerId": s.singerId, "singerName": s.singerName} for s in song.singers],
+                    "isPremiumOnly": song.isPremiumOnly,
+                    "slug": song.slug,
+                    "albums": serialized_albums,  
+                    "audio": song.audio,
+                })
+
+            return JsonResponse({"status": "success", "data": result}, status=200)
+
+        except Exception as e:
+            return JsonResponse({
+                "status": "error",
+                "message": f"Lỗi hệ thống: {str(e)}",
+                "traceback": traceback.format_exc()
+            }, status=500)
+
+    return JsonResponse({"status": "error", "message": "Invalid HTTP method"}, status=405)
