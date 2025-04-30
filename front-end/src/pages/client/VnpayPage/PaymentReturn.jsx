@@ -69,10 +69,21 @@ const PaymentReturn = () => {
           const userRes = await fetch(`http://localhost:8000/user/${user_id}`);
           const freshUser = await userRes.json();
           console.log("Fetched user data:", freshUser);
+          const token = localStorage.getItem("token");
+          // Cập nhật lại localStorage
           localStorage.setItem("user", JSON.stringify(freshUser));
           sessionStorage.setItem("user", JSON.stringify(freshUser));
+          localStorage.setItem("token", token);
+          sessionStorage.setItem("token", token);
 
-          dispatch(updateUser(freshUser));
+          // Dispatch vào đúng auth reducer
+          dispatch({
+            type: "LOGIN_SUCCESS",
+            payload: {
+              user: freshUser,
+              token,
+            },
+          });
 
           toast.success("Nâng cấp tài khoản thành công!");
         } else {
@@ -86,19 +97,19 @@ const PaymentReturn = () => {
     }
   }, [searchParams]);
 
-  useEffect(() => {
-    const userFromStorage = JSON.parse(localStorage.getItem("user"));
-    console.log("User sau khi cập nhật từ localStorage: ", userFromStorage);
+  // useEffect(() => {
+  //   const userFromStorage = JSON.parse(localStorage.getItem("user"));
+  //   console.log("User sau khi cập nhật từ localStorage: ", userFromStorage);
 
-    // Nếu thông tin trong localStorage đã được cập nhật, sử dụng nó
-    if (userFromStorage) {
-      dispatch(updateUser(userFromStorage));
-    }
-  }, []);
-  const userFromStorage = JSON.parse(localStorage.getItem("user"));
-  if (userFromStorage) {
-    dispatch(updateUser(userFromStorage)); // Đảm bảo luôn cập nhật lại thông tin người dùng trong Redux
-  }
+  //   // Nếu thông tin trong localStorage đã được cập nhật, sử dụng nó
+  //   if (userFromStorage) {
+  //     dispatch(updateUser(userFromStorage));
+  //   }
+  // }, []);
+  // const userFromStorage = JSON.parse(localStorage.getItem("user"));
+  // if (userFromStorage) {
+  //   dispatch(updateUser(userFromStorage)); // Đảm bảo luôn cập nhật lại thông tin người dùng trong Redux
+  // }
 
   return (
     <div className="payment-return-container">
@@ -118,23 +129,23 @@ const PaymentReturn = () => {
           )}
           {data.msg && <p className="alert-warning">{data.msg}</p>}
           <div style={{ textAlign: "center", marginTop: "20px" }}>
-          <button
-            className="go-back-home-btn"
-            onClick={() => navigate("/")}
-            style={{
-              marginTop: "20px",
-              padding: "10px 20px",
-              backgroundColor: "#4CAF50",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer",
-              textAlign: "center",
-              alignItems: "center",
-            }}
-          >
-            Quay lại trang chủ
-          </button>
+            <button
+              className="go-back-home-btn"
+              onClick={() => navigate("/")}
+              style={{
+                marginTop: "20px",
+                padding: "10px 20px",
+                backgroundColor: "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "4px",
+                cursor: "pointer",
+                textAlign: "center",
+                alignItems: "center",
+              }}
+            >
+              Quay lại trang chủ
+            </button>
           </div>
         </div>
       </div>
