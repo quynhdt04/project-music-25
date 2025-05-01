@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Button, Dropdown } from "react-bootstrap";
 import {
-  SuitHeart,
+  FileMusic,
   ThreeDots,
+  ThreeDotsVertical,
   Plus,
   HeartFill,
   Heart,
@@ -17,6 +18,7 @@ import { checkIsSongLikedByCurrentUser } from "../../services/SongServices.js";
 
 const Media = ({ item, selectedItem, handlePlayClick, type }) => {
   const [isLiked, setIsLiked] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const { addToQueue, moveSong, removeSongFromQueue } = useMusicPlayer();
 
   useEffect(() => {
@@ -62,8 +64,9 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
       className="more-button"
       ref={ref}
       onClick={(e) => {
-        e.stopPropagation();
+        e.preventDefault();
         onClick(e);
+        setDropdownOpen(!dropdownOpen);
       }}
     >
       <ThreeDots />
@@ -95,7 +98,7 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
         >
           <div className="song-thumb" style={{ cursor: "pointer" }}>
             <img
-              src={item.cover}
+              src={item.cover || "https://via.placeholder.com/150"}
               alt="song"
               onClick={(e) => handlePlayClick(e, item)}
             />
@@ -129,7 +132,7 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
         {type !== "queue" && (
           <div
             className="song-item-center d-flex align-items-center"
-            style={{ flex: "45%" }}
+            style={{ flex: "50%" }}
           >
             <div className="album-name">
               <span style={{ fontSize: "13px", color: "#FFFFFF80" }}>
@@ -160,27 +163,80 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
                 {item.duration}
               </span>
             </div>
-            {type === "queue" && (
-              <Dropdown>
-                <Dropdown.Toggle as={CustomToggle} />
-                <Dropdown.Menu className="custom-dropdown-menu">
-                  <Dropdown.Item
-                    onClick={(e) => handleRemoveFromQueue(e, item)}
-                  >
-                    <XCircle className="me-2" />
-                    Remove from queue
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={(e) => handleMoveUp(e, item)}>
-                    <ArrowUpShort className="me-2" />
-                    Move up
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={(e) => handleMoveDown(e, item)}>
-                    <ArrowDownShort className="me-2" />
-                    Move down
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
+            {type !== "queue" && (
+              <div className="queue-button-wrapper" style={{ flex: "5%" }}>
+                <Button
+                  variant="link"
+                  className="queue-button"
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                >
+                  <ThreeDotsVertical />
+                </Button>
+              </div>
             )}
+            <Dropdown
+              show={dropdownOpen}
+              onToggle={(isOpen) => setDropdownOpen(isOpen)}
+            >
+              {type === "queue" && <Dropdown.Toggle as={CustomToggle} />}
+              <Dropdown.Menu
+                className={`custom-dropdown-menu ${dropdownOpen ? "" : "hide"}`}
+              >
+                <Dropdown.Item
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <FileMusic />
+                  Thêm bài hát vào playlist
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsLiked(!isLiked);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  {isLiked ? <HeartFill /> : <Heart />}
+                  Thêm bài hát yêu thích
+                </Dropdown.Item>
+                {type === "queue" && (
+                  <>
+                    <Dropdown.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFromQueue(e, item);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <XCircle className="me-2" />
+                      Xóa khỏi hàng đợi
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMoveUp(e, item);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <ArrowUpShort className="me-2" />
+                      Đẩy bài hát lên
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMoveDown(e, item);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      <ArrowDownShort className="me-2" />
+                      Đẩy bài hát xuống
+                    </Dropdown.Item>
+                  </>
+                )}
+              </Dropdown.Menu>
+            </Dropdown>
           </div>
         </div>
       </div>

@@ -124,6 +124,10 @@
       padding: 0.5rem 0;
       inset: 0px -11px auto auto !important;
 
+      &.hide {
+        display: none;
+      }
+
       .dropdown-item {
         color: #ffffff;
         font-size: 14px;

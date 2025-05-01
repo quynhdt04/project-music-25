@@ -289,6 +289,17 @@ const AlbumDetail = () => {
                   Thời gian
                 </span>
               </div>
+              <div className="header-left" style={{ flex: "5%" }}>
+                <span
+                  style={{
+                    textTransform: "uppercase",
+                    fontSize: "12px",
+                    color: "#FFFFFF80",
+                  }}
+                >
+                  {/* Empty header for vertical three dots button column */}
+                </span>
+              </div>
             </div>
             <div>
               {songs.map((item, index) => (
