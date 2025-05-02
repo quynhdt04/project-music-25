@@ -41,6 +41,8 @@ import Vip from "../pages/client/Vip";
 import IndexPage from "../pages/client/VnpayPage/index";
 import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
 import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
+import ConversationClient from "../pages/client/Conversation";
+
 export const allRoutes = [
   // Routes cho Client
   {
@@ -87,6 +89,10 @@ export const allRoutes = [
       {
         path: "/vip",
         element: <Vip />,
+      },
+      {
+        path: "conversations",
+        element: <ConversationClient />,
       },
     ],
   },
