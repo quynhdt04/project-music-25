@@ -41,6 +41,7 @@ import Vip from "../pages/client/Vip";
 import IndexPage from "../pages/client/VnpayPage/index";
 import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
 import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
+import SearchHome from "../pages/client/SearchHome";
 export const allRoutes = [
   // Routes cho Client
   {
@@ -58,6 +59,10 @@ export const allRoutes = [
       {
         path: ":type/:id",
         element: <AlbumDetail />,
+      },
+      {
+        path: "search/:keyword",
+        element: <SearchHome />,
       },
       {
         element: <PrivateRouteClient />,
