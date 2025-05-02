@@ -8,7 +8,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const loginUser = async (email, password, dispatch) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/user/login/`, {
+    const response = await fetch(`${API_BASE_URL}user/login/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -55,7 +55,7 @@ export async function registerUser(formData) {
       console.log(pair[0] + ": " + pair[1]);
     }
 
-    const response = await fetch(`${API_BASE_URL}/user/create/`, {
+    const response = await fetch(`${API_BASE_URL}user/create/`, {
       method: "POST",
       body: formData, // ✅ Gửi trực tiếp formData
     });
@@ -81,7 +81,7 @@ export async function registerUser(formData) {
 
 export async function getUserById(_id) {
   try {
-    const response = await fetch(`${API_BASE_URL}/user/${_id}/`);
+    const response = await fetch(`${API_BASE_URL}user/${_id}/`);
     // Kiểm tra URL
     console.log("bgvvu", _id);
     if (!response.ok) {
@@ -104,7 +104,7 @@ export async function editProfile(userId, updatedData) {
   );
 
   try {
-    const response = await fetch(`${API_BASE_URL}/update/${userId}/`, {
+    const response = await fetch(`${API_BASE_URL}update/${userId}/`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -139,7 +139,7 @@ export const editProfileWithAvatar = async (userId, avatarFile) => {
 
   try {
     const response = await axios.post(
-      `http://localhost:8000/users/${userId}/avatar`,
+      `${API_BASE_URL}users/${userId}/avatar`,
       formData,
       {
         headers: {

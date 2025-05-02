@@ -69,7 +69,7 @@ export const delete_topic_by_id = async (topicId) => {
 };
 
 export async function get_topic_by_id(id) {
-  const response = await fetch(`${BASE_URL}/api/topics/${id}/`);
+  const response = await fetch(`${BASE_URL}api/topics/${id}/`);
   if (!response.ok) {
     throw new Error("Không thể lấy chủ đề theo ID");
   }

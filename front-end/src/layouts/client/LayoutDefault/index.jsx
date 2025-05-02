@@ -37,7 +37,7 @@ function LayoutDefault() {
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
     sessionStorage.removeItem("user");
-  sessionStorage.removeItem("token");
+    sessionStorage.removeItem("token");
     toast.success("Bạn đã đăng xuất");
     setShowLoginForm(false);
     navigate("/");
