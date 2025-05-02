@@ -4,32 +4,25 @@ import { MdDelete, MdEdit, MdGroupAdd, MdOutlineClose, MdSend } from "react-icon
 import { IoHeartSharp } from "react-icons/io5";
 import { FaRegImage } from "react-icons/fa6";
 import BoxHead from "../../../components/BoxHead";
-import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 import { Form, InputGroup } from "react-bootstrap";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import { FaSearch } from "react-icons/fa";
-import "./conversation.css";
+import "./conv.css";
 import { useSelector } from "react-redux";
 import { io } from "socket.io-client";
 import { v4 as uuidv4 } from 'uuid'; //Tạo id message
 import { toast, Bounce } from "react-toastify";
 import { uploadToCloudinary } from "../../../utils/cloudinaryService";
 import {
-    create_conversation,
     get_all_conversations,
-    update_conversation,
-    delete_conversation
 } from "../../../services/ConversationServices";
 import { get_messages_by_conversation, create_message } from "../../../services/MessageServices";
 
 const socket = io(import.meta.env.VITE_SOCKET);
 
-function Conversation() {
-    const [activeMenu, setActiveMenu] = useState(null);
-    const [editMode, setEditMode] = useState(null); //thêm sửa xoá
-    const [showSearch, setShowSearch] = useState(false);  // State để kiểm soát hiển thị ô tìm kiếm
+function ConversationClient() {
     const [selectedConversationId, setSelectedConversationId] = useState(null);
     const [messageText, setMessageText] = useState("");
     const [socketConnected, setSocketConnected] = useState(false); //Kết nối socket
@@ -41,7 +34,7 @@ function Conversation() {
 
     const menuRef = useRef(null);
     const tempId = uuidv4();
-    const account = useSelector((state) => state.authenReducer.account); //user đang đăng nhập
+    const account = useSelector((state) => state.authenReducer.user); //user đang đăng nhập
     const messagesEndRef = useRef(null); //cuốn tới tin nhắn mới nhất
 
     const [imagePreview, setImagePreview] = useState(null); //ảnh nhóm
@@ -80,12 +73,10 @@ function Conversation() {
         };
 
         // Chỉ gọi API nếu danh sách cuộc trò chuyện chưa được tải
-        // if (!conversations || conversations.length === 0) {
+        if (!conversations || conversations.length === 0) {
             fetchAPI();
-        // }
+        }
     }, [refresh]);
-
-    const reloadConversations = () => setRefresh((prev) => !prev);
 
     // Reset các giá trị khi không cần thiết
     const reset = () => {
@@ -113,127 +104,7 @@ function Conversation() {
         fetchMessages();
     }, [selectedConversationId]);
 
-    //---------------------------ListGroup------------------------
-    const handleImageChange = (event) => {
-        const file = event.target.files[0];
-        if (file) {
-            setImagePreview(URL.createObjectURL(file));
-            setAvatarFile(file);
-        } else {
-            setImagePreview(null);
-            setAvatarFile(null);
-        }
-    };
-
-    // set dữ liệu khi sửa
-    const handleEdit = (id) => {
-        const group = conversations.find((g) => g.id === id);
-        if (group) {
-            setConversationName(group.name || "");
-            setImagePreview(group.img || null);
-            setAvatarFile(null); // Không cần file mới khi chỉ sửa tên hoặc xem ảnh cũ
-            setEditMode({ type: "edit", id });
-        }
-    };
-
-    const handleUpdate = async (name) => {
-        try {
-            let avatarUrl = imagePreview;
-
-            // Nếu người dùng chọn file mới thì upload
-            if (avatarFile) {
-                avatarUrl = await uploadToCloudinary(avatarFile);
-                if (!avatarUrl) {
-                    alert("Lỗi khi tải ảnh lên Cloudinary!");
-                    return;
-                }
-            }
-
-            const updateConversation = { name, img: avatarUrl }
-            const response = await update_conversation(editMode?.id, updateConversation);
-            if (response.message) {
-                toast.success("Cập nhật thành công!", { transition: Bounce });
-                reset();
-                reloadConversations();
-            } else {
-                toast.error("Cập nhật thất bại!", { transition: Bounce });
-            }
-        } catch (err) {
-            console.error(err);
-            toast.error("Lỗi khi cập nhật nhóm!", { transition: Bounce });
-        }
-    };
-
-    const handleDelete = async () => {
-        try {
-            const response = await delete_conversation(selectedConversationId);
-            if (response.message) {
-                toast.success("Xoá thành công!", { transition: Bounce });
-                setEditMode(null);
-                reloadConversations();
-            } else {
-                toast.error("Xoá thất bại!", { transition: Bounce });
-            }
-        } catch (err) {
-            console.error(err);
-            toast.error("Lỗi khi xoá nhóm!", { transition: Bounce });
-        }
-    };
-
-    const handleAdd = async (name) => {
-        try {
-            let avatarUrl = null;
-
-            if (avatarFile) {
-                avatarUrl = await uploadToCloudinary(avatarFile);
-                if (!avatarUrl) {
-                    alert("Lỗi khi tải ảnh lên Cloudinary!");
-                    return;
-                }
-            }
-
-            const newGroup = { name, img: avatarUrl };
-            const response = await create_conversation(newGroup);
-
-            console.log("Tạo nhóm - phản hồi:", response);
-
-            if (response.message) {
-                toast.success('Thêm thành công!', { transition: Bounce });
-                reset();
-                reloadConversations();
-            } else {
-                toast.error('Không nhận được dữ liệu nhóm từ server.', { transition: Bounce });
-            }
-        } catch (error) {
-            console.error("Lỗi khi tạo nhóm:", error);
-            toast.error('Lỗi khi tạo nhóm!', { transition: Bounce });
-        }
-    };
-
-
-    const toggleMenu = (index, event) => {
-        event.stopPropagation();
-        setActiveMenu(activeMenu === index ? null : index);
-    };
-
-    const closeMenu = (event) => {
-        if (menuRef.current && menuRef.current.contains(event.target)) return;
-        setActiveMenu(null);
-    };
-
-    useEffect(() => {
-        document.addEventListener("mousedown", closeMenu);
-        return () => {
-            document.removeEventListener("mousedown", closeMenu);
-        };
-    }, []);
-
-
     //------------------------------------------Message--------------------------------
-    const toggleSearch = () => {
-        setShowSearch(!showSearch);  // Thay đổi trạng thái khi bấm vào biểu tượng tìm kiếm
-    };
-
     //Cuộn tới tin nhắn mới nhất
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -279,7 +150,7 @@ function Conversation() {
             );
         } else {
             return (
-                <div className="message-row left mt-3">
+                <div className="message-row left client mt-3">
                     <img className="avatarUser" src={avatar} alt={senderName} />
                     <div className="message-wrapper">
                         <span className="username">{senderName}</span>
@@ -412,10 +283,9 @@ function Conversation() {
 
     return (
         <>
-            {/* <BoxHead title="Danh sách trò chuyện" /> */}
             <div className="container-fluid">
                 <div className="row align-items-start">
-                    <div className="message col p-3 rounded shadow-sm border">
+                    <div className="message-client col p-1 rounded shadow-sm">
                         {/* Header */}
                         <div className="header_mess d-flex align-items-center justify-content-between p-3 border-bottom">
                             <div className="d-flex align-items-center">
@@ -436,7 +306,7 @@ function Conversation() {
                                 <div key={date}>
                                     <div className="day-divider">{date}</div>
                                     {msgs
-                                        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) // sắp xếp theo thời gian tăng dần
+                                        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)) // sắp xếp theo thời gian
                                         .map((msg, index) => (
                                             <MessageItem key={msg.id || `${msg.createdAt}-${index}`} message={msg} />
                                         ))}
@@ -448,7 +318,7 @@ function Conversation() {
                         {/* Footer (input) */}
                         <div className="footer_mess border-top p-3">
                             <Form className="d-flex align-items-center" onSubmit={handleSendMessage}>
-                                <div className="send-image ms-2">
+                                <div className="send-image">
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -457,13 +327,18 @@ function Conversation() {
                                         id="image-upload"
                                     />
                                     <label htmlFor="image-upload" style={{ cursor: "pointer" }}>
-                                        <FaRegImage size={35} color="#394867" />
+                                        <FaRegImage size={35} color="#fff" />
                                     </label>
                                 </div>
-                                <Form.Control type="text" placeholder="Aa" className="me-2 ms-3" value={messageText}
-                                    onChange={(e) => setMessageText(e.target.value)} />
-                                <button type="submit" className="btn btn-primary btn-send ms-2">
-                                    <MdSend size={35} color="#394867" />
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Aa"
+                                    className="me-2 ms-3"
+                                    value={messageText}
+                                    onChange={(e) => setMessageText(e.target.value)}
+                                />
+                                <button type="submit" className="btn-send btn-primary ms-2">
+                                    <MdSend size={35} color="#fff" />
                                 </button>
                                 <div className="heart ms-2" onClick={() => handleSendMessage(null, "❤️", "EMOJI")} style={{ cursor: "pointer" }}>
                                     <IoHeartSharp size={35} color="red" />
@@ -473,23 +348,23 @@ function Conversation() {
                     </div>
 
                     {/* Phần hiển thị nhóm */}
-                    <div className="group col-3 p-3 ms-3 rounded shadow-sm border">
-                        <div className="d-flex justify-content-between align-items-center mb-2">
+                    <div className="group-client col-3 p-3 ms-3 rounded shadow-sm">
+                        <div className="mb-2 search d-flex justify-content-end">
                             <Form.Group className="mb-0 w-75">
                                 <InputGroup size="sm">
-                                    <Form.Control type="text" placeholder="Tìm kiếm..." value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)} />
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Tìm kiếm..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
                                     <InputGroup.Text>
                                         <FaSearch />
                                     </InputGroup.Text>
                                 </InputGroup>
                             </Form.Group>
-
-                            <button className="add-btn ms-2" onClick={() => setEditMode({ type: "add" })}>
-                                <MdGroupAdd title="Thêm" size={25} />
-                            </button>
                         </div>
-                        <div className="listItem_group">
+                        <div className="listItem_group_client">
                             {Array.isArray(filteredConversations) && filteredConversations.length > 0 ? (
                                 filteredConversations.map((item, index) => (
                                     <div
@@ -499,25 +374,6 @@ function Conversation() {
                                     >
                                         <img className="img_group" src={item.img || 'default-image-path.jpg'} alt="anh" />
                                         <p className="name_group">{item.name}</p>
-                                        <div className="actions">
-                                            <button className="menu-btn" onClick={(e) => toggleMenu(index, e)}>
-                                                <HiEllipsisHorizontal />
-                                            </button>
-                                            {activeMenu === index && (
-                                                <div ref={menuRef} className="dropdown-menu">
-                                                    <div className="edit" onClick={() => handleEdit(item.id)}>
-                                                        <MdEdit size={20} />
-                                                        <span>Sửa</span>
-                                                    </div>
-                                                    <div className="del" onClick={() => {
-                                                        setEditMode({ type: "delete", id: item.id, name: item.name });
-                                                    }}>
-                                                        <MdDelete size={20} />
-                                                        <span>Xoá</span>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
                                     </div>
                                 ))
                             ) : (
@@ -529,133 +385,9 @@ function Conversation() {
                     </div>
                 </div>
             </div>
-
-            {/* Modal chỉnh sửa hoặc xoá */}
-            <Modal show={editMode !== null} onHide={() => setEditMode(null)} centered backdrop="static">
-                <Modal.Header className="py-2">
-                    <div className="modal-title h5">
-                        {editMode?.type === "add" ? "Thêm nhóm" : editMode?.type === "edit" ? "Sửa nhóm" : "Xoá nhóm"}
-                    </div>
-                    <MdOutlineClose size={20} type="button" className="btn-close ms-auto" onClick={() => setEditMode(null)} aria-label="Close" />
-                </Modal.Header>
-                <Modal.Body>
-                    {editMode?.type === "add" && (
-                        <>
-                            {/* Nhập tên nhóm */}
-                            <Form.Group as={Row} className="mb-3">
-                                <Form.Label column sm={3} className="d-flex align-items-center">
-                                    Tên nhóm
-                                </Form.Label>
-                                <Col sm={9}>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="Nhập tên nhóm"
-                                        value={conversationName}
-                                        onChange={(e) => setConversationName(e.target.value)}
-                                    />
-                                </Col>
-                            </Form.Group>
-
-                            {/* Chọn ảnh đại diện nhóm */}
-                            <Form.Group as={Row} className="mb-3">
-                                <Form.Label column sm={3} className="d-flex align-items-center">
-                                    Ảnh đại diện
-                                </Form.Label>
-                                <Col sm={9}>
-                                    <Form.Control
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                    />
-                                    {imagePreview && (
-                                        <img
-                                            src={imagePreview}
-                                            alt="Preview"
-                                            className="mt-2 rounded border"
-                                            style={{ width: "100px", height: "100px", objectFit: "cover" }}
-                                        />
-                                    )}
-                                </Col>
-                            </Form.Group>
-                            <div className="d-flex justify-content-end gap-2">
-                                <Button variant="danger" onClick={() => {
-                                    handleAdd(conversationName); // Gọi hàm handleAdd để thêm cuộc trò chuyện
-                                }}>
-                                    Thêm
-                                </Button>
-                                <Button type="button" style={{ backgroundColor: '#394867', color: 'white', border: 'none' }} onClick={() => reset()}>
-                                    Hủy
-                                </Button>
-                            </div>
-                        </>
-                    )}
-
-                    {editMode?.type === "edit" && (
-                        <>
-                            <Form.Group as={Row} className="mb-3">
-                                <Form.Label column sm={3} className="d-flex align-items-center">
-                                    Tên nhóm
-                                </Form.Label>
-                                <Col sm={9}>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="Nhập tên nhóm"
-                                        value={conversationName}
-                                        onChange={(e) => setConversationName(e.target.value)}
-                                    />
-                                </Col>
-                            </Form.Group>
-
-                            {/* Chọn ảnh đại diện nhóm */}
-                            <Form.Group as={Row} className="mb-3">
-                                <Form.Label column sm={3} className="d-flex align-items-center">
-                                    Ảnh đại diện
-                                </Form.Label>
-                                <Col sm={9}>
-                                    <Form.Control
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                    />
-                                    {imagePreview && (
-                                        <img
-                                            src={imagePreview}
-                                            alt="Preview"
-                                            className="mt-2 rounded border"
-                                            style={{ width: "100px", height: "100px", objectFit: "cover" }}
-                                        />
-                                    )}
-                                </Col>
-                            </Form.Group>
-                            <div className="d-flex justify-content-end gap-2">
-                                <Button variant="danger" onClick={() => handleUpdate(conversationName)}>
-                                    Lưu
-                                </Button>
-                                <Button type="button" style={{ backgroundColor: '#394867', color: 'white', border: 'none' }} onClick={() => reset()}>
-                                    Hủy
-                                </Button>
-                            </div>
-                        </>
-                    )}
-
-                    {editMode?.type === "delete" && (
-                        <>
-                            <p>Bạn có chắc chắn muốn xoá nhóm {editMode?.name ?? "này"} không?</p>
-                            <div className="d-flex justify-content-end gap-2">
-                                <Button variant="danger" onClick={() => handleDelete()}>
-                                    Xoá
-                                </Button>
-                                <Button type="button" style={{ backgroundColor: '#394867', color: 'white', border: 'none' }} onClick={() => reset()}>
-                                    Hủy
-                                </Button>
-
-                            </div>
-                        </>
-                    )}
-                </Modal.Body>
-            </Modal>
         </>
     );
+
 }
 
-export default Conversation;
+export default ConversationClient;

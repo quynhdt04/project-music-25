@@ -21,20 +21,20 @@ function EditSinger() {
     useEffect(() => {
         const fetchSinger = async () => {
             try {
-              const response = await get_singer_by_id(singerId);
-              console.log("API response:", response); // Kiểm tra dữ liệu trả về
-          
-              if (response && response.singer) {
-                console.log("API response:", response);
-                setSingerData(response.singer);
-                setImagePreview(response.singer.avatar || null);
-              } else {
-                console.error("Không tìm thấy thông tin ca sĩ!");
-              }
+                const response = await get_singer_by_id(singerId);
+                console.log("API response:", response); // Kiểm tra dữ liệu trả về
+
+                if (response && response.singer) {
+                    console.log("API response:", response);
+                    setSingerData(response.singer);
+                    setImagePreview(response.singer.avatar || null);
+                } else {
+                    console.error("Không tìm thấy thông tin ca sĩ!");
+                }
             } catch (error) {
-              console.error("Lỗi khi lấy thông tin ca sĩ:", error);
+                console.error("Lỗi khi lấy thông tin ca sĩ:", error);
             }
-          };          
+        };
         fetchSinger();
     }, [singerId]);
 
@@ -53,7 +53,7 @@ function EditSinger() {
         e.preventDefault();
         const formData = new FormData(formRef.current);
         const updatedSingerData = Object.fromEntries(formData.entries());
-        
+
         try {
             let avatarUrl = singerData.avatar;
 
@@ -102,11 +102,11 @@ function EditSinger() {
                     <label>Trạng thái</label>
                     <div className="from-singer__status">
                         <label className="from-singer__item">
-                            <input type="radio" id="statusActive" name="status" value="active" checked={singerData.status === "active"} onChange={handleStatusChange}/>
+                            <input type="radio" id="statusActive" name="status" value="active" checked={singerData.status === "active"} onChange={handleStatusChange} />
                             <span>Hoạt động</span>
                         </label>
                         <label className="from-singer__item">
-                            <input type="radio" id="statusInactive" name="status" value="inactive" checked={singerData.status === "inactive"} onChange={handleStatusChange}/>
+                            <input type="radio" id="statusInactive" name="status" value="inactive" checked={singerData.status === "inactive"} onChange={handleStatusChange} />
                             <span>Ngừng hoạt động</span>
                         </label>
                     </div>

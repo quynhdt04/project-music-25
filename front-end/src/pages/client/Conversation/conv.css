@@ -11,34 +11,14 @@ body {
 }
 
 /* CSS Group (bên phải) */
-.group {
-    height: 85vh;
+.group-client {
+    height: 80vh;
     overflow-y: auto;   /* Thêm thanh cuộn dọc khi cần thiết */
     padding-right: 15px; /* Để tránh thanh cuộn bị che khuất */
 }
 
-.add-btn {
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: auto;
-    /* Đẩy sang phải */
-    cursor: pointer;
-    padding: 8px;
-    border: none;
-    background: none;
-    font-size: 16px;
-}
-
-.add-btn:hover {
-    background: #f0f0f0;
-    border-radius: 5px;
-}
-
-
 /* Định dạng từng item trong group */
-.item_group {
+.listItem_group_client .item_group {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -49,13 +29,13 @@ body {
 }
 
 /* Khi hover vào item, đổi màu nền */
-.item_group:hover {
-    background: #e9ecef;
+.listItem_group_client .item_group:hover {
+    background: #393243;
     cursor: pointer;
 }
 
 /* Định dạng ảnh nhóm */
-.img_group {
+.listItem_group_client .img_group {
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -63,7 +43,8 @@ body {
     object-fit: cover;
 }
 
-.name_group {
+.listItem_group_client .name_group, 
+.message-client .name_group {
     flex-grow: 1;
     /* Đảm bảo tên nhóm chiếm hết phần còn lại */
     line-height: 1.2;
@@ -72,6 +53,7 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     margin-top: 10px;
+    color: #fff;
 }
 
 /* Định dạng actions (chứa menu) */
@@ -79,109 +61,17 @@ body {
     position: relative;
 }
 
-/* Nút 3 chấm */
-.menu-btn {
-    position: absolute;
-    right: 10px;
-    /* Căn lề phải */
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    font-size: 18px;
-    padding: 5px;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    transition: visibility 0.3s ease, background 0.3s ease, border 0.3s ease;
-    visibility: hidden;
-    /* Dài quá sẽ ẩn đi*/
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Khi hover vào item_group, hiển thị nút 3 chấm */
-.item_group:hover .menu-btn {
-    visibility: visible;
-    background: white;
-}
-
-/* Khi hover vào nút 3 chấm */
-.menu-btn:hover {
-    background: grey;
-}
-
-/* Dropdown menu */
-.dropdown-menu {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    min-width: 100px;
-    z-index: 10;
-}
-
-/* Định dạng nút Sửa & Xóa */
-.dropdown-menu .edit,
-.dropdown-menu .del {
-    background: none;
-    border: none;
-    padding: 8px 12px;
-    text-align: left;
-    width: 100%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-}
-
-/* Hiệu ứng hover cho các nút sửa & xóa */
-.dropdown-menu .edit:hover,
-.dropdown-menu .del:hover {
-    background: #f0f0f0;
-}
-
-/* Form sửa xoá */
-.modal-header {
-    padding-top: 0 !important;
-    /* Giảm padding trên */
-    padding-bottom: 0.5em !important;
-}
-
-.modal-content {
-    padding: 15px;
-}
-
-/* CSS để điều chỉnh z-index */
-.modal {
-    z-index: 1050 !important;
-    /* Đảm bảo modal không bị chồng lên các phần tử khác */
-}
-
-.notification {
-    z-index: 1060 !important;
-    /* Điều chỉnh để phần thông báo hiện lên trên modal */
-}
-
-.item_group.active {
-    background-color: #e6f0ff;
+.listItem_group_client .item_group.active {
+    background-color: #393243;
     border-radius: 5px;
 }
 
 /* Kết thúc Css group */
 
 /* Bắt đầu css message */
-.message {
+.message-client {
     width: 400px;
-    height: 85vh;
+    height: 80vh;
     background-color: white;
     display: flex;
     flex-direction: column;
@@ -190,7 +80,7 @@ body {
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
 }
 
-.footer_mess .btn-send {
+.message-client .footer_mess .btn-send {
     background: none;
     border: none;
     padding: 0;
@@ -198,35 +88,39 @@ body {
     cursor: pointer;
 }
 
+.message-client .footer_mess .btn-send:hover{
+    background-color: none;
+}
+
 /* Header */
-.header_mess {
+.message-client .header_mess {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 10px 15px;
-    background-color: #fff;
+    background-color: #231B2E;
     border-bottom: 1px solid #ccc;
 }
 
 /* Content */
-.content_mes {
+.message-client .content_mes {
     flex-grow: 1;
     padding: 15px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background-color: #fff;
+    background-color: #231B2E;
 }
 
-.message-row {
+.message-client .message-row {
     display: flex;
     align-items: flex-end;
     gap: 10px;
     position: relative;
 }
 
-.message-row.right {
+.message-row .right {
     justify-content: flex-end;
 }
 
@@ -237,16 +131,16 @@ body {
     max-width: 70%;
 }
 
-.avatarUser {
+.client .avatarUser {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
 }
 
-.username {
+.client .username {
     font-size: 12px;
-    color: #555;
+    color: #fff;
     margin-bottom: 3px;
     margin-left: 10px;
 }
@@ -302,24 +196,23 @@ body {
 }
 
 /* Divider ngày */
-.day-divider {
+.message-client .day-divider {
     text-align: center;
     font-size: 12px;
-    color: #888;
+    color: #fff;
     margin: 10px 0;
     position: relative;
 }
 
 
-
 /* Footer */
-.footer_mess {
+.message-client .footer_mess {
     border-top: 1px solid #ccc;
     padding: 10px;
-    background-color: white;
+    background-color: #231B2E;
 }
 
-.footer_mess input[type="text"] {
+.message-client .footer_mess input[type="text"] {
     width: 100%;
     padding: 10px 15px;
     border-radius: 20px;
@@ -327,8 +220,8 @@ body {
     outline: none;
 }
 
-.footer_mess input[type="text"]::placeholder {
-    color: #888;
+.message-client .footer_mess input[type="text"]::placeholder {
+    color: #888; 
 }
 
 /* kết thúc css message */

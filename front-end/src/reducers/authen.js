@@ -26,6 +26,7 @@ export const authenReducer = (state = initialState, action) => {
         ...state,
         user: action.payload.user,
         token: action.payload.token,
+        role: action.payload.role, // Thêm dòng này
       };
     case "LOGOUT":
       deleteCookie("user");
