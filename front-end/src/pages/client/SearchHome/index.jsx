@@ -70,7 +70,7 @@ function SearchHome() {
             setAlbums(formattedAlbums);
         }
         fetchApi();
-    }, [])
+    }, [keyword])
 
     useEffect(() => {
         const fetchApi = async () => {
@@ -78,7 +78,7 @@ function SearchHome() {
             setSingers(resultSingers.data);
         }
         fetchApi();
-    }, [])
+    }, [keyword])
 
     const handlePlay = (e, song) => {
         e.preventDefault();
@@ -368,14 +368,14 @@ function SearchHome() {
                 )}
                 {/* Artists */}
                 {singers.length > 0 && (
-                    <div style={{ padding: 24 }}>
+                    <div style={{ padding: 24 }} className='singers'>
                         <Typography.Title level={5} style={{ marginBottom: 16, color: '#ffffff', fontSize: "24px" }}>
                             Artists
                         </Typography.Title>
-                        <Row gutter={[24, 24]} justify="space-between" >
+                        <Row gutter={[24, 24]} justify='flex-start' >
                             {singers.map((artist, index) => (
-                                <Col key={index} xs={12} sm={8} md={6} lg={4} xl={3}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                <Col key={index}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
                                         <Avatar
                                             src={artist.avatar}
                                             shape="circle"
