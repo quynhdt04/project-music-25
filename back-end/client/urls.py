@@ -7,6 +7,7 @@ from client.views.vnpay import payment, payment_ipn, payment_return, query, refu
 from client.views.user import register_user, login_user, update_user, get_user_by_id, update_avatar  # Thêm import get_all_users
 from client.views.playlist import get_all_playList, create_playlist, patch_playlist, get_play_list_by_id, add_song_to_playlist
 from client.views.favoriteSongs import create_favorite_song, get_favorite_songs
+from client.views.searchHome import search_songs, search_albums, search_singers
 
 urlpatterns = [
     path("user/create/", register_user, name="register_user"),
@@ -29,4 +30,8 @@ urlpatterns = [
     path("api/payment-return", payment_return, name='payment_return'),
     path('query', query, name='query'),
     path('refund', refund, name='refund'),
+    
+    path('search/songs', search_songs, name="search_songs"),
+    path('search/albums', search_albums, name="search_albums"),
+    path('search/singers', search_singers, name="search_singers"),
 ]
