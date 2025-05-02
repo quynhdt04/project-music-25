@@ -1,9 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Card, List, Avatar, Typography, Tooltip, Row, Col } from 'antd';
 import { data, useParams } from 'react-router-dom';
-import { FaPlay, FaPlus, FaEllipsisH } from "react-icons/fa";
+import { FaPlay } from "react-icons/fa";
+import { HeartFilled } from "@ant-design/icons";
 import { search_albums, search_singers, search_songs } from '../../../services/SearchHomeServices';
 import useMusicPlayer from "../../../hooks/useMusicPlayer";
+import { get_song_by_id } from '../../../services/SongServices';
+import DropupMenuPlayList from '../../../components/DropupMenuPlayList';
+import { create_favoriteSong, get_favoriteSong } from '../../../services/FavoriteSongServices';
+import { toast, Bounce } from "react-toastify";
 
 const { Text, Title } = Typography;
 
@@ -17,11 +22,17 @@ function SearchHome() {
     const [singers, setSingers] = useState([]);
     const { currentSong, isPlaying, playSong, togglePlay, addToQueue, getAudioDuration, formatDuration } =
         useMusicPlayer();
+    const user = JSON.parse(sessionStorage.getItem("user"));
 
     useEffect(() => {
         const fetchApi = async () => {
             if (!keyword) return;
             const result = await search_songs(keyword);
+            let favoriteSongIds = [];
+            if (user) {
+                const favoriteSongs = await get_favoriteSong(user.id);
+                favoriteSongIds = favoriteSongs.songs;
+            }
             const formattedSongs = await Promise.all(
                 result.data.map(async (song) => {
                     const durationSeconds = await getAudioDuration(song.audio);
@@ -31,6 +42,9 @@ function SearchHome() {
                         cover: song.avatar,
                         artist: song.singers.map((item) => item.singerName).join(", "),
                         duration: formattedDuration,
+                        ...(user && {
+                            isFavorite: favoriteSongIds.includes(song.id)
+                        }),
                     };
                 })
             );
@@ -77,6 +91,65 @@ function SearchHome() {
             addToQueue(song);
         }
     }
+
+    const handlePlayAlbum = async (album) => {
+        try {
+            const songsData = await Promise.all(
+                album.songs.map(async (songId) => {
+                    const res = await get_song_by_id(songId);
+                    const durationSeconds = await getAudioDuration(res.data.audio);
+
+                    const formattedDuration = formatDuration(durationSeconds);
+
+                    return {
+                        ...res.data,
+                        duration: formattedDuration,
+                    };
+                })
+            );
+            const songsDataWithCover = songsData.map((song) => ({
+                ...song,
+                cover: song.avatar || "../default-album.jpg",
+                artist: song.singers.map((item) => item.singerName).join(", "),
+            }));
+
+            if (songsDataWithCover.length > 0) {
+                playSong(songsDataWithCover[0]);
+                addToQueue([...songsDataWithCover]);
+            } else {
+                console.log("Playlist rỗng");
+            }
+        } catch (error) {
+            console.error("Lỗi khi play:", error);
+        }
+    };
+
+    const handleFavourite = async (id) => {
+        if (!user) {
+            toast.warning("Vui lòng đăng nhập để thêm bài hát yêu thích!", {
+                position: "top-center",
+                autoClose: 3000,
+                transition: Bounce,
+            });
+            return;
+        }
+
+        const songID = id;
+        const userID = user.id;
+
+        try {
+            const result = await create_favoriteSong({
+                userId: userID,
+                songId: songID,
+            });
+            if (result) {
+                // setRefresh(!refresh);
+            }
+            console.log("Yêu thích thành công:", result);
+        } catch (error) {
+            console.error("Lỗi khi thêm vào yêu thích:", error);
+        }
+    };
 
     return (
         <>
@@ -213,10 +286,13 @@ function SearchHome() {
                                             {hoveredIndex === index && (
                                                 <>
                                                     <Tooltip title="Add">
-                                                        <FaPlus color="white" style={{ cursor: "pointer" }} />
+                                                        <HeartFilled style={{
+                                                            color: item.isFavorite ? 'red' : 'gray',
+                                                            cursor: 'pointer',
+                                                        }} onClick={() => handleFavourite(item._id)} />
                                                     </Tooltip>
                                                     <Tooltip title="More">
-                                                        <FaEllipsisH color="white" style={{ cursor: "pointer" }} />
+                                                        <DropupMenuPlayList songID={item._id} user={user} />
                                                     </Tooltip>
                                                 </>
                                             )}
@@ -269,7 +345,11 @@ function SearchHome() {
                                                                 cursor: 'pointer',
                                                             }}
                                                         >
-                                                            <FaPlay color="#fff" size={20} />
+                                                            <FaPlay
+                                                                color="#fff"
+                                                                size={20}
+                                                                onClick={() => handlePlayAlbum(album)}
+                                                            />
                                                         </div>
                                                     )}
                                                 </div>
