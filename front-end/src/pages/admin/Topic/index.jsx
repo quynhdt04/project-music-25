@@ -22,48 +22,6 @@ function Topic() {
   const [searchTerm, setSearchTerm] = useState("");
   const [refresh, setRefresh] = useState(false);
 
-  // useEffect(() => {
-  //   const savedTopics = localStorage.getItem("topics");
-  //   console.log("Dữ liệu nhận:", topics);
-
-  //   if (savedTopics) {
-  //     const parsedTopics = JSON.parse(savedTopics);
-
-  //     // Đảm bảo thứ tự được giữ nguyên từ localStorage
-  //     setTopics(Array.isArray(parsedTopics) ? parsedTopics : [parsedTopics]);
-  //     setFilteredTopics(
-  //       Array.isArray(parsedTopics) ? parsedTopics : [parsedTopics]
-  //     );
-  //     console.log("Dữ liệu lấy từ localStorage:", parsedTopics);
-  //   } else {
-  //     setTopics([]);
-  //     setFilteredTopics([]);
-  //   }
-
-  //   const fetchAPI = async () => {
-  //     try {
-  //       const result = await get_all_topics(); // Gọi API lấy danh sách chủ đề
-  //       const fetchedTopics = result.topics;
-
-  //       if (
-  //         fetchedTopics &&
-  //         JSON.stringify(fetchedTopics) !== JSON.stringify(topics)
-  //       ) {
-  //         setTopics(fetchedTopics);
-  //         setFilteredTopics(fetchedTopics);
-  //         localStorage.setItem("topics", JSON.stringify(fetchedTopics));
-  //         console.log("Dữ liệu topics từ cơ sở dữ liệu:", fetchedTopics);
-  //       }
-  //     } catch (error) {
-  //       console.error("Lỗi khi lấy danh sách chủ đề từ cơ sở dữ liệu:", error);
-  //     }
-  //   };
-
-  //   if (!savedTopics) {
-  //     fetchAPI();
-  //   }
-  // }, []);
-
   useEffect(() => {
     const savedTopics = localStorage.getItem("topics");
 
@@ -133,19 +91,6 @@ function Topic() {
     localStorage.setItem("topics", JSON.stringify(updatedTopics)); // Lưu lại thứ tự mới vào localStorage
   };
 
-  // Hàm cập nhật chủ đề
-  //   const handleUpdateTopic = (updatedTopic) => {
-  //     const updatedTopics = topics.map((topic) =>
-  //       String(topic.id) === String(updatedTopic.id) ? updatedTopic : topic
-  //     );
-
-  //     setTopics(updatedTopics);
-  //     setFilteredTopics(updatedTopics);
-  //     localStorage.setItem("topics", JSON.stringify(updatedTopics));
-  //     console.log("Danh sách topics:", topics);
-  // console.log("Chủ đề cập nhật:", updatedTopic);
-  //   };
-  // -------------------EDIT----------------
 
   const handleDelete = async (topicId) => {
     const confirmed = window.confirm("Bạn có chắc chắn muốn xóa chủ đề này?");

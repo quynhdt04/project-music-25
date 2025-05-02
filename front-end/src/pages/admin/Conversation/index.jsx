@@ -26,7 +26,6 @@ import { get_messages_by_conversation, create_message } from "../../../services/
 
 const socket = io(import.meta.env.VITE_SOCKET);
 
-
 function Conversation() {
     const [activeMenu, setActiveMenu] = useState(null);
     const [editMode, setEditMode] = useState(null); //thêm sửa xoá
@@ -44,7 +43,6 @@ function Conversation() {
     const tempId = uuidv4();
     const account = useSelector((state) => state.authenReducer.account); //user đang đăng nhập
     const messagesEndRef = useRef(null); //cuốn tới tin nhắn mới nhất
-    const avatarDefault = "https://res.cloudinary.com/dtycrb54t/image/upload/v1742934963/bkyrpazaff2gck7wfta0.jpg";
 
     const [imagePreview, setImagePreview] = useState(null); //ảnh nhóm
     const [avatarFile, setAvatarFile] = useState(null);

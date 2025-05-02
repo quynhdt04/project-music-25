@@ -157,3 +157,19 @@ export const reject_song = async (songId, userId) => {
   const response = await patch(`api/songs/reject-song`, songId, { userId });
   return response;
 };
+
+export const checkIsSongLikedByCurrentUser = async (songId, userId) => {
+  return await get(
+    `api/songs/check-song-is-liked-by-user?id=${userId}&songId=${songId}`
+  );
+};
+
+export const get_song_top_play= async () => {
+  const result = await get(`api/songs/top-ten-play`);
+  return result;
+};
+
+export const update_song_like_view= async (data) => {
+  const result = await post(`api/songs/like-song`,data);
+  return result;
+};

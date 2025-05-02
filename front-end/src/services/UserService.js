@@ -1,8 +1,9 @@
 // src/services/UserService.js
-import { loginSuccess } from "../reducers/index";
+import { loginSuccess, updateUser } from "../reducers/index";
 import { setCookie } from "../helpers/cookie";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { toast } from "react-toastify";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -33,6 +34,8 @@ export const loginUser = async (email, password, dispatch) => {
       setCookie("token", responseToken, 1);
       sessionStorage.setItem("user", JSON.stringify(user));
       sessionStorage.setItem("token", responseToken);
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", responseToken);
 
       // Dispatch action để lưu dữ liệu vào Redux
       dispatch({
@@ -97,6 +100,7 @@ export async function getUserById(_id) {
     throw error;
   }
 }
+
 export async function editProfile(userId, updatedData) {
   console.log(
     "📤 Dữ liệu gửi lên backend:",

@@ -27,7 +27,7 @@ class Song(Document):
     description = StringField()
     singers = ListField(EmbeddedDocumentField(Singer))
     topics = ListField(EmbeddedDocumentField(Topic))
-    like = StringField()
+    like = IntField(default=0)
     userLiked = ListField(StringField())
     lyrics = ListField(EmbeddedDocumentField(Lyric))
     status = StringField(default="pending")

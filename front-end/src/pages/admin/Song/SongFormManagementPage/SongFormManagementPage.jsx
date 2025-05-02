@@ -37,7 +37,7 @@ const SongFormManagementPage = () => {
           ]);
 
         formattedData = {
-          songId: latestSongResponse.data._id,
+          songId: latestSongResponse.data.id,
           title: latestSongResponse.data.title,
           status: latestSongResponse.data.status,
           deleted: latestSongResponse.data.deleted,
@@ -59,7 +59,7 @@ const SongFormManagementPage = () => {
             get_all_topics(),
           ]);
         formattedData = {
-          songId: songByIdResponse.data._id,
+          songId: songByIdResponse.data.id,
           title: songByIdResponse.data.title,
           avatar: songByIdResponse.data.avatar,
           audio: songByIdResponse.data.audio,

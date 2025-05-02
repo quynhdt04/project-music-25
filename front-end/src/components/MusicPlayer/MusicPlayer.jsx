@@ -24,7 +24,6 @@ import { like_song } from "../../services/SongServices";
 import Media from "../Media/Media";
 
 const MusicPlayer = () => {
-  const [isLiked, setIsLiked] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
   const [isDraggingVolume, setIsDraggingVolume] = useState(false);
   const [isLyricsClosing, setIsLyricsClosing] = useState(false);
@@ -35,6 +34,8 @@ const MusicPlayer = () => {
   const lyricsContainerRef = useRef(null);
 
   const {
+    isLiked,
+    setIsLiked,
     currentSong,
     isPlaying,
     volume,
@@ -53,6 +54,7 @@ const MusicPlayer = () => {
     setShowPremiumMessage,
     queue,
     playSong,
+    fetchQueueData,
   } = useMusicPlayer();
 
   // Handle play/pause
@@ -192,8 +194,15 @@ const MusicPlayer = () => {
     }
   };
 
-  const handleQueueClick = () => {
-    setShowQueue(!showQueue);
+  const handleQueueClick = async () => {
+    try {
+      const response = await fetchQueueData();
+      if (response) {
+        setShowQueue(!showQueue);
+      }
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleVolumeChange = (e) => {

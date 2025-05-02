@@ -22,7 +22,7 @@ const AlbumDetail = () => {
     isError: false,
   });
   const { type, id } = useParams();
-  const { currentSong, isPlaying, playSong, togglePlay, addToQueue } =
+  const { currentSong, isPlaying, playSong, togglePlay, addToQueue, getAudioDuration, formatDuration } =
     useMusicPlayer();
 
   const isCurrentSong =
@@ -30,42 +30,6 @@ const AlbumDetail = () => {
     songs.filter((song) => {
       return currentSong.id === song.id;
     });
-
-  const getAudioDuration = (audioUrl) => {
-    return new Promise((resolve) => {
-      const audio = new Audio();
-
-      // Add error handling
-      audio.addEventListener("error", () => {
-        console.error("Error loading audio:", audioUrl);
-        resolve(0); // Return 0 duration on error
-      });
-
-      // Add timeout to prevent hanging
-      const timeout = setTimeout(() => {
-        console.warn("Audio metadata loading timed out:", audioUrl);
-        resolve(0); // Return 0 duration on timeout
-      }, 5000); // 5 second timeout
-
-      audio.addEventListener("loadedmetadata", () => {
-        clearTimeout(timeout);
-        resolve(audio.duration);
-      });
-
-      audio.src = audioUrl;
-    });
-  };
-
-  const formatDuration = (seconds) => {
-    if (!seconds || isNaN(seconds)) return "00:00";
-
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-
-    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
-      .toString()
-      .padStart(2, "0")}`;
-  };
 
   useEffect(() => {
     const fetchAlbumInfo = async () => {
@@ -97,6 +61,7 @@ const AlbumDetail = () => {
                 cover: song.avatar,
                 description: song.description,
                 artist: song.singers.map((item) => item.singerName).join(", "),
+                album: song.albums?.map((item) => item.title).join(", ") || "",
                 audio: song.audio,
                 video: song.video,
                 lyrics: song.lyrics,
@@ -129,7 +94,7 @@ const AlbumDetail = () => {
             title: songInfo.data.title,
             cover: songInfo.data.avatar,
             description: songInfo.data.description,
-            singers: songInfo.data.singers
+            artist: songInfo.data.singers
               .map((item) => item.singerName)
               .join(", "),
             audio: songInfo.data.audio,
@@ -161,10 +126,6 @@ const AlbumDetail = () => {
     fetchAlbumInfo();
   }, [id, type]);
 
-  useEffect(() => {
-    console.log("dataInfo updated:", dataInfo);
-  }, [dataInfo]);
-
   const handlePlayAllClick = (e) => {
     e.preventDefault();
 
@@ -188,6 +149,7 @@ const AlbumDetail = () => {
       togglePlay();
     } else {
       playSong(song);
+      addToQueue(song);
     }
   };
 

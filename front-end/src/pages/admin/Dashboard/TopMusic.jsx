@@ -1,38 +1,55 @@
 import { Bar } from '@ant-design/plots';
+import { useEffect, useState } from 'react';
+import { get_top_liked_songs } from '../../../services/StatisticalServices';
 
 const TopMusic = () => {
-    //top5 bai hat duoc yeu thich nhat
+  const [data, setData] = useState([]);
+
+  useEffect(() => {
+    const fetchAPI = async () => {
+      const result = await get_top_liked_songs();
+      if (result && result.data) {
+        const transformed = result.data.map((song) => ({
+          type: `${song.title} (${song.singers.join(', ')})`,
+          value: song.like,
+        }));
+        setData(transformed);
+      }
+    };
+    fetchAPI();
+  }, []);
+
   const config = {
-    data: [
-      { type: '分类一', value: 87 },
-      { type: '分类二', value: 65 },
-      { type: '分类三', value: 48 },
-      { type: '分类四', value: 15 },
-      { type: '分类五', value: 100 },
-      { type: '其他', value: 5 },
-    ],
+    data,
     xField: 'type',
     yField: 'value',
     colorField: 'type',
-    state: {
-      unselected: { opacity: 0.5 },
-      selected: { lineWidth: 3, stroke: 'red' },
+    label: {
+      // position: 'middle',
+      layout: [
+        { type: 'interval-adjust-position' },
+        { type: 'interval-hide-overlap' },
+        { type: 'adjust-color' },
+      ],
     },
-    interaction: {
-      elementSelect: true,
+    tooltip: {
+      formatter: (datum) => ({
+        name: 'Lượt thích',
+        value: datum.value,
+      }),
     },
-    onReady: ({ chart, ...rest }) => {
-      chart.on(
-        'afterrender',
-        () => {
-          const { document } = chart.getContext().canvas;
-          const elements = document.getElementsByClassName('element');
-          elements[0]?.emit('click');
-        },
-        true,
-      );
+    xAxis: {
+      label: {
+        autoHide: true,
+        autoRotate: true,
+      },
     },
+    yAxis: {
+      title: { text: 'Lượt thích' },
+    },
+    barWidthRatio: 0.6,
   };
+
   return <Bar {...config} />;
 };
 

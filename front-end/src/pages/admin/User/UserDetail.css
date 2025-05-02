@@ -50,7 +50,7 @@
 }
 
 /* Nút quay lại */
-.btn-back {
+.user-detail .btn-back {
     display: inline-block;
     margin-top: 20px;
     padding: 10px 15px;

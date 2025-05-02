@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MusicPlayerContext } from "./MusicPlayerContextObject";
-import { increment_song_playCount } from "../services/SongServices";
+import {
+  increment_song_playCount,
+  checkIsSongLikedByCurrentUser,
+  get_song_by_id,
+} from "../services/SongServices";
 
 const MusicPlayerProvider = ({ children }) => {
+  const [isLiked, setIsLiked] = useState(false);
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.5);
@@ -25,9 +30,102 @@ const MusicPlayerProvider = ({ children }) => {
   const playCountTimerRef = useRef(null);
   const hasIncrementedPlayCount = useRef(false);
 
+  const getAudioDuration = (audioUrl) => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+
+      // Add error handling
+      audio.addEventListener("error", () => {
+        console.error("Error loading audio:", audioUrl);
+        resolve(0); // Return 0 duration on error
+      });
+
+      // Add timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        console.warn("Audio metadata loading timed out:", audioUrl);
+        resolve(0); // Return 0 duration on timeout
+      }, 5000); // 5 second timeout
+
+      audio.addEventListener("loadedmetadata", () => {
+        clearTimeout(timeout);
+        resolve(audio.duration);
+      });
+
+      audio.src = audioUrl;
+    });
+  };
+
+  const formatDuration = (seconds) => {
+    if (!seconds || isNaN(seconds)) return "00:00";
+
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+      .toString()
+      .padStart(2, "0")}`;
+  };
+
+  const fetchQueueData = async () => {
+    try {
+      const currentQueue = JSON.parse(localStorage.getItem("currentQueue"));
+      if (currentQueue) {
+        const songs = await Promise.all(currentQueue.map(async (song) => {
+          const songData = await get_song_by_id(song.id);
+
+          const duration = await getAudioDuration(songData.data.audio);
+
+          return {
+            id: songData.data.id,
+            title: songData.data.title,
+            cover: songData.data.avatar,
+            description: songData.data.description,
+            artist: songData.data.singers.map((item) => item.singerName).join(", "),
+            album: songData.data.albums?.map((item) => item.title).join(", ") || "",
+            audio: songData.data.audio,
+            video: songData.data.video,
+            lyrics: songData.data.lyrics,
+            like: songData.data.like,
+            isPremiumOnly: songData.data.isPremiumOnly,
+            playCount: songData.data.play_count,
+            duration: formatDuration(duration),
+          };
+        }));
+        console.log("Queue", songs)
+        setQueue(songs);
+        return true;
+      }
+    } catch (e) {
+      console.log(e)
+      return false;
+    }
+  }
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      const currentSong = JSON.parse(localStorage.getItem("currentSong"));
+
+      if (user && currentSong) {
+        const response = await checkIsSongLikedByCurrentUser(
+          currentSong.id,
+          user.id
+        );
+
+        if (response.status === 200) {
+          setIsLiked(response.isLiked);
+        }
+      }
+    };
+
+    fetchData();
+    fetchQueueData();
+  }, []);
+
   // Show the last song that the user played
   useEffect(() => {
     const currentSong = JSON.parse(localStorage.getItem("currentSong"));
+
     if (currentSong) {
       setCurrentSong(currentSong);
     }
@@ -145,6 +243,8 @@ const MusicPlayerProvider = ({ children }) => {
 
   const playSong = (song) => {
     localStorage.setItem("currentSong", JSON.stringify(song));
+    addToQueue(song);
+
     // Then set it as current song and start playing
     setCurrentSong(song);
     setIsPlaying(true);
@@ -161,19 +261,23 @@ const MusicPlayerProvider = ({ children }) => {
     }
 
     const currentIndex = queue.findIndex((song) => song.id === currentSong.id);
+    let nextSong = null;
     if (currentIndex === -1 || currentIndex === queue.length - 1) {
+      nextSong = queue[0];
       // If current song not in queue or is last song, play first song in queue
-      setCurrentSong(queue[0]);
+      setCurrentSong(nextSong);
       if (!isPlaying) {
         setIsPlaying(true);
       }
     } else {
       // Play next song in queue
-      setCurrentSong(queue[currentIndex + 1]);
+      nextSong = queue[currentIndex + 1];
+      setCurrentSong(nextSong);
       if (!isPlaying) {
         setIsPlaying(true);
       }
     }
+    localStorage.setItem("currentSong", JSON.stringify(nextSong));
   };
 
   const previousSong = () => {
@@ -183,34 +287,96 @@ const MusicPlayerProvider = ({ children }) => {
     }
 
     const currentIndex = queue.findIndex((song) => song.id === currentSong.id);
+    let prevSong = null;
     if (currentIndex === -1 || currentIndex === 0) {
       // If current song not in queue or is first song, play last song in queue
-      setCurrentSong(queue[queue.length - 1]);
+      prevSong = queue[queue.length - 1];
+      console.log("PrevSong: ", prevSong);
+      setCurrentSong(prevSong);
       if (!isPlaying) {
         setIsPlaying(true);
       }
     } else {
       // Play previous song in queue
-      setCurrentSong(queue[currentIndex - 1]);
+      prevSong = queue[currentIndex - 1];
+      console.log("PrevSong: ", prevSong);
+      setCurrentSong(prevSong);
       if (!isPlaying) {
         setIsPlaying(true);
       }
     }
+    localStorage.setItem("currentSong", JSON.stringify(prevSong));
   };
 
   const addToQueue = (song) => {
+    let newQueue = [...queue];
     if (Array.isArray(song)) {
-      setQueue([...queue, ...song]);
+      // Filter out songs that are already in the queue
+      const newSongs = song.filter(
+        (newSong) =>
+          !queue.some((existingSong) => existingSong.id === newSong.id)
+      )
+      .map((song) => ({
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+      }));
+      if (newSongs.length > 0) {
+        newQueue = [...newQueue, ...newSongs];
+        setQueue(newQueue);
+      }
     } else {
-      setQueue([...queue, song]);
+      // Check if the single song is not already in the queue
+      if (!queue.some((existingSong) => existingSong.id === song.id)) {
+        newQueue = [...newQueue, { id: song.id, title: song.title, artist: song.artist }];
+        setQueue(newQueue);
+      }
     }
+    localStorage.setItem("currentQueue", JSON.stringify(newQueue));
   };
 
   const clearQueue = () => {
     setQueue([]);
   };
 
+  const moveSong = (song, direction) => {
+    const songIndex = queue.findIndex((item) => item.id === song.id);
+
+    if (songIndex === -1) return; // Song not found in queue
+
+    const newQueue = [...queue];
+
+    if (direction === "up" && songIndex > 0) {
+      // Swap with previous song
+      [newQueue[songIndex], newQueue[songIndex - 1]] = [
+        newQueue[songIndex - 1],
+        newQueue[songIndex],
+      ];
+      setQueue(newQueue);
+    } else if (direction === "down" && songIndex < newQueue.length - 1) {
+      // Swap with next song
+      [newQueue[songIndex], newQueue[songIndex + 1]] = [
+        newQueue[songIndex + 1],
+        newQueue[songIndex],
+      ];
+      setQueue(newQueue);
+    }
+
+    localStorage.setItem("currentQueue", JSON.stringify(newQueue));
+  };
+
+  const removeSongFromQueue = (song) => {
+    if (!song) return;
+    setQueue((prevQueue) => {
+      const currentQueue = prevQueue || [];
+      const newQueue = currentQueue.filter((item) => item.id !== song.id);
+      localStorage.setItem("currentQueue", JSON.stringify(newQueue));
+      return newQueue;
+    });
+  };
+
   const value = {
+    isLiked,
     currentSong,
     isPlaying,
     volume,
@@ -220,6 +386,7 @@ const MusicPlayerProvider = ({ children }) => {
     queue,
     showLyrics,
     showPremiumMessage,
+    setIsLiked,
     setCurrentSong,
     playSong,
     togglePlay,
@@ -233,6 +400,11 @@ const MusicPlayerProvider = ({ children }) => {
     setIsPlayerVisible,
     setShowLyrics,
     setShowPremiumMessage,
+    moveSong,
+    removeSongFromQueue,
+    getAudioDuration,
+    formatDuration,
+    fetchQueueData
   };
 
   return (

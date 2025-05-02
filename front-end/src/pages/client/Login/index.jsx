@@ -22,6 +22,7 @@ function LoginForm({ onClose, onRegisterClick, onLoginSuccess }) {
       dispatch(loginSuccess(JSON.parse(userData), tokenData));
     }
   }, [dispatch]);
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(formRef.current);

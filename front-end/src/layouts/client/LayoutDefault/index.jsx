@@ -1,18 +1,19 @@
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
+import { toast, Bounce } from "react-toastify";
 import "./LayoutDefault.css";
 import { IoIosLogOut } from "react-icons/io";
 import { FaRegUser } from "react-icons/fa";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import LoginForm from "../../../pages/client/Login";
 import RegisterForm from "../../../pages/client/Register";
 import EditProfileForm from "../../../pages/client/EditProfile";
 import Profile from "../../../pages/client/Profile";
-import { FaHome, FaMusic, FaHeart, FaList, FaChartBar } from "react-icons/fa";
+import { FaHome, FaHeart, FaList, FaChartBar } from "react-icons/fa";
 import { GiMusicalScore } from "react-icons/gi";
 import { Menu } from "antd";
 import { useSelector, useDispatch } from "react-redux";
-
+import { updateUser } from "../../../reducers/index";
+import dayjs from "dayjs";
 
 function LayoutDefault() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -27,34 +28,76 @@ function LayoutDefault() {
   const dispatch = useDispatch();
   const [selectedMenuKey, setSelectedMenuKey] = useState("home");
   const user = useSelector((state) => state.authenReducer.user);
+  const isLogin = Boolean(user);
+  const isPremium = user?.isPremium;
+  const [checkedPremium, setCheckedPremium] = useState(false);
 
   const handleRegisterSuccess = () => {
     setShowRegisterForm(false);
-    setShowLoginForm(false)
+    setShowLoginForm(false);
   };
-  const isLogin = Boolean(user);
-  console.log("isLogin", isLogin);
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     toast.success("Bạn đã đăng xuất");
     setShowLoginForm(false);
     navigate("/");
     setMenuOpen(false);
   };
+
   const handleLoginSuccess = (user) => {
-    if (user && user.id) {
-      dispatch({ type: "USER", value: user }); // Đảm bảo chỉ dispatch khi có user hợp lệ
+    const token = sessionStorage.getItem("token");
+    if (user && user.id && token) {
+      console.log("Dispatching LOGIN_SUCCESS with user: ", user);
+      dispatch({
+        type: "LOGIN_SUCCESS",
+        payload: {
+          user,
+          token,
+        },
+      });
+      // Lưu đúng định dạng vào localStorage
+      localStorage.setItem("user", JSON.stringify(user));
+      sessionStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
+      console.log(
+        "User stored in localStorage:",
+        JSON.parse(localStorage.getItem("user"))
+      );
     }
     setShowLoginForm(false);
+    setCheckedPremium(false);
   };
-  
-  
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+
+    if (storedUser && token) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        console.log("🚀 parsed user from localStorage:", parsed);
+
+        // Truy cập đúng vào parsed.user
+        const finalUser = parsed?.user || parsed; // Sử dụng parsed.user nếu có, nếu không dùng parsed
+        dispatch({
+          type: "LOGIN_SUCCESS",
+          payload: { user: finalUser, token },
+        });
+      } catch (err) {
+        console.error("❌ Lỗi parse localStorage user:", err);
+      }
+    }
+  }, [dispatch]);
+
   const closeModal = () => {
     setShowRegisterForm(false);
     setShowLoginForm(true);
   };
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -69,13 +112,36 @@ function LayoutDefault() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (user && !checkedPremium) {
+      const premiumExpiresAt = dayjs(user?.premiumExpiresAt);
+      const currentDate = dayjs();
+
+      // Kiểm tra ngày hết hạn nếu có sự thay đổi
+      if (!premiumExpiresAt.isValid()) {
+        // toast.warning("Thông tin gói Premium không hợp lệ.");
+        setCheckedPremium(true);
+        return;
+      }
+      console.log("Redux user:", user);
+      // Nếu ngày hết hạn đã qua
+      if (currentDate.isAfter(premiumExpiresAt)) {
+        toast.warning("Gói Premium đã hết hạn", {
+          transition: Bounce,
+        });
+
+        // sessionStorage.removeItem("user");
+        // sessionStorage.removeItem("token");
+        // dispatch({ type: "LOGOUT" });
+        // setShowLoginForm(true);
+      } else {
+        setCheckedPremium(true); // Đánh dấu đã kiểm tra
+      }
+    }
+  }, [user, checkedPremium, dispatch]); // Cập nhật khi user thay đổi
+
   const menuItems = [
     { key: "home", icon: <FaHome />, label: <Link to="/">Trang chủ</Link> },
-    {
-      key: "songs",
-      icon: <FaMusic />,
-      label: <Link to="/songs">Danh sách bài hát</Link>,
-    },
     ...(isLogin
       ? [
           {
@@ -92,7 +158,6 @@ function LayoutDefault() {
       : []),
     { key: "bxh", icon: <FaChartBar />, label: <Link to="/bxh">BXH</Link> },
   ];
-
   return (
     <>
       <div className="app-container">
@@ -116,6 +181,17 @@ function LayoutDefault() {
               <input type="text" placeholder="Tìm kiếm bài hát, nghệ sĩ..." />
             </div>
             <div className="user-menu" ref={menuRef}>
+              {isLogin &&
+                (isPremium ? (
+                  <button className="upgrade-button">🌟 Premium</button>
+                ) : (
+                  <button
+                    className="upgrade-button"
+                    onClick={() => navigate("/vip")}
+                  >
+                    Nâng cấp tài khoản
+                  </button>
+                ))}
               <img
                 src={
                   user?.avatar ||

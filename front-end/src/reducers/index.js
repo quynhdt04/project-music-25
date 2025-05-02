@@ -11,10 +11,13 @@ export const loginSuccess = (user, token) => {
     };
   };
 
-export const updateUser = (userData) => ({
+export const updateUser = (userData) => {
+  console.log("Dispatching UPDATE_USER với payload:", userData);
+  return {
     type: "UPDATE_USER",
     payload: userData,
-});
+  };
+};
 
 export const logout = () => ({
     type: "LOGOUT",
