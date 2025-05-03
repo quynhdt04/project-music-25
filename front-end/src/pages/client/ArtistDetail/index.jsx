@@ -78,12 +78,12 @@ function ArtistDetail() {
                     </div>
                 </div>
                 <div className="songs-list">
-                    <h3 className="p-4 text-white">Danh sách bài hát</h3>
+                    <h3 className="p-3 text-white">Danh sách bài hát</h3>
                     {songs.length > 0 ? (
                         <ul className="list-unstyled ms-4">
                             {songs.map((song, index) => (
                                 <li key={song._id}>
-                                    <div className="item-song d-flex align-items-center mb-3">
+                                    <div className="item-song d-flex align-items-center p-2">
                                         <p className="me-3 mb-0 fw-bold text-white">{index + 1}</p>
                                         <img
                                             src={song.avatar}
