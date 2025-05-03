@@ -13,55 +13,78 @@ const { Title, Text } = Typography;
 function Album() {
     const [hoveredAlbum, setHoveredAlbum] = useState(null);
     const { id, slug } = useParams();
-    const location = useLocation();   
+    const location = useLocation();
     const albumInfo = location.state?.album;
     const { currentSong, isPlaying, playSong, togglePlay, addToQueue, getAudioDuration, formatDuration } =
-    useMusicPlayer();
+        useMusicPlayer();
     const user = JSON.parse(sessionStorage.getItem("user"));
     const [totalDuration, setTotalDuration] = useState("");
     const [songList, setSongList] = useState([]);
 
     useEffect(() => {
         const fetchApi = async () => {
-          try {
-            const favoriteSongs = await get_favoriteSong(user.id);
-            let totalDurationSeconds = 0;
-    
-            const songDetails = await Promise.all(
-                albumInfo.songs.map(async (songId) => {
-                const song = await get_song_by_id(songId);
-                const durationSeconds = await getAudioDuration(song.data.audio);
-                totalDurationSeconds += durationSeconds;
-    
-                const formattedDuration = formatDuration(durationSeconds);
-    
-                return {
-                    ...song.data,
-                    cover: song.data.avatar,
-                    artists: song.data.singers.map((item) => item.singerName).join(", "),
-                    duration: formattedDuration,
-                    isFavorite: favoriteSongs.songs.includes(song.data.id),
-                };
-              })
-            );
-    
-            setSongList(songDetails);
-            setTotalDuration(formatDuration(totalDurationSeconds));
-            if (songDetails.length > 0) {
+            try {
+                const favoriteSongs = await get_favoriteSong(user.id);
+                let totalDurationSeconds = 0;
+
+                const songDetails = await Promise.all(
+                    albumInfo.songs.map(async (songId) => {
+                        const song = await get_song_by_id(songId);
+                        const durationSeconds = await getAudioDuration(song.data.audio);
+                        totalDurationSeconds += durationSeconds;
+
+                        const formattedDuration = formatDuration(durationSeconds);
+
+                        return {
+                            ...song.data,
+                            cover: song.data.avatar,
+                            artists: song.data.singers.map((item) => item.singerName).join(", "),
+                            duration: formattedDuration,
+                            isFavorite: favoriteSongs.songs.includes(song.data.id),
+                        };
+                    })
+                );
+
+                setSongList(songDetails);
+                setTotalDuration(formatDuration(totalDurationSeconds));
+                if (songDetails.length > 0) {
+                }
+            } catch (e) {
+                console.error("Lỗi khi tải albums:", e);
             }
-          } catch (e) {
-            console.error("Lỗi khi tải albums:", e);
-          }
         };
-    
+
         fetchApi();
-      }, []);
+    }, []);
 
-    console.log(albumInfo)
+    const handlePlayListAll = (e) => {
+        e.preventDefault();
 
+        if (
+            currentSong &&
+            songList.some((song) => song.id === currentSong.id) &&
+            isPlaying
+        ) {
+            togglePlay();
+        } else {
+            playSong(songList[0]);
+            addToQueue([...songList]);
+        }
+    };
+
+    const handlePlaylist = (e, song) => {
+        e.preventDefault();
+
+        if (currentSong && currentSong.id === song.id) {
+            togglePlay();
+        } else {
+            playSong(song);
+            addToQueue(song);
+        }
+    };
 
     return (
-        <Layout style={{ backgroundColor: '#170F23', minHeight: '100vh', padding: '24px', marginBottom:"7%" }}>
+        <Layout style={{ backgroundColor: '#170F23', minHeight: '100vh', padding: '24px', marginBottom: "7%" }}>
             <Content style={{ padding: '24px', backgroundColor: '#170F23', borderRadius: '8px' }}>
                 <Row gutter={[24, 24]} style={{ display: 'flex', alignItems: 'flex-end' }}>
                     <Col xs={24} md={8} style={{ display: 'flex' }}>
@@ -95,6 +118,7 @@ function Album() {
                                     cursor: "pointer",
                                     marginLeft: "20px"
                                 }}
+                                onClick={handlePlayListAll}
                             >
                                 <FaPlay color="black" />
                             </div>
@@ -152,6 +176,16 @@ function Album() {
                                                             justifyContent: 'center',
                                                             alignItems: 'center',
                                                             borderRadius: '4px',
+                                                        }}
+                                                        onClick={(e) => {
+                                                            const formattedData = {
+                                                                ...item,
+                                                                cover: item.avatar,
+                                                                artist: item.singers
+                                                                    .map((item) => item.singerName)
+                                                                    .join(", "),
+                                                            }
+                                                            handlePlaylist(e, formattedData)
                                                         }}
                                                     >
                                                         <FaPlay color="#fff" size={12} />
