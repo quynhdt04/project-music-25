@@ -69,6 +69,7 @@
     flex-direction: column;
     background-color: var(--zm-main-content-color);
     overflow: hidden;
+    padding-bottom: 104px;
 }
 
 .header {

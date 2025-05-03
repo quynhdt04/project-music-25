@@ -99,6 +99,7 @@ function Home() {
               title="Top 10 bài hát nhiều like nhất"
               type="song"
               data={topLikedSongs}
+              seeMoreEnable={false}
             />
           </Col>
         </Row>
@@ -108,6 +109,7 @@ function Home() {
               title="Top 10 bài hát nhiều lượt nghe nhất"
               type="song"
               data={topListenedSongs}
+              seeMoreEnable={false}
             />
           </Col>
         </Row>

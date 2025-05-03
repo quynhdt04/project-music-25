@@ -19,8 +19,8 @@ import { get_song_by_id } from "../../../services/SongServices";
 function PlayList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
-  // const user = useSelector((state) => state.authenReducer.user);
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = useSelector((state) => state.authenReducer.user);
+  // const user = JSON.parse(sessionStorage.getItem("user"));
   const [data, setData] = useState([]);
   const [updateState, setUpdateState] = useState(false);
   const MySwal = withReactContent(Swal);

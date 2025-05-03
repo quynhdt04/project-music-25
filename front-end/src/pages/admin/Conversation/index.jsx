@@ -211,15 +211,15 @@ function Conversation() {
     };
 
 
-    const toggleMenu = (index, event) => {
-        event.stopPropagation();
-        setActiveMenu(activeMenu === index ? null : index);
-    };
+  const toggleMenu = (index, event) => {
+    event.stopPropagation();
+    setActiveMenu(activeMenu === index ? null : index);
+  };
 
-    const closeMenu = (event) => {
-        if (menuRef.current && menuRef.current.contains(event.target)) return;
-        setActiveMenu(null);
-    };
+  const closeMenu = (event) => {
+    if (menuRef.current && menuRef.current.contains(event.target)) return;
+    setActiveMenu(null);
+  };
 
     useEffect(() => {
         document.addEventListener("mousedown", closeMenu);
@@ -229,10 +229,10 @@ function Conversation() {
     }, []);
 
 
-    //------------------------------------------Message--------------------------------
-    const toggleSearch = () => {
-        setShowSearch(!showSearch);  // Thay đổi trạng thái khi bấm vào biểu tượng tìm kiếm
-    };
+  //------------------------------------------Message--------------------------------
+  const toggleSearch = () => {
+    setShowSearch(!showSearch); // Thay đổi trạng thái khi bấm vào biểu tượng tìm kiếm
+  };
 
     //Cuộn tới tin nhắn mới nhất
     const scrollToBottom = () => {
@@ -387,8 +387,8 @@ function Conversation() {
             acc[messageDate] = acc[messageDate] || [];
             acc[messageDate].push(msg);
 
-            return acc;
-        }, {});
+      return acc;
+    }, {});
 
 
     useEffect(() => {
@@ -402,7 +402,7 @@ function Conversation() {
             });
         };
 
-        socket.on("receive_message", handleReceiveMessage);
+    socket.on("receive_message", handleReceiveMessage);
 
         return () => {
             socket.off("receive_message", handleReceiveMessage);

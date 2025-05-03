@@ -41,6 +41,7 @@ import Vip from "../pages/client/Vip";
 import IndexPage from "../pages/client/VnpayPage/index";
 import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
 import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
+import SeeMorePage from "../pages/client/SeeMore/SeeMorePage";
 import ConversationClient from "../pages/client/Conversation";
 
 export const allRoutes = [
@@ -60,6 +61,10 @@ export const allRoutes = [
       {
         path: ":type/:id",
         element: <AlbumDetail />,
+      },
+      {
+        path: ":type/see-more",
+        element: <SeeMorePage />,
       },
       {
         element: <PrivateRouteClient />,
@@ -96,19 +101,19 @@ export const allRoutes = [
       },
     ],
   },
-    // Route  cho  Payment
-    {
-      path: "/index", // Đường dẫn tới IndexPage
-      element: <IndexPage title="Trang Chính" />, // Pass title as prop
-    },
-    {
-      path: "/payment", 
-      element: <PaymentForm />, 
-    },  
-    {
-      path: "/payment_return", 
-      element: <PaymentReturn />, 
-    },
+  // Route  cho  Payment
+  {
+    path: "/index", // Đường dẫn tới IndexPage
+    element: <IndexPage title="Trang Chính" />, // Pass title as prop
+  },
+  {
+    path: "/payment",
+    element: <PaymentForm />,
+  },
+  {
+    path: "/payment_return",
+    element: <PaymentReturn />,
+  },
 
   // Routes cho Admin
   {
