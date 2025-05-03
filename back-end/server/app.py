@@ -1,4 +1,3 @@
-# server/app.py
 import socketio
 from aiohttp import web
 
@@ -13,11 +12,18 @@ async def connect(sid, environ):
 @sio.event
 async def disconnect(sid):
     print(f'Client disconnected: {sid}')
+    # Khi client ngắt kết nối, bạn có thể muốn xử lý các hoạt động như xóa người dùng khỏi phòng nếu cần
+    # await sio.leave_room(sid, conversation_id)  # Nếu cần làm điều này
 
 @sio.event
 async def join_conversation(sid, data):
     conversation_id = data.get('conversation_id')
     user = data.get('user')
+
+    if not conversation_id or not user:
+        await sio.emit('error', {'message': 'Thiếu thông tin phòng trò chuyện hoặc người dùng'}, to=sid)
+        return
+
     await sio.enter_room(sid, conversation_id)
     await sio.emit('user_joined', f"{user} đã vào cuộc trò chuyện {conversation_id}", room=conversation_id)
 
@@ -25,25 +31,29 @@ async def join_conversation(sid, data):
 async def send_message(sid, data):
     conversation_id = data.get('conversation_id')
     content = data.get('content')
-    avatar = data.get('avatar')
-    username = data.get('username')
+    sender_avatar = data.get('sender_avatar')
+    sender_name = data.get('sender_name')
     sender_id = data.get('sender_id')  # optional nếu có
-    time = data.get('time')
+    createdAt = data.get('createdAt')
+    message_id = data.get('id')
+    type = data.get('type')
 
-    if not conversation_id or not content:
+    if not conversation_id or not content or not sender_id or not sender_name:
         await sio.emit('error', {'message': 'Thiếu dữ liệu bắt buộc'}, to=sid)
-        return  # hoặc emit lỗi về client
+        return  # Trả lỗi về client nếu thiếu dữ liệu
 
+    # Emit thông tin tin nhắn đến tất cả người dùng trong cuộc trò chuyện
     await sio.emit(
         'receive_message',
         {
-            'sid': sid,
+            'id': message_id,
             'sender_id': sender_id,
             'content': content,
-            'avatar': avatar,
-            'username': username,
+            'sender_avatar': sender_avatar,
+            'sender_name': sender_name,
             'conversation_id': conversation_id,
-            'time': time,
+            'createdAt': createdAt,
+            'type': type,
         },
         room=conversation_id
     )
@@ -52,6 +62,11 @@ async def send_message(sid, data):
 async def leave_conversation(sid, data):
     conversation_id = data.get('conversation_id')
     user = data.get('user')
+
+    if not conversation_id or not user:
+        await sio.emit('error', {'message': 'Thiếu thông tin phòng trò chuyện hoặc người dùng'}, to=sid)
+        return
+
     await sio.leave_room(sid, conversation_id)
     await sio.emit('user_left', f"{user} đã rời khỏi {conversation_id}", room=conversation_id)
 

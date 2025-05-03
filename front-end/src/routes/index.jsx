@@ -42,6 +42,8 @@ import IndexPage from "../pages/client/VnpayPage/index";
 import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
 import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
 import SeeMorePage from "../pages/client/SeeMore/SeeMorePage";
+import ConversationClient from "../pages/client/Conversation";
+
 export const allRoutes = [
   // Routes cho Client
   {
@@ -93,21 +95,25 @@ export const allRoutes = [
         path: "/vip",
         element: <Vip />,
       },
+      {
+        path: "conversations",
+        element: <ConversationClient />,
+      },
     ],
   },
-    // Route  cho  Payment
-    {
-      path: "/index", // Đường dẫn tới IndexPage
-      element: <IndexPage title="Trang Chính" />, // Pass title as prop
-    },
-    {
-      path: "/payment", 
-      element: <PaymentForm />, 
-    },  
-    {
-      path: "/payment_return", 
-      element: <PaymentReturn />, 
-    },
+  // Route  cho  Payment
+  {
+    path: "/index", // Đường dẫn tới IndexPage
+    element: <IndexPage title="Trang Chính" />, // Pass title as prop
+  },
+  {
+    path: "/payment",
+    element: <PaymentForm />,
+  },
+  {
+    path: "/payment_return",
+    element: <PaymentReturn />,
+  },
 
   // Routes cho Admin
   {
