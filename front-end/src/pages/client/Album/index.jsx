@@ -4,8 +4,10 @@ import { ClockCircleOutlined } from '@ant-design/icons';
 import { FaPlay } from "react-icons/fa";
 import { useLocation, useParams } from 'react-router-dom';
 import useMusicPlayer from "../../../hooks/useMusicPlayer";
-import { get_favoriteSong } from '../../../services/FavoriteSongServices';
-import { get_song_by_id } from '../../../services/SongServices';
+import { create_favoriteSong, get_favoriteSong } from '../../../services/FavoriteSongServices';
+import { get_song_by_id, update_song_like_view } from '../../../services/SongServices';
+import DropupMenuPlayList from '../../../components/DropupMenuPlayList';
+import { HeartFilled } from "@ant-design/icons";
 
 const { Content } = Layout;
 const { Title, Text } = Typography;
@@ -80,6 +82,39 @@ function Album() {
         } else {
             playSong(song);
             addToQueue(song);
+        }
+    };
+
+    const handleFavorite = async (id) => {
+        const songID = id;
+        const userID = user.id;
+
+        try {
+            const result = await create_favoriteSong({
+                userId: userID,
+                songId: songID,
+            });
+
+            if (result?.action) {
+                const isLiked = result.action === "added";
+
+                const requestData = {
+                    songId: songID,
+                    isLike: isLiked,
+                };
+
+                const resultLike = await update_song_like_view(requestData);
+                if (resultLike?.status === "success") {
+                    console.log(isLiked ? "Đã thêm vào yêu thích" : "Đã gỡ khỏi yêu thích");
+                } else {
+                    console.error("Lỗi khi cập nhật lượt thích:", resultLike?.message);
+                }
+
+            } else {
+                console.error("Không có hành động yêu thích từ API");
+            }
+        } catch (error) {
+            console.error("Lỗi khi thêm vào yêu thích:", error);
         }
     };
 
@@ -212,14 +247,17 @@ function Album() {
                                                 <span style={{
                                                     fontSize: '18px',
                                                     opacity: isHovered ? 1 : 0,
-                                                    transition: 'opacity 0.2s'
-                                                }}>＋</span>
+                                                    transition: 'opacity 0.2s',
+                                                    color: item.isFavorite ? 'red' : 'gray'
+                                                }}
+                                                onClick={() => handleFavorite(item.id)}
+                                                ><HeartFilled /></span>
                                                 <span>{item.duration}</span>
                                                 <span style={{
                                                     fontSize: '18px',
                                                     opacity: isHovered ? 1 : 0,
                                                     transition: 'opacity 0.2s'
-                                                }}>⋯</span>
+                                                }}> <DropupMenuPlayList songID={item.id} user={user} /></span>
                                             </div>
                                         </Col>
                                     </Row>
