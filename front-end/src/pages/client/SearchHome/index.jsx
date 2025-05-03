@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, List, Avatar, Typography, Tooltip, Row, Col } from 'antd';
-import { data, useParams } from 'react-router-dom';
+import { data, Link, useParams } from 'react-router-dom';
 import { FaPlay } from "react-icons/fa";
 import { HeartFilled } from "@ant-design/icons";
 import { search_albums, search_singers, search_songs } from '../../../services/SearchHomeServices';
@@ -24,6 +24,7 @@ function SearchHome() {
         useMusicPlayer();
     const user = JSON.parse(sessionStorage.getItem("user"));
 
+    console.log("album", albums)
     useEffect(() => {
         const fetchApi = async () => {
             if (!keyword) return;
@@ -307,60 +308,61 @@ function SearchHome() {
                 {/* Albums */}
                 {albums.length > 0 && (
                     <div style={{ marginBottom: "30px", padding: 24 }}>
-
                         <Typography.Title level={5} style={{ marginBottom: 16, color: "#ffffff", fontSize: "24px" }}>
                             Albums
                         </Typography.Title>
                         <Row gutter={[16, 16]}>
                             {albums.map((album, index) => (
                                 <Col key={index} xs={12} sm={8} md={6} lg={4} xl={4}>
-                                    <div
-                                        onMouseEnter={() => setHoveredAlbum(index)}
-                                        onMouseLeave={() => setHoveredAlbum(null)}
-                                        style={{ position: 'relative' }}
-                                    >
-                                        <Card
-                                            style={{ width: '100%' }}
-                                            cover={
-                                                <div style={{ position: 'relative' }}>
-                                                    <img
-                                                        alt={album.title}
-                                                        src={album.cover}
-                                                        style={{ width: '100%', height: "140px", objectFit: "cover" }}
-                                                    />
-                                                    {hoveredAlbum === index && (
-                                                        <div
-                                                            style={{
-                                                                position: 'absolute',
-                                                                top: '50%',
-                                                                left: '50%',
-                                                                transform: 'translate(-50%, -50%)',
-                                                                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                                                                borderRadius: '50%',
-                                                                width: 40,
-                                                                height: 40,
-                                                                display: 'flex',
-                                                                justifyContent: 'center',
-                                                                alignItems: 'center',
-                                                                cursor: 'pointer',
-                                                            }}
-                                                        >
-                                                            <FaPlay
-                                                                color="#fff"
-                                                                size={20}
-                                                                onClick={() => handlePlayAlbum(album)}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            }
+                                    <Link to={`/album/${album.id}/${album.slug}`} state={{ album }} >
+                                        <div
+                                            onMouseEnter={() => setHoveredAlbum(index)}
+                                            onMouseLeave={() => setHoveredAlbum(null)}
+                                            style={{ position: 'relative' }}
                                         >
-                                            <Card.Meta
-                                                title={<Text strong ellipsis>{album.title}</Text>}
-                                                description={<Text type="secondary" ellipsis>{album.artist}</Text>}
-                                            />
-                                        </Card>
-                                    </div>
+                                            <Card
+                                                style={{ width: '100%' }}
+                                                cover={
+                                                    <div style={{ position: 'relative' }}>
+                                                        <img
+                                                            alt={album.title}
+                                                            src={album.cover}
+                                                            style={{ width: '100%', height: "140px", objectFit: "cover" }}
+                                                        />
+                                                        {hoveredAlbum === index && (
+                                                            <div
+                                                                style={{
+                                                                    position: 'absolute',
+                                                                    top: '50%',
+                                                                    left: '50%',
+                                                                    transform: 'translate(-50%, -50%)',
+                                                                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                                                    borderRadius: '50%',
+                                                                    width: 40,
+                                                                    height: 40,
+                                                                    display: 'flex',
+                                                                    justifyContent: 'center',
+                                                                    alignItems: 'center',
+                                                                    cursor: 'pointer',
+                                                                }}
+                                                            >
+                                                                <FaPlay
+                                                                    color="#fff"
+                                                                    size={20}
+                                                                    onClick={() => handlePlayAlbum(album)}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                }
+                                            >
+                                                <Card.Meta
+                                                    title={<Text strong ellipsis>{album.title}</Text>}
+                                                    description={<Text type="secondary" ellipsis>{album.artist}</Text>}
+                                                />
+                                            </Card>
+                                        </div>
+                                    </Link>
                                 </Col>
                             ))}
                         </Row>
@@ -375,7 +377,7 @@ function SearchHome() {
                         <Row gutter={[24, 24]} justify='flex-start' >
                             {singers.map((artist, index) => (
                                 <Col key={index}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start'}}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                                         <Avatar
                                             src={artist.avatar}
                                             shape="circle"

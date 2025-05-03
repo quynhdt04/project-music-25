@@ -15,7 +15,6 @@ const MusicLove = () => {
     const { currentSong, isPlaying, playSong, togglePlay, addToQueue, getAudioDuration, formatDuration } =
         useMusicPlayer();
 
-
     useEffect(() => {
         const fetchApi = async () => {
             const favoriteSongs = await get_favoriteSong(user.id);

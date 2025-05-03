@@ -42,6 +42,7 @@ import IndexPage from "../pages/client/VnpayPage/index";
 import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
 import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
 import SearchHome from "../pages/client/SearchHome";
+import Album from "../pages/client/Album";
 export const allRoutes = [
   // Routes cho Client
   {
@@ -63,6 +64,10 @@ export const allRoutes = [
       {
         path: "search/:keyword",
         element: <SearchHome />,
+      },
+      {
+        path: "album/:id/:slug",
+        element: <Album />,
       },
       {
         element: <PrivateRouteClient />,
