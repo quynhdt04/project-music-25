@@ -32,6 +32,7 @@ function LayoutDefault() {
   const isLogin = Boolean(user);
   const isPremium = user?.isPremium;
   const [checkedPremium, setCheckedPremium] = useState(false);
+  const [keyword, setKeyword] = useState("");
 
   const handleRegisterSuccess = () => {
     setShowRegisterForm(false);
@@ -145,21 +146,28 @@ function LayoutDefault() {
     { key: "home", icon: <FaHome />, label: <Link to="/">Trang chủ</Link> },
     ...(isLogin
       ? [
-          {
-            key: "music-love",
-            icon: <FaHeart />,
-            label: <Link to="/music-love">Bài hát yêu thích</Link>,
-          },
-          {
-            key: "playlist",
-            icon: <FaList />,
-            label: <Link to="/playlist">Danh sách phát nhạc</Link>,
-          },
-        ]
+        {
+          key: "music-love",
+          icon: <FaHeart />,
+          label: <Link to="/music-love">Bài hát yêu thích</Link>,
+        },
+        {
+          key: "playlist",
+          icon: <FaList />,
+          label: <Link to="/playlist">Danh sách phát nhạc</Link>,
+        },
+      ]
       : []),
     { key: "bxh", icon: <FaChartBar />, label: <Link to="/bxh">BXH</Link> }, 
     { key: "conversation_client", icon: <FaComments />, label: <Link to="/conversations">Trò chuyện</Link> },
   ];
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && keyword.trim() !== "") {
+      navigate(`/search/${encodeURIComponent(keyword.trim())}`);
+    }
+  };
+
   return (
     <>
       <div className="app-container">
@@ -180,7 +188,13 @@ function LayoutDefault() {
         <div className="main-content">
           <header className="header">
             <div className="search-bar">
-              <input type="text" placeholder="Tìm kiếm bài hát, nghệ sĩ..." />
+              <input
+                type="text"
+                placeholder="Tìm kiếm bài hát, nghệ sĩ..."
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
             </div>
             <div className="user-menu" ref={menuRef}>
               {isLogin &&
