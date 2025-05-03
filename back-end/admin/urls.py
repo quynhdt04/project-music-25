@@ -18,6 +18,8 @@ from admin.views.album import (
     restore_multiple_albums, search_album, filter_album, approve_multiple_albums, reject_multiple_albums,
     approve_album, reject_album
 )
+from admin.views.conversation import get_all_conversations, get_conversation_by_id, create_conversation, delete_conversation,update_conversation
+from admin.views.message import get_messages_by_conversation, create_message
 from admin.views.statistical import get_total_statistics,get_playcount_by_topic, get_songcount_by_topic, get_top_liked_songs
 
 urlpatterns = [
@@ -95,6 +97,15 @@ urlpatterns = [
     path("albums/reject-multiple-albums", reject_multiple_albums, name="reject_multiple_albums"),
     path("albums/approve-album/<str:album_id>/", approve_album, name="approve_album"),
     path("albums/reject-album/<str:album_id>/", reject_album, name="reject_album"),
+    
+    path('conversations/', get_all_conversations, name='get_all_conversations'),
+    path('conversations/<str:conversation_id>/', get_conversation_by_id, name='get_conversation_by_id'),
+    path('conversations/create', create_conversation, name='create_conversation'),
+    path('conversations/edit/<str:conversation_id>/', update_conversation, name='update_conversation'),
+    path('conversations/delete/<str:conversation_id>/', delete_conversation, name='delete_conversation'),
+    
+    path('conversations/messages/create', create_message, name='create_message'),
+    path('conversations/messages/<str:conversation_id>/', get_messages_by_conversation, name='get_messages_by_conversation'),
 
     path("statistical/total", get_total_statistics, name="get_total_statistics"),
     path("statistical/playcount-by-topic", get_playcount_by_topic, name="get_playcount_by_topic"),

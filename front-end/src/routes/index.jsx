@@ -43,6 +43,8 @@ import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
 import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
 import SearchHome from "../pages/client/SearchHome";
 import Album from "../pages/client/Album";
+import ConversationClient from "../pages/client/Conversation";
+
 export const allRoutes = [
   // Routes cho Client
   {
@@ -97,6 +99,10 @@ export const allRoutes = [
       {
         path: "/vip",
         element: <Vip />,
+      },
+      {
+        path: "conversations",
+        element: <ConversationClient />,
       },
     ],
   },
