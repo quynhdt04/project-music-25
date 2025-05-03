@@ -1,4 +1,6 @@
 import Select from "react-select";
+import { toast, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export const tableConfigs = {
   songs: {
@@ -378,4 +380,18 @@ export const tableConfigs = {
     tableActions: "view-only",
     canCreateNewData: false,
   },
+};
+
+export const checkUserAuthenticated = () => {
+  const user = JSON.parse(sessionStorage.getItem("user"));
+  let flag = true;
+  if (!user) {
+    toast.warning("Vui lòng đăng nhập để sử dụng chức năng này!", {
+      position: "top-right",
+      autoClose: 3000,
+      transition: Bounce,
+    });
+    flag = false;
+  }
+  return flag;
 };

@@ -43,6 +43,7 @@ import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
 import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
 import SearchHome from "../pages/client/SearchHome";
 import Album from "../pages/client/Album";
+import SeeMorePage from "../pages/client/SeeMore/SeeMorePage";
 import ConversationClient from "../pages/client/Conversation";
 
 export const allRoutes = [
@@ -70,6 +71,10 @@ export const allRoutes = [
       {
         path: "album/:id/:slug",
         element: <Album />,
+      },
+      {
+        path: ":type/see-more",
+        element: <SeeMorePage />,
       },
       {
         element: <PrivateRouteClient />,
@@ -106,19 +111,19 @@ export const allRoutes = [
       },
     ],
   },
-    // Route  cho  Payment
-    {
-      path: "/index", // Đường dẫn tới IndexPage
-      element: <IndexPage title="Trang Chính" />, // Pass title as prop
-    },
-    {
-      path: "/payment", 
-      element: <PaymentForm />, 
-    },  
-    {
-      path: "/payment_return", 
-      element: <PaymentReturn />, 
-    },
+  // Route  cho  Payment
+  {
+    path: "/index", // Đường dẫn tới IndexPage
+    element: <IndexPage title="Trang Chính" />, // Pass title as prop
+  },
+  {
+    path: "/payment",
+    element: <PaymentForm />,
+  },
+  {
+    path: "/payment_return",
+    element: <PaymentReturn />,
+  },
 
   // Routes cho Admin
   {

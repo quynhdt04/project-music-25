@@ -1,32 +1,29 @@
-import { useState, useRef, useEffect } from "react";
-import { FaEllipsisH, FaPlus, FaHeadphones } from "react-icons/fa";
-import "./DropupMenuPlayList.css";
+import React, { useState, useEffect, useRef } from "react";
+import "../DropupMenuPlayList/DropupMenuPlayList.css";
 import { Modal, Form, Input, Button } from "antd";
+import { FaPlus, FaHeadphones } from "react-icons/fa";
 import { add_song_to_playlist, create_playList, get_all_playList } from "../../services/PlayListServices";
 import { toast, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const DropupMenuPlayList = (props) => {
-    const [isOpen, setIsOpen] = useState(false);
+const PlaylistDropdown = (props) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
     const [form] = Form.useForm();
-    const menuRef = useRef(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [playlist, setPlayList] = useState([]);
     const { songID, user } = props;
+    const modalRef = useRef(null);
 
-    const toggleMenu = () => {
-        if (!user) {
-            toast.warning("Vui lòng đăng nhập để sử dụng chức năng này!", {
-                position: "top-right",
-                autoClose: 3000,
-                transition: Bounce,
-            });
-            return;
+    const handleClickOutside = (event) => {
+        if (modalRef.current && !modalRef.current.contains(event.target)) {
+            setIsModalOpen(false);
         }
-        setIsOpen(!isOpen);
     };
+
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const showModal = () => {
         setIsModalOpen(true);
@@ -39,18 +36,6 @@ const DropupMenuPlayList = (props) => {
     const handleCancel = () => {
         setIsModalOpen(false);
     };
-
-    const handleClickOutside = (event) => {
-        if (menuRef.current && !menuRef.current.contains(event.target)) {
-            setIsOpen(false);
-            setIsSubMenuOpen(false);
-        }
-    };
-
-    useEffect(() => {
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
 
     useEffect(() => {
         const fetchAPI = async () => {
@@ -136,9 +121,10 @@ const DropupMenuPlayList = (props) => {
         }
     }
 
+    console.log("isModalOpen", isModalOpen);
+
     return (
         <>
-            {/* Modal tạo playlist */}
             <Modal
                 title="Tạo playlist mới"
                 footer={null}
@@ -146,8 +132,9 @@ const DropupMenuPlayList = (props) => {
                 onOk={handleOk}
                 onCancel={handleCancel}
                 className="play-list__modal"
+                ref={modalRef}
             >
-                <Form layout="vertical" form={form} onFinish={handleAddPlayList}>
+                <Form layout="vertical" form={form} onFinish={handleAddPlayList} onClick={(e) => e.stopPropagation()}>
                     <Form.Item
                         name="title"
                         rules={[
@@ -166,47 +153,28 @@ const DropupMenuPlayList = (props) => {
                 </Form>
             </Modal>
 
-            {/* Menu chính */}
-            <div className="dropup" ref={menuRef}>
-                <button className="dropup__toggle" onClick={toggleMenu}>
-                    <FaEllipsisH />
-                </button>
-
-                {user && isOpen && (
-                    <div className="dropup__menu">
-                        {/* Hover mở submenu */}
-                        <div
-                            className="dropup__item-wrapper"
-                            onMouseEnter={() => setIsSubMenuOpen(true)}
-                            onMouseLeave={() => setIsSubMenuOpen(false)}
-                        >
-                            <div className="dropup__item">
-                                <FaPlus /> Thêm vào playlist
-                            </div>
-                            {isSubMenuOpen && (
-                                <div className="submenu">
-                                    <div className="submenu__search">
-                                        <input
-                                            placeholder="Tìm playlist..."
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="submenu__item" onClick={showModal}>
-                                        <FaPlus /> Tạo playlist mới
-                                    </div>
-                                    {filteredPlayList.map((item) => (
-                                        <div key={item.id} className="submenu__item" onClick={() => handleAddSongInPlayList(item.id)}>
-                                            <FaHeadphones /> {item.title}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+            <div className="submenu">
+                <div className="submenu__search">
+                    <input
+                        placeholder="Tìm playlist..."
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="submenu__item" onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    showModal();
+                }}>
+                    <FaPlus /> Tạo playlist mới
+                </div>
+                {filteredPlayList.map((item) => (
+                    <div key={item.id} className="submenu__item" onClick={() => handleAddSongInPlayList(item.id)}>
+                        <FaHeadphones /> {item.title}
                     </div>
-                )}
+                ))}
             </div>
         </>
-    );
-};
+    )
+}
 
-export default DropupMenuPlayList;
+export default PlaylistDropdown;
