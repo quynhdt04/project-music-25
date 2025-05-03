@@ -78,13 +78,6 @@ function ConversationClient() {
         }
     }, [refresh]);
 
-    // Reset các giá trị khi không cần thiết
-    const reset = () => {
-        setEditMode(null);
-        setAvatarFile(null);
-        setImagePreview(null);
-        setConversationName("");
-    };
 
     // Lấy danh sách message theo conversation_id
     useEffect(() => {
@@ -325,22 +318,22 @@ function ConversationClient() {
                                         onChange={handleSendImage}
                                         style={{ display: "none" }} // Ẩn input file
                                         id="image-upload"
+                                        disabled={!selectedConversationId}
                                     />
-                                    <label htmlFor="image-upload" style={{ cursor: "pointer" }}>
+                                    <label htmlFor="image-upload" style={{ cursor: selectedConversationId ? "pointer" : "not-allowed", opacity: selectedConversationId ? 1 : 0.5 }}>
                                         <FaRegImage size={35} color="#fff" />
                                     </label>
                                 </div>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Aa"
-                                    className="me-2 ms-3"
-                                    value={messageText}
+                                <Form.Control type="text" placeholder="Aa" className="me-2 ms-3" value={messageText}
                                     onChange={(e) => setMessageText(e.target.value)}
+                                    disabled={!selectedConversationId}
                                 />
-                                <button type="submit" className="btn-send btn-primary ms-2">
+                                <button type="submit" className="btn-send btn-primary ms-2" disabled={!selectedConversationId}
+                                    style={{ cursor: selectedConversationId ? "pointer" : "not-allowed", opacity: selectedConversationId ? 1 : 0.5 }}>
                                     <MdSend size={35} color="#fff" />
                                 </button>
-                                <div className="heart ms-2" onClick={() => handleSendMessage(null, "❤️", "EMOJI")} style={{ cursor: "pointer" }}>
+                                <div className="heart ms-2" onClick={() => handleSendMessage(null, "❤️", "EMOJI")}
+                                    style={{ cursor: selectedConversationId ? "pointer" : "not-allowed", opacity: selectedConversationId ? 1 : 0.5 }}>
                                     <IoHeartSharp size={35} color="red" />
                                 </div>
                             </Form>
@@ -357,6 +350,7 @@ function ConversationClient() {
                                         placeholder="Tìm kiếm..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
+                                        disabled={!selectedConversationId}
                                     />
                                     <InputGroup.Text>
                                         <FaSearch />
@@ -377,7 +371,7 @@ function ConversationClient() {
                                     </div>
                                 ))
                             ) : (
-                                <div className="no-conversations" style={{ textAlign: "center", padding: "20px" }}>
+                                <div className="no-conversations" style={{ textAlign: "center", padding: "20px", color:"white" }}>
                                     Không có cuộc trò chuyện nào
                                 </div>
                             )}
