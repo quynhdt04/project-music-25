@@ -120,6 +120,7 @@ function Account() {
                                 <th>Avatar</th>
                                 <th>Họ tên</th>
                                 <th>Email</th>
+                                <th>Số điện thoại</th>
                                 <th>Phân quyền</th>
                                 <th>Trạng thái</th>
                                 <th>Hành động</th>
@@ -140,6 +141,7 @@ function Account() {
                                         </td>
                                         <td>{account.fullName}</td>
                                         <td>{account.email}</td>
+                                        <td>{account.phone}</td>
                                         <td>{account.role.title}</td>
                                         <td>
                                             <span className={`account__badge ${account.status === "active" ? "account__badge-success" : "account__badge-danger"}`}>

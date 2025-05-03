@@ -20,8 +20,9 @@ import {
 import { Container, Row, Col, Modal } from "react-bootstrap";
 import "./MusicPlayer.scss";
 import VideoPlayer from "../VideoPlayer/VideoPlayer";
-import { like_song } from "../../services/SongServices";
+// import { like_song } from "../../services/SongServices";
 import Media from "../Media/Media";
+import { checkUserAuthenticated } from "../../utils/constants";
 
 const MusicPlayer = () => {
   const [showQueue, setShowQueue] = useState(false);
@@ -55,6 +56,7 @@ const MusicPlayer = () => {
     queue,
     playSong,
     fetchQueueData,
+    handleLikeClick,
   } = useMusicPlayer();
 
   // Handle play/pause
@@ -145,16 +147,6 @@ const MusicPlayer = () => {
     if (volume === 0) return <FaVolumeMute />;
     if (volume < 0.5) return <FaVolumeDown />;
     return <FaVolumeUp />;
-  };
-
-  const handleLikeClick = async () => {
-    try {
-      const user = JSON.parse(sessionStorage.getItem("user"));
-      const result = await like_song(currentSong.slug, user.id);
-    } catch (error) {
-      console.log(error);
-    }
-    setIsLiked(!isLiked);
   };
 
   const handleMVClick = () => {
@@ -290,7 +282,9 @@ const MusicPlayer = () => {
               </div>
               <button
                 className={`action-btn ${isLiked ? "liked" : ""}`}
-                onClick={handleLikeClick}
+                onClick={() => {
+                  checkUserAuthenticated() && handleLikeClick();
+                }}
               >
                 {isLiked ? <HeartFill /> : <Heart />}
               </button>

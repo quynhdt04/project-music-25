@@ -83,7 +83,8 @@ async def create_favorite_song(request):
         return JsonResponse({
             "message": f"Bài hát đã được {result['action']}.",
             "favoriteSongId": result["id"],
-            "currentSongs": result["songList"]
+            "currentSongs": result["songList"],
+            "action": result["action"],
         }, status=200)
 
     except json.JSONDecodeError:

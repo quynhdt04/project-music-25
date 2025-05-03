@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timezone
 import cloudinary
 from cloudinary.uploader import destroy
 from django.http import QueryDict
@@ -1115,3 +1115,117 @@ async def check_song_is_liked_by_user(request):
             logger.error("Error in check_song_is_liked_by_user: %s", traceback.format_exc())
             return JsonResponse({"message": f"Lỗi hệ thống: {str(e)}", "status": 500}, status=500)
     return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+
+@csrf_exempt
+async def get_song_top_play(request):
+    if request.method == 'GET':
+        try:
+            # Lấy 10 bài hát có lượt nghe cao nhất, không bị xóa
+            top_songs = await sync_to_async(lambda: list(Song.objects(deleted=False).order_by('-play_count')[:10]))()
+
+            result = []
+            for song in top_songs:
+                # Lấy danh sách album chứa bài hát này
+                albums = await sync_to_async(lambda: list(Album.objects.filter(songs__in=[song._id])))()
+
+                serialized_albums = []
+                for album in albums:
+                    try:
+                        singer = await sync_to_async(SingerModel.objects.get)(id=album.singerId)
+                        serialized_album = {
+                            "id": str(album._id),
+                            "title": album.title,
+                            "singer": {
+                                "id": str(singer.id),
+                                "fullName": singer.fullName
+                            }
+                        }
+                    except SingerModel.DoesNotExist:
+                        serialized_album = {
+                            "id": str(album._id),
+                            "title": album.title,
+                            "singer": None
+                        }
+                    serialized_albums.append(serialized_album)
+
+                result.append({
+                    "_id": song._id,
+                    "title": song.title,
+                    "avatar": song.avatar,
+                    "play_count": song.play_count,
+                    "singers": [{"singerId": s.singerId, "singerName": s.singerName} for s in song.singers],
+                    "isPremiumOnly": song.isPremiumOnly,
+                    "slug": song.slug,
+                    "albums": serialized_albums,  
+                    "audio": song.audio,
+                })
+
+            return JsonResponse({"status": "success", "data": result}, status=200)
+
+        except Exception as e:
+            return JsonResponse({
+                "status": "error",
+                "message": f"Lỗi hệ thống: {str(e)}",
+                "traceback": traceback.format_exc()
+            }, status=500)
+
+    return JsonResponse({"status": "error", "message": "Invalid HTTP method"}, status=405)
+
+@csrf_exempt
+async def update_song_like_view(request):
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Chỉ hỗ trợ phương thức POST"}, status=405)
+
+    try:
+        body = json.loads(request.body.decode("utf-8"))
+        song_id = body.get("songId")
+        is_like = body.get("isLike")
+
+        if song_id is None or is_like is None:
+            return JsonResponse({
+                "status": "error",
+                "message": "Thiếu songId hoặc isLike"
+            }, status=400)
+
+        # Hàm đồng bộ để tương tác với MongoEngine
+        def update_like_sync():
+            try:
+                song = Song.objects.filter(_id=song_id, deleted=False).first()
+                if not song:
+                    return {"success": False, "error": "Không tìm thấy bài hát."}
+
+                if is_like:
+                    song.like += 1
+                else:
+                    song.like = max(0, song.like - 1)
+
+                song.updatedAt = datetime.now(timezone.utc)
+                song.save()
+
+                return {"success": True, "like": song.like}
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        # Gọi hàm đồng bộ bằng sync_to_async
+        result = await sync_to_async(update_like_sync)()
+
+        if result["success"]:
+            return JsonResponse({
+                "status": "success",
+                "message": "Đã cập nhật lượt like.",
+                "like": result["like"]
+            }, status=200)
+        else:
+            return JsonResponse({
+                "status": "error",
+                "message": result["error"]
+            }, status=404 if "tìm thấy" in result["error"] else 500)
+
+    except json.JSONDecodeError:
+        return JsonResponse({"status": "error", "message": "Dữ liệu JSON không hợp lệ."}, status=400)
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "message": f"Lỗi hệ thống: {str(e)}",
+            "traceback": traceback.format_exc()
+        }, status=500)

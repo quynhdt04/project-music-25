@@ -152,7 +152,11 @@ function CreateAccount() {
           </div>
         </div>
 
-        <div className="from-account__btn">
+        <div className="">
+
+        </div>
+
+        <div className="from-account__btn" id="account__btn">
           <button
             type="button"
             className="btn-back btn"

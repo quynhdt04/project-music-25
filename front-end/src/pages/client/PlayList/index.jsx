@@ -20,6 +20,7 @@ function PlayList() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
   const user = useSelector((state) => state.authenReducer.user);
+  // const user = JSON.parse(sessionStorage.getItem("user"));
   const [data, setData] = useState([]);
   const [updateState, setUpdateState] = useState(false);
   const MySwal = withReactContent(Swal);
@@ -109,11 +110,36 @@ function PlayList() {
     });
   };
 
+  console.log("user", user);
+
   useEffect(() => {
     const fetchApi = async () => {
-      const result = await get_all_playList();
-      setData(result.playList);
+      try {
+        const result = await get_all_playList();
+  
+        const playlistsWithAvatars = await Promise.all(
+          result.playList.map(async (playlist) => {
+            let firstSongAvatar = "";
+  
+            if (playlist.songs && playlist.songs.length > 0) {
+              const firstSongId = playlist.songs[0];
+              const song = await get_song_by_id(firstSongId);
+              firstSongAvatar = song?.data?.avatar || "";
+            }
+  
+            return {
+              ...playlist,
+              firstSongAvatar, 
+            };
+          })
+        );
+  
+        setData(playlistsWithAvatars);
+      } catch (error) {
+        console.error("Lỗi khi tải danh sách playlist:", error);
+      }
     };
+  
     fetchApi();
   }, [updateState]);
 
@@ -193,8 +219,8 @@ function PlayList() {
                 <div className="img-wrapper">
                   <img
                     src={
-                      item.imageAlbum !== ""
-                        ? item.imageAlbum
+                      item.firstSongAvatar !== ""
+                        ? item.firstSongAvatar
                         : "../../../../public/image/album_default.png"
                     }
                     alt=""

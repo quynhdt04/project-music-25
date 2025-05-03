@@ -10,20 +10,30 @@ import {
   ArrowUpShort,
   ArrowDownShort,
   XCircle,
+  PlusCircle,
 } from "react-bootstrap-icons";
 import { FaPlay, FaPause } from "react-icons/fa";
 import useMusicPlayer from "../../hooks/useMusicPlayer";
 import "./Media.scss";
 import { checkIsSongLikedByCurrentUser } from "../../services/SongServices.js";
+import PlaylistDropdown from "../PlaylistDropdown/PlaylistDropdown.jsx";
+import { checkUserAuthenticated } from "../../utils/constants";
 
 const Media = ({ item, selectedItem, handlePlayClick, type }) => {
-  const [isLiked, setIsLiked] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { addToQueue, moveSong, removeSongFromQueue } = useMusicPlayer();
+  const [showPlaylistDropdown, setShowPlaylistDropdown] = useState(false);
+  const {
+    isLiked,
+    setIsLiked,
+    addToQueue,
+    moveSong,
+    removeSongFromQueue,
+    handleLikeClick,
+  } = useMusicPlayer();
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   useEffect(() => {
     const fetchData = async () => {
-      const user = JSON.parse(sessionStorage.getItem("user"));
       if (user && item) {
         const response = await checkIsSongLikedByCurrentUser(item.id, user.id);
         if (response.status === 200) {
@@ -37,25 +47,22 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
 
   const handleAddToQueue = (e) => {
     e.stopPropagation();
-    addToQueue(item);
+    checkUserAuthenticated() && addToQueue(item);
   };
 
   const handleRemoveFromQueue = (e, item) => {
     e.stopPropagation();
-    removeSongFromQueue(item);
-    // removeFromQueue(item.id);
+    checkUserAuthenticated() && removeSongFromQueue(item);
   };
 
   const handleMoveUp = (e, song) => {
     e.stopPropagation();
-    moveSong(song, "up");
-    // moveQueueItem(item.id, -1); // Move up one position
+    checkUserAuthenticated() && moveSong(song, "up");
   };
 
   const handleMoveDown = (e, song) => {
     e.stopPropagation();
-    moveSong(song, "down");
-    // moveQueueItem(item.id, 1); // Move down one position
+    checkUserAuthenticated() && moveSong(song, "down");
   };
 
   const CustomToggle = React.forwardRef(({ children, onClick }, ref) => (
@@ -75,9 +82,8 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
 
   return (
     <div
-      className={`song-item-wrapper ${
-        selectedItem === item.id ? "active" : ""
-      } d-flex align-items-center mt-2`}
+      className={`song-item-wrapper ${selectedItem === item.id ? "active" : ""
+        } d-flex align-items-center mt-2`}
       key={item.id}
     >
       <div className="song-item d-flex align-items-center" style={{ flex: 1 }}>
@@ -152,7 +158,7 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
                 className={`like-button ${isLiked ? "liked" : ""}`}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setIsLiked(!isLiked);
+                  checkUserAuthenticated() && handleLikeClick(item.slug);
                 }}
               >
                 {isLiked ? <HeartFill /> : <Heart />}
@@ -183,23 +189,44 @@ const Media = ({ item, selectedItem, handlePlayClick, type }) => {
                 className={`custom-dropdown-menu ${dropdownOpen ? "" : "hide"}`}
               >
                 <Dropdown.Item
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDropdownOpen(false);
+                  style={{ position: "relative" }}
+                  onMouseEnter={() => {
+                    setShowPlaylistDropdown(true);
+                  }}
+                  onMouseLeave={() => {
+                    setShowPlaylistDropdown(false);
                   }}
                 >
                   <FileMusic />
                   Thêm bài hát vào playlist
+                  {showPlaylistDropdown && (
+                    <div className="playlist-dropdown-container">
+                      <PlaylistDropdown
+                        songID={item.id}
+                        user={user}
+                      />
+                    </div>
+                  )}
                 </Dropdown.Item>
                 <Dropdown.Item
                   onClick={(e) => {
                     e.stopPropagation();
-                    setIsLiked(!isLiked);
+                    checkUserAuthenticated() && handleLikeClick(item.slug);
                     setDropdownOpen(false);
                   }}
                 >
                   {isLiked ? <HeartFill /> : <Heart />}
                   Thêm bài hát yêu thích
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddToQueue(item);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  <PlusCircle />
+                  Thêm bài hát vào hàng đợi
                 </Dropdown.Item>
                 {type === "queue" && (
                   <>

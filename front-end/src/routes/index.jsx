@@ -17,7 +17,6 @@ import Singer from "../pages/admin/Singer";
 import User from "../pages/admin/User";
 import General from "../pages/admin/General";
 import PrivateRouteClient from "../components/PrivateRouteClient";
-import ListSong from "../pages/client/ListSong";
 import MusicLove from "../pages/client/MusicLove";
 import InfoUser from "../pages/admin/InfoUser";
 import EditAccount from "../pages/admin/Account/editAccount";
@@ -56,10 +55,6 @@ export const allRoutes = [
       {
         path: "bxh",
         element: <BXH />,
-      },
-      {
-        path: "songs",
-        element: <ListSong />,
       },
       {
         path: ":type/:id",

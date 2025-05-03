@@ -69,6 +69,7 @@ const AlbumDetail = () => {
                 isPremiumOnly: song.isPremiumOnly,
                 playCount: song.play_count,
                 duration: formatDuration(duration),
+                slug: song.slug,
               };
             })
           );
@@ -104,6 +105,7 @@ const AlbumDetail = () => {
             isPremiumOnly: songInfo.data.isPremiumOnly,
             playCount: songInfo.data.play_count,
             duration: formatDuration(duration),
+            slug: songInfo.data.slug,
           };
 
           setDataInfo(songInfoData);
@@ -212,7 +214,7 @@ const AlbumDetail = () => {
                     Phát tất cả
                   </span>
                 </Button>
-                <div className="song-action d-flex align-items-center justify-content-center">
+                {/* <div className="song-action d-flex align-items-center justify-content-center">
                   <Button className="btn-action p-0 me-3 like-button">
                     <div className="img-container">
                       <SuitHeart />
@@ -223,7 +225,7 @@ const AlbumDetail = () => {
                       <ThreeDots />
                     </div>
                   </Button>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

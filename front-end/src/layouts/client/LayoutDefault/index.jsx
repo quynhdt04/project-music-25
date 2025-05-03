@@ -3,12 +3,12 @@ import { toast, Bounce } from "react-toastify";
 import "./LayoutDefault.css";
 import { IoIosLogOut } from "react-icons/io";
 import { FaRegUser } from "react-icons/fa";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import LoginForm from "../../../pages/client/Login";
 import RegisterForm from "../../../pages/client/Register";
 import EditProfileForm from "../../../pages/client/EditProfile";
 import Profile from "../../../pages/client/Profile";
-import { FaHome, FaMusic, FaHeart, FaList, FaChartBar } from "react-icons/fa";
+import { FaHome, FaHeart, FaList, FaChartBar } from "react-icons/fa";
 import { GiMusicalScore } from "react-icons/gi";
 import { Menu } from "antd";
 import { useSelector, useDispatch } from "react-redux";
@@ -51,6 +51,7 @@ function LayoutDefault() {
   const handleLoginSuccess = (user) => {
     const token = sessionStorage.getItem("token");
     if (user && user.id && token) {
+      console.log("Dispatching LOGIN_SUCCESS with user: ", user);
       dispatch({
         type: "LOGIN_SUCCESS",
         payload: {
@@ -58,23 +59,44 @@ function LayoutDefault() {
           token,
         },
       });
+      // Lưu đúng định dạng vào localStorage
+      localStorage.setItem("user", JSON.stringify(user));
+      sessionStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
+      console.log(
+        "User stored in localStorage:",
+        JSON.parse(localStorage.getItem("user"))
+      );
     }
     setShowLoginForm(false);
     setCheckedPremium(false);
   };
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
+
+    if (storedUser && token) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        console.log("🚀 parsed user from localStorage:", parsed);
+
+        // Truy cập đúng vào parsed.user
+        const finalUser = parsed?.user || parsed; // Sử dụng parsed.user nếu có, nếu không dùng parsed
+        dispatch({
+          type: "LOGIN_SUCCESS",
+          payload: { user: finalUser, token },
+        });
+      } catch (err) {
+        console.error("❌ Lỗi parse localStorage user:", err);
+      }
+    }
+  }, [dispatch]);
 
   const closeModal = () => {
     setShowRegisterForm(false);
     setShowLoginForm(true);
   };
-
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      const user = JSON.parse(storedUser).user;
-      dispatch(updateUser(user));
-    }
-  }, [dispatch]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -101,7 +123,7 @@ function LayoutDefault() {
         setCheckedPremium(true);
         return;
       }
-
+      console.log("Redux user:", user);
       // Nếu ngày hết hạn đã qua
       if (currentDate.isAfter(premiumExpiresAt)) {
         toast.warning("Gói Premium đã hết hạn", {
@@ -111,7 +133,7 @@ function LayoutDefault() {
         // sessionStorage.removeItem("user");
         // sessionStorage.removeItem("token");
         // dispatch({ type: "LOGOUT" });
-        setShowLoginForm(true);
+        // setShowLoginForm(true);
       } else {
         setCheckedPremium(true); // Đánh dấu đã kiểm tra
       }
@@ -120,13 +142,8 @@ function LayoutDefault() {
 
   const menuItems = [
     { key: "home", icon: <FaHome />, label: <Link to="/">Trang chủ</Link> },
-    {
-      key: "songs",
-      icon: <FaMusic />,
-      label: <Link to="/songs">Danh sách bài hát</Link>,
-    },
-    // ...(isLogin
-      // ? [
+    ...(isLogin
+      ? [
           {
             key: "music-love",
             icon: <FaHeart />,
@@ -137,8 +154,8 @@ function LayoutDefault() {
             icon: <FaList />,
             label: <Link to="/playlist">Danh sách phát nhạc</Link>,
           },
-        // ]
-      // : []),
+        ]
+      : []),
     { key: "bxh", icon: <FaChartBar />, label: <Link to="/bxh">BXH</Link> },
   ];
   return (
@@ -266,8 +283,7 @@ function LayoutDefault() {
       {showEditForm && user && user.id && (
         <EditProfileForm onClose={() => setShowEditForm(false)} user={user} />
       )}
-      <footer className="footer">
-      </footer>
+      <footer className="footer"></footer>
     </>
   );
 }

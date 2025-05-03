@@ -85,6 +85,8 @@ export const get_song_by_slug = async (slug) => {
 };
 
 export const like_song = async (slug, userId) => {
+  console.log("slug", slug);
+  console.log("userId", userId);
   const result = await post(`api/songs/like/${slug}/`, { userId });
   return result;
 };
@@ -161,4 +163,14 @@ export const checkIsSongLikedByCurrentUser = async (songId, userId) => {
   return await get(
     `api/songs/check-song-is-liked-by-user?id=${userId}&songId=${songId}`
   );
+};
+
+export const get_song_top_play= async () => {
+  const result = await get(`api/songs/top-ten-play`);
+  return result;
+};
+
+export const update_song_like_view= async (data) => {
+  const result = await post(`api/songs/like-song`,data);
+  return result;
 };
