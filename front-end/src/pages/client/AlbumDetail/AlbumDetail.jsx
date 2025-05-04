@@ -199,13 +199,13 @@ const AlbumDetail = () => {
                     </span>
                   )}
                 </div>
-                {type !== "topic" && (
+                {/* {type !== "topic" && (
                   <div className="text-center">
                     <span style={{ fontSize: "12px", color: "#FFFFFF80" }}>
                       {dataInfo.playCount} người yêu thích
                     </span>
                   </div>
-                )}
+                )} */}
               </div>
               <div className="media-content-bottom mt-3">
                 <Button className="btn-play-all d-flex align-items-center mb-3">

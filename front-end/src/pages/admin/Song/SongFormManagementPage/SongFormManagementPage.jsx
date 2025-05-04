@@ -37,11 +37,7 @@ const SongFormManagementPage = () => {
           ]);
 
         formattedData = {
-          songId: latestSongResponse.data.id,
-          title: latestSongResponse.data.title,
-          status: latestSongResponse.data.status,
-          deleted: latestSongResponse.data.deleted,
-          audio: latestSongResponse.data.audio,
+          songId: latestSongResponse.data?._id || "SNG000",
         };
         singerOptions = singersResponse.singers.map((singer) => ({
           value: singer.id,

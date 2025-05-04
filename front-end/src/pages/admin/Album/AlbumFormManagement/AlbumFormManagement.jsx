@@ -39,7 +39,7 @@ const AlbumFormManagement = () => {
         ]);
 
         formattedData = {
-          albumId: latestAlbum.data._id,
+          albumId: latestAlbum.data?._id || "ALB000",
           title: latestAlbum.data.title,
           status: latestAlbum.data.status,
           deleted: latestAlbum.data.deleted,
