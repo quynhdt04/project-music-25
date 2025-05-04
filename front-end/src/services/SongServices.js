@@ -135,7 +135,7 @@ export const approve_multiple_songs = async (data) => {
     },
     body: JSON.stringify(data),
   });
-  return result;
+  return await result.json();
 };
 
 export const reject_multiple_songs = async (data) => {
@@ -147,7 +147,7 @@ export const reject_multiple_songs = async (data) => {
     },
     body: JSON.stringify(data),
   });
-  return result;
+  return await result.json();
 };
 
 export const approve_song = async (songId, userId) => {

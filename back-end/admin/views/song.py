@@ -13,6 +13,7 @@ from models.song import Song, Singer, Topic, Lyric
 from models.topic import Topic as TopicModel
 from models.singer import Singer as SingerModel
 from models.favorite_songs import FavoriteSong
+from models.account import Account
 from models.album import Album
 import logging
 import traceback
@@ -168,11 +169,14 @@ async def create_new_song(request):
             description = request.POST.get("description", "")
             singers = json.loads(request.POST.get("singers", "[]"))
             topics = json.loads(request.POST.get("topics", "[]"))
-            like = request.POST.get("like", "")
+            like = request.POST.get("like", 0)
             lyrics = json.loads(request.POST.get("lyrics", "[]"))
             status = request.POST.get("status", "pending")
             deleted = request.POST.get("deleted", "false").lower() == "true"
             deletedAt = request.POST.get("deletedAt", None)
+            createdBy = request.POST.get("createdBy", "")
+            approvedBy = request.POST.get("approvedBy", "")
+            play_count = request.POST.get("play_count", 0)
             isPremiumOnly = request.POST.get("isPremiumOnly", "false").lower() == "true"
 
             # Validate required fields
@@ -200,6 +204,9 @@ async def create_new_song(request):
                 status=status,
                 deleted=deleted,
                 deletedAt=deletedAt,
+                createdBy=createdBy,
+                approvedBy=approvedBy,
+                play_count=play_count,
                 isPremiumOnly=isPremiumOnly,
                 slug=slugify(title),
             )
@@ -219,6 +226,20 @@ async def get_song_by_id(request, song_id):
     if request.method == "GET":
         try:
             song = await sync_to_async(Song.objects.get)(_id=song_id)
+
+            if song.createdBy:
+                try:
+                    song.createdBy = await sync_to_async(Account.objects.get)(id=song.createdBy)
+                except Account.DoesNotExist:
+                    song.createdBy = None
+
+            # Get the account if approvedBy exists and is not empty
+            if song.approvedBy:
+                try:
+                    song.approvedBy = await sync_to_async(Account.objects.get)(id=song.approvedBy)
+                except Account.DoesNotExist:
+                    song.approvedBy = None
+
             
             # Try to find the album that contains this song
             albums = await sync_to_async(list)(Album.objects.filter(songs__in=[song._id]))
@@ -262,8 +283,11 @@ async def get_song_by_id(request, song_id):
                 "play_count": song.play_count,
                 "slug": song.slug,
                 "albums": serialized_albums,
+                "createdBy": song.createdBy.fullName if song.createdBy else None,
+                "approvedBy": song.approvedBy.fullName if song.approvedBy else None,
                 "createdAt": song.createdAt,
-                "updatedAt": song.updatedAt
+                "updatedAt": song.updatedAt,
+                "deleted": song.deleted
             }
             return JsonResponse({"data": song_serialized, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
         except Song.DoesNotExist:
@@ -362,14 +386,18 @@ async def update_song_data(request, song_id):
                 song.topics = [Topic(**topic) for topic in topics_data]
 
             if "like" in data:
-                song.like = data.get("like", "")
+                song.like = data.get("like", 0)
 
             if "lyrics" in data:
                 lyrics_data = json.loads(data.get("lyrics", "[]"))
                 song.lyrics = [Lyric(**lyric) for lyric in lyrics_data]
 
             if "status" in data:
-                song.status = data.get("status", "active")
+                if data.get("status") == "rejected":
+                    song.status = "pending"
+                    song.approvedBy = None
+                else:
+                    song.status = data.get("status", "active")
 
             if "deleted" in data:
                 song.deleted = data.get("deleted", "false").lower() == "true"
@@ -396,7 +424,7 @@ async def update_song_data(request, song_id):
 async def get_latest_song(request):
     if request.method == "GET":
         try:
-            song = await sync_to_async(Song.objects.order_by("-createdAt").first)()
+            song = await sync_to_async(Song.objects.order_by("-_id").first)()
 
             serialized_song = {
                 "_id": str(song._id),
@@ -501,6 +529,9 @@ async def get_all_pending_songs(request):
             songs = await sync_to_async(lambda: list(Song.objects.filter(status="pending", deleted=False).order_by("updatedAt")))()
             songs = await sync_to_async(list)(songs)
 
+            for song in songs:
+                song.createdBy = await sync_to_async(Account.objects.get)(id=song.createdBy)
+
             # Serialize the songs into JSON-compatible data
             serialized_songs = [
                 {
@@ -511,7 +542,7 @@ async def get_all_pending_songs(request):
                     ],  # Serialize each Singer object
                     "status": song.status,
                     "isPremiumOnly": song.isPremiumOnly,
-                    "createdBy": song.createdBy,
+                    "createdBy": song.createdBy.fullName if song.createdBy else None,
                     "updatedAt": song.updatedAt,
                 }
                 for song in songs
@@ -531,7 +562,7 @@ async def get_number_of_top_liked_songs(request):
             # Get the number from query parameters, default to 10 if not provided
             number = int(request.GET.get('limit', 10))
 
-            number_of_top_liked_songs = await sync_to_async(list)(Song.objects.filter(deleted=False).order_by("-like").limit(number))
+            number_of_top_liked_songs = await sync_to_async(list)(Song.objects.filter(deleted=False, status="approved").order_by("-like").limit(number))
             data = [{
                 "_id": str(song._id),
                 "title": song.title,
@@ -562,7 +593,7 @@ async def get_number_of_top_play_count_songs(request):
             # Get the number from query parameters, default to 10 if not provided
             number = int(request.GET.get('limit', 10))
 
-            number_of_top_played_songs = await sync_to_async(list)(Song.objects.filter(deleted=False).order_by("-play_count").limit(number))
+            number_of_top_played_songs = await sync_to_async(list)(Song.objects.filter(deleted=False, status="approved").order_by("-play_count").limit(number))
             data = [{
                 "_id": str(song._id),
                 "title": song.title,
@@ -595,7 +626,7 @@ async def get_songs_by_topic(request, topic_slug):
             topic_dict = await sync_to_async(topic.to_dict)()
             
             # Get all songs for this topic
-            songs = await sync_to_async(list)(Song.objects.filter(topics__topicId=topic_dict['id'], deleted=False))
+            songs = await sync_to_async(list)(Song.objects.filter(topics__topicId=topic_dict['id'], deleted=False, status="approved"))
             
             serialized_songs = []
             for song in songs:

@@ -235,6 +235,7 @@ const BaseTable = ({
         }
 
         if (response.status === 200) {
+          console.log(response);
           toast.success(response.message);
         } else {
           toast.error(response.message);

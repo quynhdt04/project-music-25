@@ -212,16 +212,12 @@ export const allRoutes = [
             element: <EditTopic />,
           },
           {
-            path: ":managementPage/:action?/:id?",
-            element: <MainContent />,
-          },
-          // {
-          //   path: "songs/:action?/:id?",
-          //   element: <SongFormManagementPage />,
-          // },
-          {
             path: "conversations",
             element: <Conversation />,
+          },
+          {
+            path: ":managementPage/:action?/:id?",
+            element: <MainContent />,
           },
         ],
       },

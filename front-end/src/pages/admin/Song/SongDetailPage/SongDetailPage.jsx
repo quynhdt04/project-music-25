@@ -19,8 +19,8 @@ import {
   approve_song,
   reject_song,
 } from "../../../../services/SongServices";
-import { getCookie } from "../../../../helpers/cookie";
 import ButtonWithModal from "../../../../components/ButtonWithModal/ButtonWithModal";
+import { useSelector } from "react-redux";
 
 const getStatusClass = (status) => {
   const statusMap = {
@@ -127,6 +127,7 @@ const SongDetailPage = ({ managementPage = "songs" }) => {
     isLoading: true,
     isError: false,
   });
+  const account = useSelector((state) => state.authenReducer.account);
 
   const fetchData = useCallback(async () => {
     try {
@@ -140,7 +141,7 @@ const SongDetailPage = ({ managementPage = "songs" }) => {
         default: {
           songByIdResponse = await get_song_by_id(id);
           formattedData = {
-            songId: songByIdResponse.data._id,
+            songId: songByIdResponse.data.id,
             title: songByIdResponse.data.title,
             avatar: songByIdResponse.data.avatar,
             audio: songByIdResponse.data.audio,
@@ -188,7 +189,6 @@ const SongDetailPage = ({ managementPage = "songs" }) => {
 
   const handleStatusConfirm = async () => {
     try {
-      const account = JSON.parse(getCookie("account"));
       let response = null;
       switch (status) {
         case "rejected":
@@ -361,7 +361,7 @@ const SongDetailPage = ({ managementPage = "songs" }) => {
 
                 <div className="info-group">
                   <h5>Likes</h5>
-                  <span className="like-count">{song.likes || 0} likes</span>
+                  <span className="like-count">{song.like || 0} likes</span>
                 </div>
               </div>
             </Col>
