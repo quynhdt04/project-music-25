@@ -44,21 +44,6 @@ function ListPage() {
       let formattedData = null;
 
       switch (managementPage) {
-        case "songs-approval": {
-          response = await get_all_pending_songs();
-          console.log("response", response);
-          formattedData = response.data.map((item) => ({
-            id: item._id,
-            title: item.title,
-            singer: item.singers.map((singer) => singer.singerName),
-            isPremiumOnly: item.isPremiumOnly,
-            createdBy: item.createdBy,
-            status: item.status,
-            updatedAt: format(new Date(item.updatedAt), "dd/MM/yyyy HH:mm:ss"),
-          }));
-          break;
-        }
-
         case "albums-approval": {
           response = await get_all_pending_albums();
           formattedData = response.data.map((item) => ({
@@ -71,6 +56,21 @@ function ListPage() {
             updatedAt:
               format(new Date(item.updatedAt), "dd/MM/yyyy HH:mm:ss") ||
               "27/07/2021 12:00:00",
+          }));
+          break;
+        }
+
+        case "songs-approval": {
+          response = await get_all_pending_songs();
+          console.log("response", response);
+          formattedData = response.data.map((item) => ({
+            id: item._id,
+            title: item.title,
+            singer: item.singers.map((singer) => singer.singerName),
+            isPremiumOnly: item.isPremiumOnly,
+            createdBy: item.createdBy,
+            status: item.status,
+            updatedAt: format(new Date(item.updatedAt), "dd/MM/yyyy HH:mm:ss"),
           }));
           break;
         }
@@ -267,6 +267,8 @@ function ListPage() {
                 new Date(song.updatedAt),
                 "dd/MM/yyyy HH:mm:ss"
               ),
+              createdBy: song.createdBy,
+              isPremiumOnly: song.isPremiumOnly,
             }))
           );
           setFetchingStatus({ isLoading: false, isError: false });

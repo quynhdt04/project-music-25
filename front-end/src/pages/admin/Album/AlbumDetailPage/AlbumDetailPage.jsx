@@ -405,16 +405,16 @@ function AlbumDetailPage({ managementPage = "albums" }) {
                   <span>Ngày tạo: {formatDate(data.createdAt)}</span>
                 </div>
                 <div className="timestamp-item">
-                  <Person className="icon" />
-                  <span>Người tạo: {data.createdBy}</span>
+                  <Clock className="icon" />
+                  <span>Ngày cập nhật: {formatDate(data.updatedAt)}</span>
                 </div>
               </div>
             </Col>
             <Col md={6}>
               <div className="timestamps justify-content-md-end">
                 <div className="timestamp-item">
-                  <Clock className="icon" />
-                  <span>Ngày cập nhật: {formatDate(data.updatedAt)}</span>
+                  <Person className="icon" />
+                  <span>Người tạo: {data.createdBy}</span>
                 </div>
                 <div className="timestamp-item">
                   <PersonCheck className="icon" />

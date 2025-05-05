@@ -39,10 +39,7 @@ const AlbumFormManagement = () => {
         ]);
 
         formattedData = {
-          albumId: latestAlbum.data._id,
-          title: latestAlbum.data.title,
-          status: latestAlbum.data.status,
-          deleted: latestAlbum.data.deleted,
+          albumId: latestAlbum.data?._id || "ALB000",
         };
 
         singerOptions = allSingers.singers.map((singer) => ({

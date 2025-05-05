@@ -58,7 +58,7 @@ const RelationshipSection = ({
             </div>
           ))
         ) : (
-          <div className="text-muted">No {title.toLowerCase()} selected</div>
+          <div className="text-muted">Không có {title.toLowerCase()} nào được chọn</div>
         )}
       </div>
     </div>

@@ -36,4 +36,4 @@ dist-ssr/
 
 # Bỏ qua thư mục venv trong back-end
 back-end/myvenv/
-
+back-end/db.sqlite3

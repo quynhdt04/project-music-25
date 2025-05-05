@@ -188,6 +188,33 @@ function Permissions() {
                             ))}
                         </tr>
                         <tr>
+                            <td colSpan="3"><b>Albums</b></td>
+                        </tr>
+                        <tr data-name="albums_view">
+                            <td>Xem</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="albums_create">
+                            <td>Thêm mới</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="albums_edit">
+                            <td>Chỉnh sửa</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr data-name="albums_del">
+                            <td>Xóa</td>
+                            {roles.map((item, index) => (
+                                <td key={index}><input type="checkbox" /></td>
+                            ))}
+                        </tr>
+                        <tr>
                             <td colSpan="3"><b>Bài hát</b></td>
                         </tr>
                         <tr data-name="song_view">
@@ -295,7 +322,7 @@ function Permissions() {
                                 <td key={index}><input type="checkbox" /></td>
                             ))}
                         </tr>
-                        <tr>
+                        {/* <tr>
                             <td colSpan="3"><b>Cài đặt chung</b></td>
                         </tr>
                         <tr data-name="general_view">
@@ -321,7 +348,7 @@ function Permissions() {
                             {roles.map((item, index) => (
                                 <td key={index}><input type="checkbox" /></td>
                             ))}
-                        </tr>
+                        </tr> */}
                         <tr data-name="dashboard">
                             <td style={{ fontWeight: "bold" }}>Tổng quan</td>
                             {roles.map((item, index) => (
