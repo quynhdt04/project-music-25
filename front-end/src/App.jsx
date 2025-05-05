@@ -11,12 +11,14 @@ import { useLocation } from "react-router-dom";
 function App() {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith("/admin");
+  const isPurchasePage = location.pathname.startsWith("/payment");
+  console.log(isPurchasePage);
 
   return (
     <MusicPlayerProvider>
       <ToastContainer position="top-right" autoClose={3000} />
       <RouteAll />
-      {!isAdminPage && <MusicPlayer />}
+      {(!isAdminPage && !isPurchasePage) && <MusicPlayer />}
     </MusicPlayerProvider>
   );
 }
