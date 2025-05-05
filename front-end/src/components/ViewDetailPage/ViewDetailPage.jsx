@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import SongDetailPage from "../Song/SongDetailPage/SongDetailPage";
+import SongDetailPage from "../../pages/admin/Song/SongDetailPage/SongDetailPage";
 
 const ViewDetailPage = () => {
   const { managementPage } = useParams(); // Get all parameters

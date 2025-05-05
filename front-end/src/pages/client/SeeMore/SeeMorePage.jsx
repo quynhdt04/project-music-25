@@ -3,6 +3,7 @@ import { Container, Row, Col, Spinner } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import CategoryItem from "../../../components/CategoryItem/CategoryItem";
 import { get_all_topics } from "../../../services/TopicServices";
+import { get_all_albums } from "../../../services/AlbumServices";
 
 const SeeMorePage = () => {
     const [pageTitle, setPageTitle] = useState("");
@@ -22,34 +23,36 @@ const SeeMorePage = () => {
                 });
 
                 switch (type) {
-                    case "songs":
-                        setPageTitle("Bài hát");
+                    case "album":
+                        setPageTitle("Tất cả Album");
+                        const responseAlbums = await get_all_albums();
+                        const formattedDataAlbums = responseAlbums.data.map((album) => ({
+                            id: album._id,
+                            title: album.title,
+                            slug: album.slug,
+                            cover: album.cover_image,
+                            artist: album.singer.fullName,
+                        }))
+                        setData(formattedDataAlbums);
                         break;
-                    case "artists":
-                        setPageTitle("Ca sĩ");
-                        break;
-                    case "albums":
-                        setPageTitle("Album");
-                        break;
-                    case "playlists":
-                        setPageTitle("PlayList");
-                        break;
-                    default:
+
+                    default: {
                         setPageTitle("Tất cả chủ đề");
+                        const response = await get_all_topics();
+                        const formattedData = response.topics.map((topic) => ({
+                            id: topic.id,
+                            title: topic.title,
+                            slug: topic.slug,
+                            cover: topic.avatar,
+                            description: topic.description,
+                        }))
+        
+                        setData(formattedData);
                         break;
+                    }
                 }
 
-                const response = await get_all_topics();
-                console.log("Check topic response: ", response);
-                const formattedData = response.topics.map((topic) => ({
-                    id: topic.id,
-                    title: topic.title,
-                    slug: topic.slug,
-                    cover: topic.avatar,
-                    description: topic.description,
-                }))
 
-                setData(formattedData);
                 setFetchStatus({
                     isLoading: false,
                     isError: false,

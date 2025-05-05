@@ -175,7 +175,7 @@ const AlbumForm = ({ type, existingAlbum, listDataOption }) => {
     formData.append("albumId", data.albumId);
     formData.append("title", data.title);
     formData.append("singerId", data.singerId);
-    formData.append("avatar", imageFile);
+    formData.append("avatar", imageFile || existingAlbum.avatar);
     formData.append(
       "songs",
       JSON.stringify(selectedSongs.map((song) => song.value))
