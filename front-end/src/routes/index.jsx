@@ -41,8 +41,12 @@ import Vip from "../pages/client/Vip";
 import IndexPage from "../pages/client/VnpayPage/index";
 import PaymentForm from "../pages/client/VnpayPage/PaymentForm";
 import PaymentReturn from "../pages/client/VnpayPage/PaymentReturn";
+import SearchHome from "../pages/client/SearchHome";
+import Album from "../pages/client/Album";
 import SeeMorePage from "../pages/client/SeeMore/SeeMorePage";
 import ConversationClient from "../pages/client/Conversation";
+import Artist from "../pages/client/Artist";
+import ArtistDetail from "../pages/client/ArtistDetail";
 
 export const allRoutes = [
   // Routes cho Client
@@ -61,6 +65,14 @@ export const allRoutes = [
       {
         path: ":type/:id",
         element: <AlbumDetail />,
+      },     
+      {
+        path: "search/:keyword",
+        element: <SearchHome />,
+      },
+      {
+        path: "album/:id/:slug",
+        element: <Album />,
       },
       {
         path: ":type/see-more",
@@ -81,6 +93,18 @@ export const allRoutes = [
             path: "playlist/detail/:id",
             element: <PlayListDetail />,
           },
+          {
+            path: "conversations",
+            element: <ConversationClient />,
+          },      
+          {
+            path: "artists",
+            element: <Artist />,
+          },
+          {
+            path: "artists/detail/:id",
+            element: <ArtistDetail />,
+          }, 
         ],
       },
       {
@@ -94,11 +118,7 @@ export const allRoutes = [
       {
         path: "/vip",
         element: <Vip />,
-      },
-      {
-        path: "conversations",
-        element: <ConversationClient />,
-      },
+      },    
     ],
   },
   // Route  cho  Payment

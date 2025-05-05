@@ -1,0 +1,37 @@
+.artist-detail .aritis-wraper {
+    background-image: linear-gradient(to top, #0d2a50, #19519C);
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+.artist-detail .songs-list {
+    background: linear-gradient(to bottom, #0B2445, #000000);
+    height: 45vh;
+    /* Đặt chiều cao tối đa cho phần tử, có thể thay đổi theo nhu cầu */
+    overflow-y: auto;
+    /* Thêm thanh cuộn dọc nếu nội dung vượt quá chiều cao */
+    padding: 20px;
+    /* Thêm padding để nội dung không bị dính vào viền */
+}
+
+@keyframes slowBounce {
+    0% {
+        transform: translateX(0);
+    }
+
+    50% {
+        transform: translateX(-5px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+.auto-bounce {
+    animation: slowBounce 2s ease-in-out infinite;
+}
+
+.auto-bounce:hover {
+    animation-play-state: paused;
+}

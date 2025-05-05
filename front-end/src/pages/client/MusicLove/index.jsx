@@ -15,7 +15,6 @@ const MusicLove = () => {
     const { currentSong, isPlaying, playSong, togglePlay, addToQueue, getAudioDuration, formatDuration } =
         useMusicPlayer();
 
-
     useEffect(() => {
         const fetchApi = async () => {
             const favoriteSongs = await get_favoriteSong(user.id);
@@ -40,27 +39,6 @@ const MusicLove = () => {
         fetchApi();
     }, [refreshFavoriteSong])
 
-    // const toggleFavorite = async (key) => {
-    //     const songID = key;
-    //     const userID = user.id;
-    //     try {
-    //         const result = await create_favoriteSong({
-    //             userId: userID,
-    //             songId: songID,
-    //         });
-    //         const requestData = {
-    //             songId: songID,
-    //             isLike: false,
-    //         };
-
-    //         const resultLike = await update_song_like_view(requestData);
-    //         setRefreshFavoriteSong(!refreshFavoriteSong);
-    //         setFavorite((prev) => ({ ...prev, [key]: !prev[key] }));
-    //         console.log("Yêu thích thành công:", result);
-    //     } catch (error) {
-    //         console.error("Lỗi khi thêm vào yêu thích:", error);
-    //     }
-    // };
 
     const toggleFavorite = async (key) => {
         const songID = key;
