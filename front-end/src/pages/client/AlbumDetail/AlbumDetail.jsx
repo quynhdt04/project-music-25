@@ -11,6 +11,7 @@ import {
   get_songs_by_topic_slug,
   get_song_by_slug,
 } from "../../../services/SongServices";
+import { get_album_by_slug, get_songs_by_album_slug } from "../../../services/AlbumServices";
 import Media from "../../../components/Media/Media";
 
 const AlbumDetail = () => {
@@ -110,6 +111,40 @@ const AlbumDetail = () => {
 
           setDataInfo(songInfoData);
           setSongs([songsWithDuration]);
+        } else if (type === "album") {
+          const [albumInfo, albumSongs] = await Promise.all([
+            get_album_by_slug(id),
+            get_songs_by_album_slug(id),
+          ]);
+          const albumInfoData = {
+            id: albumInfo.data.id,
+            title: albumInfo.data.title,
+            cover: albumInfo.data.avatar,
+            artist: albumInfo.data.singer.fullName,
+          };
+          const songsWithDuration = await Promise.all(
+            albumSongs.data.map(async (song) => {
+              const duration = await getAudioDuration(song.audio);
+              return {
+                id: song._id,
+                title: song.title,
+                cover: song.avatar,
+                description: song.description,
+                artist: song.singers.map((item) => item.singerName).join(", "),
+                album: song.albums?.map((item) => item.title).join(", ") || "",
+                audio: song.audio,
+                video: song.video,
+                lyrics: song.lyrics,
+                like: song.like,
+                isPremiumOnly: song.isPremiumOnly,
+                playCount: song.play_count,
+                duration: formatDuration(duration),
+                slug: song.slug,
+              };
+            })
+          );
+          setDataInfo(albumInfoData);
+          setSongs(songsWithDuration);
         }
 
         setFetchStatus({
@@ -154,12 +189,6 @@ const AlbumDetail = () => {
       addToQueue(song);
     }
   };
-
-  // const handleAddToQueue = (e) => {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-  //   addToQueue(song);
-  // };
 
   if (fetchStatus.isLoading) {
     return (
@@ -317,7 +346,7 @@ const AlbumDetail = () => {
           </div>
         </Col>
       </Row>
-      <Row className="artist-row d-flex flex-column my-4 pb-5">
+      {/* <Row className="artist-row d-flex flex-column my-4 pb-5">
         <Col className="px-0 mb-4">
           <h5 style={{ fontWeight: "600" }}>Nghệ Sĩ Tham Gia</h5>
         </Col>
@@ -440,7 +469,7 @@ const AlbumDetail = () => {
             </Col>
           </Row>
         </Col>
-      </Row>
+      </Row> */}
     </Container>
   );
 };

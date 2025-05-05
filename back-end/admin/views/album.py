@@ -15,6 +15,7 @@ import traceback
 from bson import ObjectId
 from models.song import Song
 from models.singer import Singer
+from models.account import Account
 logger = logging.getLogger(__name__)
 from mongoengine.queryset.visitor import Q
 
@@ -113,9 +114,46 @@ async def get_all_pending_albums(request):
                     }
                 },
                 {
+                    "$lookup": {
+                        "from": "accounts",  
+                        "let": {"accountId": "$createdBy"},
+                        "pipeline": [
+                            {
+                                "$match": {
+                                    "$expr": {
+                                        "$eq": [
+                                            {"$toString": "$_id"},
+                                            "$$accountId"
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                "$project": {
+                                    "_id": 0,
+                                    "fullName": 1,
+                                }
+                            }
+                        ],
+                        "as": "albumCreatedBy"
+                    }
+                },
+                {
+                    "$unwind": {
+                        "path": "$albumCreatedBy",
+                        "preserveNullAndEmptyArrays": True
+                    }
+                },
+                {
+                    "$addFields": {
+                        "createdBy": "$albumCreatedBy.fullName"
+                    }
+                },
+                {
                     "$project": {
                         "singerId": 0,
                         "songs": 0,
+                        "albumCreatedBy": 0
                     }
                 }
             ]
@@ -251,6 +289,7 @@ async def get_all_albums(request):
                         "deleted": 1,
                         "createdAt": 1,
                         "updatedAt": 1,
+                        "slug": 1,
                         "singer": {
                             "_id": "$singer._id",
                             "fullName": "$singer.fullName",
@@ -290,163 +329,6 @@ async def get_all_albums(request):
     }, status=405)
 
 @csrf_exempt
-async def get_all_albums(request):
-    if request.method == "GET":
-        try:
-            # Create aggregation pipeline to join with singers and accounts
-            pipeline = [
-                {
-                    "$lookup": {
-                        "from": "singers",
-                        "let": {"singerId": "$singerId"},
-                        "pipeline": [
-                            {
-                                "$match": {
-                                    "$expr": {
-                                        "$eq": [
-                                            {"$toString": "$_id"},
-                                            "$$singerId"
-                                        ]
-                                    }
-                                }
-                            },
-                            {
-                                "$project": {
-                                    "_id": 1,
-                                    "fullName": 1,
-                                    "avatar": 1
-                                }
-                            }
-                        ],
-                        "as": "singer"
-                    }
-                },
-                {
-                    "$lookup": {
-                        "from": "accounts",
-                        "let": {"createdBy": "$createdBy"},
-                        "pipeline": [
-                            {
-                                "$match": {
-                                    "$expr": {
-                                        "$eq": [
-                                            {"$toString": "$_id"},
-                                            "$$createdBy"
-                                        ]
-                                    }
-                                }
-                            },
-                            {
-                                # $lookup = include
-                                "$lookup": {
-                                    "from": "roles",
-                                    "let": {"roleId": "$role_id"},
-                                    "pipeline": [
-                                        {
-                                            "$match": {
-                                                "$expr": {
-                                                    "$eq": [
-                                                        {"$toString": "$_id"},
-                                                        "$$roleId"
-                                                    ]
-                                                }
-                                            }
-                                        },
-                                        {
-                                            # $project = attributes exclude
-                                            "$project": {
-                                                "_id": 1,
-                                                "title": 1,
-                                                "description": 1
-                                            }
-                                        }
-                                    ],
-                                    "as": "roleDetails"
-                                }
-                            },
-                            {
-                                # $unwind = JS destructuring
-                                "$unwind": {
-                                    "path": "$roleDetails",
-                                    "preserveNullAndEmptyArrays": True
-                                }
-                            },
-                            {
-                                "$project": {
-                                    "_id": 1,
-                                    "fullName": 1,
-                                    "email": 1,
-                                    "role": {
-                                        "_id": "$roleDetails._id",
-                                        "name": "$roleDetails.title",
-                                        "description": "$roleDetails.description"
-                                    }
-                                }
-                            }
-                        ],
-                        "as": "creator"
-                    }
-                },
-                {
-                    "$unwind": {
-                        "path": "$singer",
-                        "preserveNullAndEmptyArrays": True
-                    }
-                },
-                {
-                    "$unwind": {
-                        "path": "$creator",
-                        "preserveNullAndEmptyArrays": True
-                    }
-                },
-                {
-                    "$project": {
-                        "title": 1,
-                        "cover_image": 1,
-                        "songs": 1,
-                        "status": 1,
-                        "deleted": 1,
-                        "createdAt": 1,
-                        "updatedAt": 1,
-                        "singer": {
-                            "_id": "$singer._id",
-                            "fullName": "$singer.fullName",
-                            "avatar": "$singer.avatar"
-                        },
-                        "creator": {
-                            "_id": "$creator._id",
-                            "username": "$creator.fullName",
-                            "email": "$creator.email",
-                            "role": "$creator.role"
-                        }
-                    }
-                }
-            ]
-
-            # Execute the aggregation pipeline
-            albums = await sync_to_async(list)(Album.objects.aggregate(*pipeline))
-            
-            # Convert all ObjectId fields to strings
-            albums = convert_objectid_to_str(albums)
-
-            return JsonResponse({
-                "data": albums,
-                "status": 200,
-                "message": "Lấy tất cả album thành công!"
-            }, status=200)
-        except Exception as e:
-            logger.error(traceback.format_exc())
-            return JsonResponse({
-                "error": str(e),
-                "status": 500,
-                "message": "Lấy tất cả album thất bại!"
-            }, status=500)
-    return JsonResponse({
-        "error": "Phương thức yêu cầu không hợp lệ!",
-        "status": 405
-    }, status=405)
-
-@csrf_exempt
 async def get_album_by_id(request, album_id):
     if request.method == "GET":
         try:
@@ -455,7 +337,6 @@ async def get_album_by_id(request, album_id):
                 {
                     "$match": {
                         "_id": album_id,
-                        "status": "pending"
                     }  
                 },
                 {
@@ -515,9 +396,79 @@ async def get_album_by_id(request, album_id):
                     }
                 },
                 {
+                    "$lookup": {
+                        "from": "accounts",  
+                        "let": {"accountId": "$createdBy"},
+                        "pipeline": [
+                            {
+                                "$match": {
+                                    "$expr": {
+                                        "$eq": [
+                                            {"$toString": "$_id"},
+                                            "$$accountId"
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                "$project": {
+                                    "_id": 0,
+                                    "fullName": 1,
+                                }
+                            }
+                        ],
+                        "as": "albumCreatedBy"
+                    }
+                },
+                {
+                    "$lookup": {
+                        "from": "accounts",  
+                        "let": {"accountId": "$approvedBy"},
+                        "pipeline": [
+                            {
+                                "$match": {
+                                    "$expr": {
+                                        "$eq": [
+                                            {"$toString": "$_id"},
+                                            "$$accountId"
+                                        ]
+                                    }
+                                }
+                            },
+                            {
+                                "$project": {
+                                    "_id": 0,
+                                    "fullName": 1,
+                                }
+                            }
+                        ],
+                        "as": "albumApprovedBy"
+                    }
+                },
+                {
+                    "$unwind": {
+                        "path": "$albumCreatedBy",
+                        "preserveNullAndEmptyArrays": True
+                    }
+                },
+                {
+                    "$unwind": {
+                        "path": "$albumApprovedBy",
+                        "preserveNullAndEmptyArrays": True
+                    }
+                },
+                {
+                    "$addFields": {
+                        "createdBy": "$albumCreatedBy.fullName",
+                        "approvedBy": "$albumApprovedBy.fullName"
+                    }
+                },
+                {
                     "$project": {
                         "singerId": 0,
                         "songs": 0,
+                        "albumCreatedBy": 0,
+                        "albumApprovedBy": 0
                     }
                 }
             ]
@@ -542,7 +493,7 @@ async def get_latest_album(request):
     if request.method == "GET":
         try:
             # Get the latest album using find_one with sort
-            latest_album = await sync_to_async(Album.objects.order_by('-createdAt').first)()
+            latest_album = await sync_to_async(Album.objects.order_by('-_id').first)()
             
             if not latest_album:
                 return JsonResponse({"error": "Không tìm thấy album nào", "status": 404}, status=404)
@@ -677,8 +628,11 @@ async def update_album(request, album_id):
             # Handle avatar update
             new_avatar_file = files.get("avatar")
             current_avatar_url = data.get("avatar")
+
+            print("new_avatar_file", new_avatar_file)
+            print("current_avatar_url", current_avatar_url)
             
-            if new_avatar_file:
+            if new_avatar_file is not None:
                 # Delete old avatar if exists
                 if album.cover_image:
                     try:
@@ -707,6 +661,10 @@ async def update_album(request, album_id):
                 return JsonResponse({"message": "Vui lòng cung cấp bài hát", "status": 400}, status=400)
 
             album.updatedAt = datetime.now(UTC)
+
+            if album.status == "rejected":
+                album.status = "pending"
+                album.approvedBy = None
 
             # Save changes
             await sync_to_async(album.save)()
@@ -1182,3 +1140,159 @@ async def reject_album(request, album_id):
         except Exception as e:
             return JsonResponse({"error": str(e), "message": "Lỗi khi từ chối album!", "status": 400}, status=400)
     return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!", "status": 405}, status=405)
+
+@csrf_exempt
+async def get_number_of_albums(request):
+    if request.method == "GET":
+        try:
+            # Get the number from query parameters, default to 10 if not provided
+            number = int(request.GET.get('limit', 10))
+            
+            albums = await sync_to_async(list)(Album.objects.filter(deleted=False, status="approved").limit(number))
+
+            for album in albums:
+                try:
+                    singer = await sync_to_async(Singer.objects.get)(id=album.singerId)
+                    album.singer = {
+                        "_id": str(singer.id),
+                        "fullName": singer.fullName
+                    }
+                except Singer.DoesNotExist:
+                    album.singer = None
+
+            data = [
+                {
+                    "id": album._id,
+                    "title": album.title,
+                    "slug": album.slug,
+                    "singer": album.singer,
+                    "avatar": album.cover_image,
+                }
+
+                for album in albums
+            ]
+            return JsonResponse({"data": data, "status": 200, "message": "Lấy album thành công theo số lượng thành công!"}, status=200)
+        except ValueError:
+            logger.error("Invalid limit parameter. Must be a number.")
+            return JsonResponse({"error": "Invalid limit parameter. Must be a number."}, status=400)
+        except Exception as e:
+            logger.error(str(e))
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def get_songs_by_albums(request, album_slug):
+    if request.method == "GET":
+        try:
+            # Get the album
+            album = await sync_to_async(Album.objects.get)(slug=album_slug)
+            
+            # Get all songs for this album
+            songs = await sync_to_async(list)(Song.objects.filter(_id__in=album.songs, deleted=False, status="approved"))
+            
+            serialized_songs = []
+            for song in songs:
+                # Get all albums for this song
+                albums = await sync_to_async(list)(Album.objects.filter(songs__in=[song._id]))
+                
+                if albums:
+                    serialized_albums = []
+                    for album in albums:
+                        try:
+                            singer = await sync_to_async(Singer.objects.get)(id=album.singerId)
+                            serialized_album = {
+                                "id": str(album._id),
+                                "title": album.title,
+                                "singer": {
+                                    "id": str(singer.id),
+                                    "fullName": singer.fullName
+                                }
+                            }
+                        except Singer.DoesNotExist:
+                            serialized_album = {
+                                "id": str(album._id),
+                                "title": album.title,
+                                "singer": None
+                            }
+                        serialized_albums.append(serialized_album)
+                else:
+                    serialized_albums = []
+                
+                # Serialize the song
+                serialized_song = {
+                    "_id": str(song._id),
+                    "title": song.title,
+                    "singers": [{"singerId": singer.singerId, "singerName": singer.singerName} for singer in song.singers],
+                    "topics": [{"topicId": topic.topicId, "topicName": topic.topicName} for topic in song.topics],
+                    "like": song.like,
+                    "lyrics": [{"lyricContent": lyric.lyricContent, "lyricStartTime": lyric.lyricStartTime, "lyricEndTime": lyric.lyricEndTime} for lyric in song.lyrics],
+                    "status": song.status,
+                    "avatar": song.avatar,
+                    "audio": song.audio,
+                    "video": song.video,
+                    "description": song.description,
+                    "isPremiumOnly": song.isPremiumOnly,
+                    "play_count": song.play_count,
+                    "slug": song.slug,
+                    "albums": serialized_albums,
+                    "createdAt": song.createdAt,
+                    "updatedAt": song.updatedAt
+                }
+                serialized_songs.append(serialized_song)
+            
+            return JsonResponse({
+                "data": serialized_songs,
+                "status": 200,
+                "message": "Lấy bài hát thành công!"
+            }, status=200)
+        
+        except Album.DoesNotExist:
+            return JsonResponse({
+                "message": "Album không tồn tại",
+                "status": 404
+            }, status=404)
+        
+        except Exception as e:
+            return JsonResponse({
+                "message": f"Lỗi: {str(e)}",
+                "status": 500
+            }, status=500)
+    return JsonResponse({"message": "Phương thức yêu cầu không hợp lệ!"}, status=405)
+
+@csrf_exempt
+async def get_album_by_slug(request, album_slug):
+    if request.method == "GET":
+        try:
+            # Get the album
+            album = await sync_to_async(Album.objects.get)(slug=album_slug)
+            
+            # Get the singer and convert to dictionary
+            singer = await sync_to_async(Singer.objects.get)(id=album.singerId)
+            singer_data = {
+                "id": str(singer.id),
+                "fullName": singer.fullName,
+                "avatar": singer.avatar
+            }
+            
+            # Prepare the serialized album data
+            serialized_album = {
+                "id": str(album._id),
+                "title": album.title,
+                "slug": album.slug,
+                "singer": singer_data,
+                "avatar": album.cover_image,
+            }
+            
+            return JsonResponse({"data": serialized_album, "message": "Get data successfully", "status": 200}, status=200)
+        except Album.DoesNotExist:
+            return JsonResponse({"message": "Album not found", "status": 404}, status=404)
+        except Singer.DoesNotExist:
+            logger.error(f"Singer not found for album {album_slug}")
+            return JsonResponse({"message": "Singer not found", "status": 404}, status=404)
+        except Exception as e:
+            logger.error(traceback.format_exc())
+            return JsonResponse({"error": str(e), "status": 500}, status=500)
+    return JsonResponse({
+        "error": "Phương thức yêu cầu không hợp lệ!",
+        "status": 405
+    }, status=405)

@@ -49,7 +49,7 @@ export const restore_multiple_albums = async (data) => {
       body: JSON.stringify(data),
     }
   );
-  return result;
+  return await result.json();
 };
 
 export const delete_multiple_albums = async (data) => {
@@ -61,7 +61,7 @@ export const delete_multiple_albums = async (data) => {
     },
     body: JSON.stringify(data),
   });
-  return result;
+  return await result.json();
 };
 
 export const search_albums = async (data) => {
@@ -90,7 +90,7 @@ export const approve_multiple_albums = async (data) => {
       body: JSON.stringify(data),
     }
   );
-  return result;
+  return await result.json();
 };
 
 export const reject_multiple_albums = async (data) => {
@@ -102,7 +102,7 @@ export const reject_multiple_albums = async (data) => {
     },
     body: JSON.stringify(data),
   });
-  return result;
+  return await result.json();
 };
 
 export const approve_album = async (albumId, userId) => {
@@ -112,5 +112,20 @@ export const approve_album = async (albumId, userId) => {
 
 export const reject_album = async (albumId, userId) => {
   const result = await patch(`api/albums/reject-album`, albumId, { userId });
+  return result;
+};
+
+export const get_number_of_albums = async (limit) => {
+  const result = await get(`api/albums/get-number-of-albums?limit=${limit}`);
+  return result;
+};
+
+export const get_songs_by_album_slug = async (slug) => {
+  const result = await get(`api/albums/get-songs-by-album/${slug}/`);
+  return result;
+};
+
+export const get_album_by_slug = async (slug) => {
+  const result = await get(`api/albums/get-album-by-slug/${slug}/`);
   return result;
 };
