@@ -20,23 +20,27 @@ const PrivateRoutes = () => {
     if (location.pathname.startsWith("/admin/singers") && !role?.permissions?.includes("singer_view")) {
         return <Navigate to="/admin/dashboard" replace />;
     }
+
     if (location.pathname.startsWith("/admin/singers/create") && !role?.permissions?.includes("singer_create")) {
         return <Navigate to="/admin/dashboard" replace />;
     }
+
     if (location.pathname.startsWith("/admin/singers/edit") && !role?.permissions?.includes("singer_edit")) {
         return <Navigate to="/admin/dashboard" replace />;
     }
 
-    if (location.pathname.startsWith("/admin/songs") && !role?.permissions?.includes("song_view")) {
+    if (location.pathname === "/admin/songs" && !role?.permissions?.includes("song_view")) {
         return <Navigate to="/admin/dashboard" replace />;
     }
 
     if (location.pathname.startsWith("/admin/users") && !role?.permissions?.includes("user_view")) {
         return <Navigate to="/admin/dashboard" replace />;
     }
+
     if (location.pathname.startsWith("/admin/users/create") && !role?.permissions?.includes("user_create")) {
         return <Navigate to="/admin/dashboard" replace />;
     }
+
     if (location.pathname.startsWith("/admin/edit") && !role?.permissions?.includes("user_edit")) {
         return <Navigate to="/admin/dashboard" replace />;
     }
