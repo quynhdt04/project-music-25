@@ -14,6 +14,7 @@ import { Menu } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import { updateUser } from "../../../reducers/index";
 import dayjs from "dayjs";
+import useMusicPlayer from "../../../hooks/useMusicPlayer";
 
 function LayoutDefault() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -32,6 +33,10 @@ function LayoutDefault() {
   const isPremium = user?.isPremium;
   const [checkedPremium, setCheckedPremium] = useState(false);
   const [keyword, setKeyword] = useState("");
+  const {
+    currentSong,
+    setCurrentSong,
+  } = useMusicPlayer();
 
   const handleRegisterSuccess = () => {
     setShowRegisterForm(false);
@@ -43,6 +48,11 @@ function LayoutDefault() {
     sessionStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("currentQueue");
+    if (currentSong) {
+      localStorage.removeItem("currentSong");
+      setCurrentSong(null);
+    }
     toast.success("Bạn đã đăng xuất");
     setShowLoginForm(false);
     navigate("/");
