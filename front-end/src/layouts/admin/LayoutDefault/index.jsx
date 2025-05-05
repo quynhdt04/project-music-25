@@ -14,7 +14,8 @@ import {
   FaCog,
   FaRegUser,
   FaUserTie,
-  FaComments
+  FaComments,
+  FaRegFolder 
 } from "react-icons/fa";
 import { JournalAlbum } from "react-bootstrap-icons";
 import { Menu } from "antd";
@@ -25,6 +26,7 @@ const menuItems = [
   { key: "topic_view", role: "topic_view", icon: <FaTags />, label: <Link to="/admin/topics">Chủ đề</Link> },
   { key: "singer_view", role: "singer_view", icon: <FaMicrophone />, label: <Link to="/admin/singers">Ca sĩ</Link> },
   { key: "song_view", role: "song_view", icon: <FaMusic />, label: <Link to="/admin/songs">Bài hát</Link> },
+  { key: "albums_view", role: "albums_view", icon: <FaRegFolder  />, label: <Link to="/admin/albums">Albums</Link> },
   { key: "songs-approval_view", role: "songs-approval_view", icon: <FaMusic />, label: <Link to="/admin/songs-approval">Duyệt bài hát</Link> },
   { key: "albums-approval_view", role: "albums-approval_view", icon: <JournalAlbum />, label: <Link to="/admin/albums-approval">Duyệt album</Link> },
   { key: "user_view", role: "user_view", icon: <FaUsers />, label: <Link to="/admin/users">Người dùng</Link> },
@@ -32,7 +34,7 @@ const menuItems = [
   { key: "role_1", role: "role", icon: <FaUserShield />, label: <Link to="/admin/roles">Nhóm quyền</Link> },
   { key: "role_2", role: "role", icon: <FaUnlockAlt />, label: <Link to="/admin/roles/permissions">Phân quyền</Link> },
   { key: "conversation_view", role: "conversation_view", icon: <FaComments />, label: <Link to="/admin/conversations">Trò chuyện</Link> },
-  { key: "general_view", role: "general_view", icon: <FaCog />, label: <Link to="/admin/general">Cài đặt chung</Link> },
+  // { key: "general_view", role: "general_view", icon: <FaCog />, label: <Link to="/admin/general">Cài đặt chung</Link> },
 ];
 
 function LayoutDefault() {
