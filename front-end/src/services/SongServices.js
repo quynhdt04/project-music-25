@@ -86,6 +86,8 @@ export const get_song_by_slug = async (slug) => {
 };
 
 export const like_song = async (slug, userId) => {
+  console.log("slug", slug);
+  console.log("userId", userId);
   const result = await post(`api/songs/like/${slug}/`, { userId });
   return result;
 };
@@ -133,7 +135,7 @@ export const approve_multiple_songs = async (data) => {
     },
     body: JSON.stringify(data),
   });
-  return result;
+  return await result.json();
 };
 
 export const reject_multiple_songs = async (data) => {
@@ -145,7 +147,7 @@ export const reject_multiple_songs = async (data) => {
     },
     body: JSON.stringify(data),
   });
-  return result;
+  return await result.json();
 };
 
 export const approve_song = async (songId, userId) => {

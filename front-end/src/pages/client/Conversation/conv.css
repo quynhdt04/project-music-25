@@ -12,7 +12,7 @@ body {
 
 /* CSS Group (bên phải) */
 .group-client {
-    height: 80vh;
+    height: 74vh;
     overflow-y: auto;   /* Thêm thanh cuộn dọc khi cần thiết */
     padding-right: 15px; /* Để tránh thanh cuộn bị che khuất */
 }
@@ -71,7 +71,7 @@ body {
 /* Bắt đầu css message */
 .message-client {
     width: 400px;
-    height: 80vh;
+    height: 74vh;
     background-color: white;
     display: flex;
     flex-direction: column;

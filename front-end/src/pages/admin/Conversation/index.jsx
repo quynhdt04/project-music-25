@@ -81,7 +81,7 @@ function Conversation() {
 
         // Chỉ gọi API nếu danh sách cuộc trò chuyện chưa được tải
         // if (!conversations || conversations.length === 0) {
-            fetchAPI();
+        fetchAPI();
         // }
     }, [refresh]);
 
@@ -211,15 +211,15 @@ function Conversation() {
     };
 
 
-    const toggleMenu = (index, event) => {
-        event.stopPropagation();
-        setActiveMenu(activeMenu === index ? null : index);
-    };
+  const toggleMenu = (index, event) => {
+    event.stopPropagation();
+    setActiveMenu(activeMenu === index ? null : index);
+  };
 
-    const closeMenu = (event) => {
-        if (menuRef.current && menuRef.current.contains(event.target)) return;
-        setActiveMenu(null);
-    };
+  const closeMenu = (event) => {
+    if (menuRef.current && menuRef.current.contains(event.target)) return;
+    setActiveMenu(null);
+  };
 
     useEffect(() => {
         document.addEventListener("mousedown", closeMenu);
@@ -229,10 +229,10 @@ function Conversation() {
     }, []);
 
 
-    //------------------------------------------Message--------------------------------
-    const toggleSearch = () => {
-        setShowSearch(!showSearch);  // Thay đổi trạng thái khi bấm vào biểu tượng tìm kiếm
-    };
+  //------------------------------------------Message--------------------------------
+  const toggleSearch = () => {
+    setShowSearch(!showSearch); // Thay đổi trạng thái khi bấm vào biểu tượng tìm kiếm
+  };
 
     //Cuộn tới tin nhắn mới nhất
     const scrollToBottom = () => {
@@ -387,8 +387,8 @@ function Conversation() {
             acc[messageDate] = acc[messageDate] || [];
             acc[messageDate].push(msg);
 
-            return acc;
-        }, {});
+      return acc;
+    }, {});
 
 
     useEffect(() => {
@@ -402,7 +402,7 @@ function Conversation() {
             });
         };
 
-        socket.on("receive_message", handleReceiveMessage);
+    socket.on("receive_message", handleReceiveMessage);
 
         return () => {
             socket.off("receive_message", handleReceiveMessage);
@@ -455,17 +455,21 @@ function Conversation() {
                                         onChange={handleSendImage}
                                         style={{ display: "none" }} // Ẩn input file
                                         id="image-upload"
+                                        disabled={!selectedConversationId}
                                     />
-                                    <label htmlFor="image-upload" style={{ cursor: "pointer" }}>
+                                    <label htmlFor="image-upload" style={{ cursor: selectedConversationId ? "pointer" : "not-allowed", opacity: selectedConversationId ? 1 : 0.5 }}>
                                         <FaRegImage size={35} color="#394867" />
                                     </label>
                                 </div>
                                 <Form.Control type="text" placeholder="Aa" className="me-2 ms-3" value={messageText}
-                                    onChange={(e) => setMessageText(e.target.value)} />
-                                <button type="submit" className="btn btn-primary btn-send ms-2">
+                                    onChange={(e) => setMessageText(e.target.value)}
+                                    disabled={!selectedConversationId} />
+                                <button type="submit" className="btn btn-primary btn-send ms-2" disabled={!selectedConversationId}
+                                    style={{ cursor: selectedConversationId ? "pointer" : "not-allowed", opacity: selectedConversationId ? 1 : 0.5 }}>
                                     <MdSend size={35} color="#394867" />
                                 </button>
-                                <div className="heart ms-2" onClick={() => handleSendMessage(null, "❤️", "EMOJI")} style={{ cursor: "pointer" }}>
+                                <div className="heart ms-2" onClick={() => handleSendMessage(null, "❤️", "EMOJI")}
+                                    style={{ cursor: selectedConversationId ? "pointer" : "not-allowed", opacity: selectedConversationId ? 1 : 0.5 }}>
                                     <IoHeartSharp size={35} color="red" />
                                 </div>
                             </Form>
@@ -478,7 +482,7 @@ function Conversation() {
                             <Form.Group className="mb-0 w-75">
                                 <InputGroup size="sm">
                                     <Form.Control type="text" placeholder="Tìm kiếm..." value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)} />
+                                        onChange={(e) => setSearchTerm(e.target.value)} disabled={!selectedConversationId}/>
                                     <InputGroup.Text>
                                         <FaSearch />
                                     </InputGroup.Text>

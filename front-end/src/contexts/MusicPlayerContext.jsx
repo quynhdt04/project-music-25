@@ -4,7 +4,9 @@ import {
   increment_song_playCount,
   checkIsSongLikedByCurrentUser,
   get_song_by_id,
+  like_song,
 } from "../services/SongServices";
+import { useSelector } from "react-redux";
 
 const MusicPlayerProvider = ({ children }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -17,6 +19,7 @@ const MusicPlayerProvider = ({ children }) => {
   const [queue, setQueue] = useState([]);
   const [showLyrics, setShowLyrics] = useState(false);
   const [showPremiumMessage, setShowPremiumMessage] = useState(false);
+  const user = useSelector((state) => state.authenReducer.user);
 
   // Premium timer related refs
   const premiumTimerRef = useRef(null);
@@ -70,36 +73,42 @@ const MusicPlayerProvider = ({ children }) => {
     try {
       const currentQueue = JSON.parse(localStorage.getItem("currentQueue"));
       if (currentQueue) {
-        const songs = await Promise.all(currentQueue.map(async (song) => {
-          const songData = await get_song_by_id(song.id);
+        const songs = await Promise.all(
+          currentQueue.map(async (song) => {
+            const songData = await get_song_by_id(song.id);
 
-          const duration = await getAudioDuration(songData.data.audio);
+            const duration = await getAudioDuration(songData.data.audio);
 
-          return {
-            id: songData.data.id,
-            title: songData.data.title,
-            cover: songData.data.avatar,
-            description: songData.data.description,
-            artist: songData.data.singers.map((item) => item.singerName).join(", "),
-            album: songData.data.albums?.map((item) => item.title).join(", ") || "",
-            audio: songData.data.audio,
-            video: songData.data.video,
-            lyrics: songData.data.lyrics,
-            like: songData.data.like,
-            isPremiumOnly: songData.data.isPremiumOnly,
-            playCount: songData.data.play_count,
-            duration: formatDuration(duration),
-          };
-        }));
-        console.log("Queue", songs)
+            return {
+              id: songData.data.id,
+              title: songData.data.title,
+              cover: songData.data.avatar,
+              description: songData.data.description,
+              artist: songData.data.singers
+                .map((item) => item.singerName)
+                .join(", "),
+              album:
+                songData.data.albums?.map((item) => item.title).join(", ") ||
+                "",
+              audio: songData.data.audio,
+              video: songData.data.video,
+              lyrics: songData.data.lyrics,
+              like: songData.data.like,
+              isPremiumOnly: songData.data.isPremiumOnly,
+              playCount: songData.data.play_count,
+              duration: formatDuration(duration),
+            };
+          })
+        );
+        console.log("Queue", songs);
         setQueue(songs);
         return true;
       }
     } catch (e) {
-      console.log(e)
+      console.log(e);
       return false;
     }
-  }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -200,22 +209,24 @@ const MusicPlayerProvider = ({ children }) => {
 
   // Reset premium message state when song changes
   useEffect(() => {
-    hasShownPremiumMessage.current = false;
-    remainingTimeRef.current = 30000;
-    if (premiumTimerRef.current) {
-      clearTimeout(premiumTimerRef.current);
+    if (!user?.isPremium) {
+      hasShownPremiumMessage.current = false;
+      remainingTimeRef.current = 30000;
+      if (premiumTimerRef.current) {
+        clearTimeout(premiumTimerRef.current);
+      }
+      isPremiumTimerActive.current = false;
     }
-    isPremiumTimerActive.current = false;
-  }, [currentSong]);
+  }, [currentSong, user?.isPremium]);
 
   // Handle premium timer when playing state changes
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && !user?.isPremium) {
       resumePremiumTimer();
     } else {
       pausePremiumTimer();
     }
-  }, [isPlaying]);
+  }, [isPlaying, user?.isPremium]);
 
   const incrementPlayCount = async () => {
     if (currentSong && !hasIncrementedPlayCount.current) {
@@ -251,12 +262,12 @@ const MusicPlayerProvider = ({ children }) => {
 
   // Handle play count timer when playing state changes
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && !user?.isPremium) {
       startPlayCountTimer();
     } else {
       clearPlayCountTimer();
     }
-  }, [isPlaying]);
+  }, [isPlaying, user?.isPremium]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -339,15 +350,16 @@ const MusicPlayerProvider = ({ children }) => {
     let newQueue = [...queue];
     if (Array.isArray(song)) {
       // Filter out songs that are already in the queue
-      const newSongs = song.filter(
-        (newSong) =>
-          !queue.some((existingSong) => existingSong.id === newSong.id)
-      )
-      .map((song) => ({
-        id: song.id,
-        title: song.title,
-        artist: song.artist,
-      }));
+      const newSongs = song
+        .filter(
+          (newSong) =>
+            !queue.some((existingSong) => existingSong.id === newSong.id)
+        )
+        .map((song) => ({
+          id: song.id,
+          title: song.title,
+          artist: song.artist,
+        }));
       if (newSongs.length > 0) {
         newQueue = [...newQueue, ...newSongs];
         setQueue(newQueue);
@@ -355,7 +367,10 @@ const MusicPlayerProvider = ({ children }) => {
     } else {
       // Check if the single song is not already in the queue
       if (!queue.some((existingSong) => existingSong.id === song.id)) {
-        newQueue = [...newQueue, { id: song.id, title: song.title, artist: song.artist }];
+        newQueue = [
+          ...newQueue,
+          { id: song.id, title: song.title, artist: song.artist },
+        ];
         setQueue(newQueue);
       }
     }
@@ -402,6 +417,16 @@ const MusicPlayerProvider = ({ children }) => {
     });
   };
 
+  const handleLikeClick = async (songSlug = currentSong.slug) => {
+    try {
+      const user = JSON.parse(sessionStorage.getItem("user"));
+      const result = await like_song(songSlug, user.id);
+    } catch (error) {
+      console.log(error);
+    }
+    setIsLiked(!isLiked);
+  };
+
   const value = {
     isLiked,
     currentSong,
@@ -431,7 +456,8 @@ const MusicPlayerProvider = ({ children }) => {
     removeSongFromQueue,
     getAudioDuration,
     formatDuration,
-    fetchQueueData
+    fetchQueueData,
+    handleLikeClick,
   };
 
   return (

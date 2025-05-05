@@ -15,6 +15,7 @@ import RelationshipSection from "../RelationshipSection/RelationshipSection";
 import "./SongForm.scss";
 import { Bounce, toast } from "react-toastify";
 import { create_new_song, update_song_data } from "../../services/SongServices";
+import { useSelector } from "react-redux";
 
 const SongForm = ({ type, existingSong, listDataOption }) => {
   const [imagePreview, setImagePreview] = useState("");
@@ -32,6 +33,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
   const imageInputRef = useRef(null);
   const audioInputRef = useRef(null);
   const videoInputRef = useRef(null);
+  const account = useSelector((state) => state.authenReducer.account);
 
   let navigate = useNavigate();
 
@@ -237,6 +239,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
     formData.append("status", data.status);
     formData.append("deleted", data.deleted);
     formData.append("isPremiumOnly", data.isPremiumOnly);
+    formData.append("createdBy", account.id);
 
     try {
       setIsSubmitting(true);
@@ -335,7 +338,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
                     className="btn btn-outline-primary w-100"
                   >
                     <Upload className="me-2" />
-                    Upload Image
+                    Tải ảnh lên
                   </label>
                 </div>
                 {imagePreview && (
@@ -375,7 +378,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
                     className="btn btn-outline-primary w-100"
                   >
                     <Upload className="me-2" />
-                    Upload Audio
+                    Tải file âm thanh lên
                   </label>
                 </div>
                 {audioPreview && (
@@ -413,7 +416,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
                     className="btn btn-outline-primary w-100"
                   >
                     <Upload className="me-2" />
-                    Upload Video
+                    Tải file video lên
                   </label>
                 </div>
               </Form.Group>
@@ -458,7 +461,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
           <Row className="mb-3">
             <Col md={6}>
               <RelationshipSection
-                title="Singers"
+                title="Ca sĩ"
                 options={listDataOption.singers}
                 selectedItems={selectedSingers}
                 onAddItem={(item) =>
@@ -474,7 +477,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
 
             <Col md={6}>
               <RelationshipSection
-                title="Topics"
+                title="Chủ đề"
                 options={listDataOption.topics}
                 selectedItems={selectedTopics}
                 onAddItem={(item) =>
@@ -508,7 +511,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
                     <Row>
                       <Col md={6}>
                         <Form.Control
-                          placeholder="Lyric content"
+                          placeholder="Nội dung lời"
                           value={line.content}
                           onChange={(e) =>
                             updateLyricLine(index, "content", e.target.value)
@@ -518,7 +521,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
                       <Col md={2}>
                         <Form.Control
                           type="number"
-                          placeholder="Start at (s)"
+                          placeholder="Bắt đầu (s)"
                           value={line.beginAt}
                           onChange={(e) =>
                             updateLyricLine(index, "beginAt", e.target.value)
@@ -528,7 +531,7 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
                       <Col md={2}>
                         <Form.Control
                           type="number"
-                          placeholder="End at (s)"
+                          placeholder="Kết thúc (s)"
                           value={line.endAt}
                           onChange={(e) =>
                             updateLyricLine(index, "endAt", e.target.value)
@@ -555,10 +558,10 @@ const SongForm = ({ type, existingSong, listDataOption }) => {
             <Row className="mb-3">
               <Col md={6}>
                 <Form.Group controlId="deleted">
-                  <Form.Label>Deletion Status</Form.Label>
+                  <Form.Label>Trạng thái xóa</Form.Label>
                   <Form.Select {...register("deleted")}>
-                    <option value={false}>Not Deleted</option>
-                    <option value={true}>Deleted</option>
+                    <option value={false}>Chưa xóa</option>
+                    <option value={true}>Đã xóa</option>
                   </Form.Select>
                 </Form.Group>
               </Col>

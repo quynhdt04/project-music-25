@@ -30,8 +30,8 @@ function PlayListDetail() {
   const [albumTitle, setAlbumTitle] = useState("");
   const [firstAvatar, setFirstAvatar] = useState("");
   const [album, setAlbum] = useState([]);
-  // const userReducer = useSelector((state) => state.authenReducer.user);
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = useSelector((state) => state.authenReducer.user);
+  // const user = JSON.parse(sessionStorage.getItem("user"));
   const { currentSong, isPlaying, playSong, togglePlay, addToQueue, getAudioDuration, formatDuration } =
     useMusicPlayer();
 

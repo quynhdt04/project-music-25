@@ -16,7 +16,7 @@ from admin.views.album import (
     get_all_pending_albums, get_album_by_id, get_latest_album, get_all_albums, 
     update_album, create_new_album, delete_album, delete_multiple_albums, 
     restore_multiple_albums, search_album, filter_album, approve_multiple_albums, reject_multiple_albums,
-    approve_album, reject_album
+    approve_album, reject_album, get_number_of_albums, get_songs_by_albums, get_album_by_slug
 )
 from admin.views.conversation import get_all_conversations, get_conversation_by_id, create_conversation, delete_conversation,update_conversation
 from admin.views.message import get_messages_by_conversation, create_message
@@ -97,6 +97,9 @@ urlpatterns = [
     path("albums/reject-multiple-albums", reject_multiple_albums, name="reject_multiple_albums"),
     path("albums/approve-album/<str:album_id>/", approve_album, name="approve_album"),
     path("albums/reject-album/<str:album_id>/", reject_album, name="reject_album"),
+    path("albums/get-number-of-albums", get_number_of_albums, name="get_number_of_albums"),
+    path("albums/get-songs-by-album/<str:album_slug>/", get_songs_by_albums, name="get_songs_by_albums"),
+    path("albums/get-album-by-slug/<str:album_slug>/", get_album_by_slug, name="get_album_by_slug"),
     
     path('conversations/', get_all_conversations, name='get_all_conversations'),
     path('conversations/<str:conversation_id>/', get_conversation_by_id, name='get_conversation_by_id'),
