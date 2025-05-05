@@ -7,9 +7,11 @@ import {
   get_number_of_top_liked_songs,
   get_number_of_top_listened_songs,
 } from "../../../services/SongServices";
+import { get_number_of_albums } from "../../../services/AlbumServices";
 import useMusicPlayer from "../../../hooks/useMusicPlayer";
 
 function Home() {
+  const [albums, setAlbums] = useState([]);
   const [topics, setTopics] = useState([]);
   const [topLikedSongs, setTopLikedSongs] = useState([]);
   const [topListenedSongs, setTopListenedSongs] = useState([]);
@@ -26,7 +28,8 @@ function Home() {
           isLoading: true,
           isError: false,
         });
-        const [topics, topLikedSongs, topListenedSongs] = await Promise.all([
+        const [albums, topics, topLikedSongs, topListenedSongs] = await Promise.all([
+          get_number_of_albums(5),
           get_number_of_topics(5),
           get_number_of_top_liked_songs(10),
           get_number_of_top_listened_songs(10),
@@ -67,6 +70,15 @@ function Home() {
           artist: song.singers.map((item) => item.singerName).join(", "),
         }));
 
+        const formattedAlbums = albums.data.map((album) => ({
+          id: album.id,
+          title: album.title,
+          cover: album.avatar,
+          slug: album.slug,
+          artist: album.singer.fullName,
+        }));
+
+        setAlbums(formattedAlbums);
         setTopics(formattedTopics);
         setTopLikedSongs(formattedTopLikedSongs);
         setTopListenedSongs(formattedTopListenedSongs);
@@ -91,6 +103,11 @@ function Home() {
         <Row>
           <Col className="px-0">
             <CategoryBlock title="Chủ đề" type="topic" data={topics} />
+          </Col>
+        </Row>
+        <Row>
+          <Col className="px-0">
+            <CategoryBlock title="Album" type="album" data={albums} />
           </Col>
         </Row>
         <Row>
