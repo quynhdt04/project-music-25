@@ -267,6 +267,8 @@ function ListPage() {
                 new Date(song.updatedAt),
                 "dd/MM/yyyy HH:mm:ss"
               ),
+              createdBy: song.createdBy,
+              isPremiumOnly: song.isPremiumOnly,
             }))
           );
           setFetchingStatus({ isLoading: false, isError: false });

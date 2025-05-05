@@ -886,6 +886,20 @@ async def search_song(request):
             # Apply the search query and other filters
             songs = await sync_to_async(Song.objects.filter)(search_query)
             songs = await sync_to_async(list)(songs)
+
+            for song in songs:
+                if song.createdBy:
+                    try:
+                        song.createdBy = await sync_to_async(Account.objects.get)(id=song.createdBy)
+                    except Account.DoesNotExist:
+                        song.createdBy = None
+
+                # Get the account if approvedBy exists and is not empty
+                if song.approvedBy:
+                    try:
+                        song.approvedBy = await sync_to_async(Account.objects.get)(id=song.approvedBy)
+                    except Account.DoesNotExist:
+                        song.approvedBy = None
             
             serialized_songs = [{
                 "_id": str(song._id),
@@ -897,6 +911,9 @@ async def search_song(request):
                 "createdAt": song.createdAt,
                 "updatedAt": song.updatedAt,
                 "slug": song.slug,
+                "createdBy": song.createdBy.fullName if song.createdBy else None,
+                "approvedBy": song.approvedBy.fullName if song.approvedBy else None,
+                "isPremiumOnly": song.isPremiumOnly,
             } for song in songs]
             
             return JsonResponse({"data": serialized_songs, "status": 200, "message": "Lấy bài hát thành công!"}, status=200)
@@ -1006,6 +1023,20 @@ async def filter_pending_songs(request):
             # Apply the filter
             songs = await sync_to_async(Song.objects.filter)(**query)
             songs = await sync_to_async(list)(songs)
+
+            for song in songs:
+                if song.createdBy:
+                    try:
+                        song.createdBy = await sync_to_async(Account.objects.get)(id=song.createdBy)
+                    except Account.DoesNotExist:
+                        song.createdBy = None
+
+                # Get the account if approvedBy exists and is not empty
+                if song.approvedBy:
+                    try:
+                        song.approvedBy = await sync_to_async(Account.objects.get)(id=song.approvedBy)
+                    except Account.DoesNotExist:
+                        song.approvedBy = None
             
             # Serialize the songs
             serialized_songs = [{
@@ -1017,7 +1048,8 @@ async def filter_pending_songs(request):
                 "createdAt": song.createdAt,
                 "updatedAt": song.updatedAt,
                 "isPremiumOnly": song.isPremiumOnly,
-                "createdBy": song.createdBy,
+                "createdBy": song.createdBy.fullName if song.createdBy else None,
+                "approvedBy": song.approvedBy.fullName if song.approvedBy else None,
                 "slug": song.slug,
             } for song in songs]
 
