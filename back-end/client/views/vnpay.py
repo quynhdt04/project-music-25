@@ -150,32 +150,19 @@ def payment_return(request):
                 elif amount == 350000:
                     return 365
                 else:
-                    return 0 # Hoặc có thể raise Exception nếu không tìm thấy
+                    return 0
             duration = get_duration_from_amount(amount)
             status = "thanh_cong" if vnp_ResponseCode == "00" else "that_bai"
 
-            if status == "thanh_cong":
-                try:
-                    user = User.objects.get(id=user_id)
+            # Kiểm tra xem giao dịch đã được xử lý thành công trước đó chưa
+            existing_payment = PricingPlan.objects.filter(order_id=order_id, status="thanh_cong").first()
+            if existing_payment:
+                print(f"❌ Giao dịch {order_id} đã được xử lý thành công trước đó")
+                return JsonResponse({"code": "02", "message": "Giao dịch đã được xử lý thành công trước đó"})
 
-                    now = datetime.utcnow()
+            # Xóa giao dịch thất bại trước đó với cùng order_id (nếu có)
+            PricingPlan.objects.filter(order_id=order_id, status="that_bai").delete()
 
-                    # Nếu user đã có premium và chưa hết hạn → cộng thêm vào ngày hiện tại
-                    if user.isPremium and user.premiumExpiresAt and user.premiumExpiresAt > now:
-                        user.premiumExpiresAt += timedelta(days=duration)
-                    else:
-                        # Nếu chưa từng Premium hoặc đã hết hạn → đặt lại từ hôm nay
-                        user.premiumExpiresAt = now + timedelta(days=duration)
-
-                    user.isPremium = True  # ✅ Luôn bật isPremium khi thanh toán thành công
-                    user.save()
-
-                    print("✅ Đã cập nhật Premium:", user.isPremium, user.premiumExpiresAt)
-
-                except User.DoesNotExist:
-                    print("❌ Không tìm thấy user khi cập nhật Premium")
-
-            print("🧾 Saving to DB with:", user_id, order_id, amount, "duration:", duration)
             # Lưu thông tin vào MongoDB
             pricing_plan = PricingPlan(
                 user_id=user_id,
@@ -183,29 +170,47 @@ def payment_return(request):
                 order_type="VNPAY",
                 amount=amount,
                 order_desc=order_desc,
-                bank_code="",  # Nếu bạn không có từ frontend
+                bank_code="",
                 language="vi",
                 status=status,
-                duration=duration,  # Thời gian sử dụng gói cước (ngày)
+                duration=duration,
                 createdAt=datetime.utcnow(),
                 updatedAt=datetime.utcnow(),
             )
             pricing_plan.save()
-             # Cập nhật isPremium cho user
-            user = User.objects.get(id=user_id)
-            user.isPremium = True  # Cập nhật là Premium
-            user.save()
+            print(f"✅ Đã lưu PricingPlan: {order_id}, status: {status}")
 
-            print(f"User {user_id} đã được cập nhật là Premium")
+            # Chỉ cập nhật isPremium nếu thanh toán thành công
+            if status == "thanh_cong":
+                try:
+                    user = User.objects.get(id=user_id)
+                    now = datetime.utcnow()
 
-            return JsonResponse({"code": "00", "message": "Lưu thanh toán thành công"})
+                    # Nếu user đã có premium và chưa hết hạn → cộng thêm
+                    if user.isPremium and user.premiumExpiresAt and user.premiumExpiresAt > now:
+                        user.premiumExpiresAt += timedelta(days=duration)
+                    else:
+                        # Nếu chưa Premium hoặc đã hết hạn → đặt lại từ hôm nay
+                        user.premiumExpiresAt = now + timedelta(days=duration)
+
+                    user.isPremium = True
+                    user.save()
+                    print(f"✅ Đã cập nhật user {user_id}: isPremium={user.isPremium}, premiumExpiresAt={user.premiumExpiresAt}")
+                except User.DoesNotExist:
+                    print(f"❌ Không tìm thấy user {user_id}")
+                    return JsonResponse({"code": "01", "message": "Không tìm thấy user"}, status=404)
+
+            return JsonResponse({
+                "code": "00",
+                "message": "Lưu thanh toán thành công",
+                "isSuccess": status == "thanh_cong"
+            })
         except Exception as e:
             print("❌ Exception khi lưu thanh toán:")
-            traceback.print_exc()  # In toàn bộ lỗi chi tiết ra terminal
+            traceback.print_exc()
             return JsonResponse({"code": "01", "message": f"Lỗi: {str(e)}"}, status=500)
     
     return JsonResponse({"code": "01", "message": "Phương thức không hợp lệ"}, status=405)
-
 def get_client_ip(request):
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:

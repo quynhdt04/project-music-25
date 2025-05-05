@@ -15,6 +15,11 @@ const PaymentReturn = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Log searchParams và localStorage để debug
+    console.log("searchParams:", Object.fromEntries(searchParams));
+    console.log("localStorage.user:", localStorage.getItem("user"));
+    console.log("localStorage.token:", localStorage.getItem("token"));
+
     const info = {
       title: "Kết quả thanh toán",
       result:
@@ -32,23 +37,34 @@ const PaymentReturn = () => {
     setData(info);
 
     const userFromStorage = JSON.parse(localStorage.getItem("user"));
-    const tokenFromStorage = localStorage.getItem("token");
-    const user_id = userFromStorage ? userFromStorage.id : null;
-    if (!user_id) {
-      console.error("User ID không tồn tại trong localStorage");
-    } else {
-      console.log("User ID:", user_id);
+    const token = localStorage.getItem("token");
+    // Xử lý cả hai cấu trúc: {user: {...}} và {...} trực tiếp
+    const user_id = userFromStorage
+      ? userFromStorage.user
+        ? userFromStorage.user.id
+        : userFromStorage.id
+      : null;
+
+    if (!user_id || !token) {
+      console.error("User ID hoặc token không tồn tại trong localStorage", {
+        user_id,
+        token,
+      });
+      toast.error("Vui lòng đăng nhập lại!");
+      navigate("/login");
+      return;
     }
 
-    if (user_id) {
-      // Gửi yêu cầu lưu thông tin thanh toán vào cơ sở dữ liệu
-      const savePaymentInfo = async () => {
+    // Gửi yêu cầu lưu thông tin thanh toán
+    const savePaymentInfo = async () => {
+      try {
         const response = await fetch(
           "http://localhost:8000/api/payment-return",
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
             },
             body: JSON.stringify({
               user_id,
@@ -64,19 +80,28 @@ const PaymentReturn = () => {
         );
 
         const result = await response.json();
+        console.log("API payment-return response:", result);
 
         if (result.code === "00") {
-          const userRes = await fetch(`http://localhost:8000/user/${user_id}`);
+          // Lấy thông tin người dùng mới nhất
+          const userRes = await fetch(`http://localhost:8000/user/${user_id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          if (!userRes.ok) {
+            throw new Error(`Không thể lấy thông tin người dùng: ${userRes.status}`);
+          }
           const freshUser = await userRes.json();
           console.log("Fetched user data:", freshUser);
-          const token = localStorage.getItem("token");
-          // Cập nhật lại localStorage
+
+          // Cập nhật localStorage và sessionStorage
           localStorage.setItem("user", JSON.stringify(freshUser));
           sessionStorage.setItem("user", JSON.stringify(freshUser));
           localStorage.setItem("token", token);
           sessionStorage.setItem("token", token);
 
-          // Dispatch vào đúng auth reducer
+          // Cập nhật Redux
           dispatch({
             type: "LOGIN_SUCCESS",
             payload: {
@@ -85,17 +110,26 @@ const PaymentReturn = () => {
             },
           });
 
-          toast.success("Nâng cấp tài khoản thành công!");
+          // Hiển thị thông báo dựa trên isSuccess từ backend
+          if (result.isSuccess) {
+            toast.success("Nâng cấp tài khoản thành công!");
+          } else {
+            toast.error("Thanh toán thất bại hoặc đã bị hủy!");
+            // Không xóa user hoặc token, chỉ xóa dữ liệu tạm nếu có
+            sessionStorage.removeItem("temporary_payment_data");
+          }
         } else {
-          console.error("Lỗi khi lưu thanh toán:", result.Message);
+          console.error("Lỗi khi lưu thanh toán:", result.message);
+          toast.error(`Lỗi: ${result.message}`);
         }
-      };
+      } catch (error) {
+        console.error("Lỗi khi gọi API:", error);
+        toast.error("Đã xảy ra lỗi khi xử lý thanh toán!");
+      }
+    };
 
-      savePaymentInfo();
-    } else {
-      console.error("User ID không tồn tại trong localStorage");
-    }
-  }, [searchParams]);
+    savePaymentInfo();
+  }, [searchParams, dispatch, navigate]);
 
   // useEffect(() => {
   //   const userFromStorage = JSON.parse(localStorage.getItem("user"));
