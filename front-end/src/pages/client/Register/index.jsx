@@ -3,6 +3,7 @@ import { registerUser } from "../../../services/UserService";
 import { toast } from "react-toastify";
 import { getUserById } from "../../../services/UserService";
 import { useNavigate } from "react-router-dom";
+import "./RegisterForm.scss";
 
 function RegisterForm({ onClose, onRegisterSuccess }) {
   const [userData, setUserData] = useState({
@@ -127,7 +128,7 @@ function RegisterForm({ onClose, onRegisterSuccess }) {
   };
 
   return (
-    <div className="modal modal-thuytrang" style={{ zIndex: 5050 }}>
+    <div className="modal modal-thuytrang" style={{ zIndex: '5050 !important' }}>
       <div className="modal-content">
         <h2>Đăng ký tài khoản</h2>
         <input
