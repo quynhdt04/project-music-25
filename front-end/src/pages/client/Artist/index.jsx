@@ -39,7 +39,7 @@ function Artist() {
                         </div>
                     ))
                 ) : (
-                    <div className="no-artist" style={{ textAlign: "center", padding: "20px" }}>
+                    <div className="no-artist text-white"  style={{ textAlign: "center", padding: "20px" }}>
                         Không có ca sĩ nào
                     </div>
                 )}
