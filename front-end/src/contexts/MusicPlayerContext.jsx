@@ -123,11 +123,38 @@ const MusicPlayerProvider = ({ children }) => {
   }, []);
 
   // Show the last song that the user played
-  useEffect(() => {
-    const currentSong = JSON.parse(localStorage.getItem("currentSong"));
+  // useEffect(() => {
+  //   const currentSong = JSON.parse(localStorage.getItem("currentSong"));
 
-    if (currentSong) {
-      setCurrentSong(currentSong);
+  //   if (currentSong) {
+  //     setCurrentSong(currentSong);
+  //   }
+  // }, []);
+  useEffect(() => {
+    // Lấy giá trị từ localStorage
+    const storedSong = localStorage.getItem("currentSong");
+  
+    // Kiểm tra xem storedSong có tồn tại và là chuỗi hợp lệ không
+    if (storedSong) {
+      try {
+        const currentSong = JSON.parse(storedSong);
+        // Kiểm tra thêm nếu currentSong là một object hợp lệ (tuỳ thuộc vào định dạng bạn mong đợi)
+        if (currentSong && typeof currentSong === 'object') {
+          setCurrentSong(currentSong);
+        } else {
+          console.warn('Parsed currentSong is not a valid object:', currentSong);
+          // Xử lý trường hợp không hợp lệ, ví dụ: đặt giá trị mặc định
+          setCurrentSong(null);
+        }
+      } catch (error) {
+        console.error('Error parsing currentSong from localStorage:', error);
+        // Xử lý lỗi, ví dụ: xóa giá trị không hợp lệ và đặt giá trị mặc định
+        localStorage.removeItem("currentSong");
+        setCurrentSong(null);
+      }
+    } else {
+      console.log('No currentSong found in localStorage');
+      setCurrentSong(null); // Đặt giá trị mặc định nếu không tìm thấy
     }
   }, []);
 
