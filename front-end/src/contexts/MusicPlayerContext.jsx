@@ -6,7 +6,7 @@ import {
   get_song_by_id,
   like_song,
 } from "../services/SongServices";
-import { checkUserAuthenticated } from "../utils/constants";
+import { useSelector } from "react-redux";
 
 const MusicPlayerProvider = ({ children }) => {
   const [isLiked, setIsLiked] = useState(false);
@@ -19,6 +19,7 @@ const MusicPlayerProvider = ({ children }) => {
   const [queue, setQueue] = useState([]);
   const [showLyrics, setShowLyrics] = useState(false);
   const [showPremiumMessage, setShowPremiumMessage] = useState(false);
+  const user = useSelector((state) => state.authenReducer.user);
 
   // Premium timer related refs
   const premiumTimerRef = useRef(null);
@@ -181,22 +182,24 @@ const MusicPlayerProvider = ({ children }) => {
 
   // Reset premium message state when song changes
   useEffect(() => {
-    hasShownPremiumMessage.current = false;
-    remainingTimeRef.current = 30000;
-    if (premiumTimerRef.current) {
-      clearTimeout(premiumTimerRef.current);
+    if (!user?.isPremium) {
+      hasShownPremiumMessage.current = false;
+      remainingTimeRef.current = 30000;
+      if (premiumTimerRef.current) {
+        clearTimeout(premiumTimerRef.current);
+      }
+      isPremiumTimerActive.current = false;
     }
-    isPremiumTimerActive.current = false;
-  }, [currentSong]);
+  }, [currentSong, user?.isPremium]);
 
   // Handle premium timer when playing state changes
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && !user?.isPremium) {
       resumePremiumTimer();
     } else {
       pausePremiumTimer();
     }
-  }, [isPlaying]);
+  }, [isPlaying, user?.isPremium]);
 
   const incrementPlayCount = async () => {
     if (currentSong && !hasIncrementedPlayCount.current) {
@@ -232,12 +235,12 @@ const MusicPlayerProvider = ({ children }) => {
 
   // Handle play count timer when playing state changes
   useEffect(() => {
-    if (isPlaying) {
+    if (isPlaying && !user?.isPremium) {
       startPlayCountTimer();
     } else {
       clearPlayCountTimer();
     }
-  }, [isPlaying]);
+  }, [isPlaying, user?.isPremium]);
 
   // Cleanup on unmount
   useEffect(() => {
